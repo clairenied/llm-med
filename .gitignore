@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 
 # Vercel
 .vercel
+
+# Postgres
+postgres_data/*
