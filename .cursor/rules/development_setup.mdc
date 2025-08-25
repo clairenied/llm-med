@@ -1,0 +1,70 @@
+# Development Setup
+
+## Stack
+Next.js + React + PostgreSQL + Prisma ORM
+Manuscript review tracking system
+
+## Quick Start
+```bash
+# 1. Install
+npm install
+
+# 2. Environment
+echo 'DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"' > .env
+
+# 3. Database
+npm run docker:up
+npm run db:generate
+npm run db:push
+npm run db:seed
+
+# 4. Run
+npm run dev
+# → http://localhost:3000
+```
+
+## Commands
+### Core
+- `npm run dev` - Start dev server (Turbopack)
+- `npm run build` - Production build
+- `npm run lint` - ESLint
+
+### Database
+- `npm run db:studio` - Prisma Studio UI
+- `npm run db:migrate` - Run migrations
+- `npm run db:push` - Push schema changes
+- `npm run db:reset` - Reset database
+- `npm run db:seed` - Load sample data
+
+### Docker
+- `npm run docker:up` - Start PostgreSQL
+- `npm run docker:down` - Stop PostgreSQL
+- `npm run docker:logs` - View logs
+
+## Troubleshooting
+- Database issues: Check `npm run docker:logs`
+- Port conflicts: Use `npm run dev -- -p 3001`
+- Connection test: `node test-connection.js`
+
+## Structure
+```
+src/
+├── app/
+│   ├── api/manuscripts/ - REST API
+│   └── page.tsx - Main UI
+├── components/
+│   ├── ManuscriptRecord.tsx - Main orchestrator
+│   ├── ManuscriptInfo.tsx - Metadata display
+│   ├── VersionTracker.tsx - Version management
+│   └── ReviewTracker.tsx - Review display
+└── lib/prisma.ts - DB client
+
+prisma/
+├── schema.prisma - DB models
+└── seed.ts - Sample data
+```
+
+## Schema
+- Manuscript → ManuscriptVersion → Review
+- Author ↔ Manuscript (many-to-many)
+- Reviewer → Review (one-to-many)

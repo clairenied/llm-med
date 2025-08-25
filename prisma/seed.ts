@@ -5,17 +5,130 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Seeding database...')
 
-  // Create a sample user
-  const user = await prisma.user.upsert({
-    where: { email: 'test@example.com' },
-    update: {},
-    create: {
-      email: 'test@example.com',
-      name: 'Test User',
+  // Create authors
+  const author1 = await prisma.author.create({
+    data: {
+      name: 'Dr. Sarah Johnson',
+      email: 'sarah.johnson@university.edu',
+      affiliation: 'Department of Computer Science, University Medical Center',
     },
   })
 
-  console.log('✅ Created user:', user)
+  const author2 = await prisma.author.create({
+    data: {
+      name: 'Prof. Michael Chen',
+      email: 'michael.chen@research.org',
+      affiliation: 'Institute for Medical AI Research',
+    },
+  })
+
+  // Create reviewers
+  const reviewerA = await prisma.reviewer.upsert({
+    where: { code: 'A' },
+    update: {},
+    create: {
+      name: 'Anonymous Reviewer',
+      code: 'A',
+      affiliation: 'External Institution',
+    },
+  })
+
+  const reviewerB = await prisma.reviewer.upsert({
+    where: { code: 'B' },
+    update: {},
+    create: {
+      name: 'Internal Reviewer',
+      code: 'B',
+      affiliation: 'Same Institution',
+    },
+  })
+
+  const reviewerC = await prisma.reviewer.upsert({
+    where: { code: 'C' },
+    update: {},
+    create: {
+      name: 'Senior Reviewer',
+      code: 'C',
+      affiliation: 'Editorial Board',
+    },
+  })
+
+  // Create manuscript
+  const manuscript = await prisma.manuscript.create({
+    data: {
+      title: 'Novel Approaches to Machine Learning in Medical Diagnosis',
+      abstract: 'This study explores innovative machine learning techniques for improving diagnostic accuracy in clinical settings. We present a comprehensive analysis of deep learning models applied to medical imaging data.',
+      keywords: ['machine learning', 'medical diagnosis', 'deep learning', 'clinical applications'],
+      status: 'UNDER_REVIEW',
+      pubmedUrl: 'https://pubmed.ncbi.nlm.nih.gov/example',
+      f1000Url: 'https://f1000research.com/example',
+      authors: {
+        connect: [{ id: author1.id }, { id: author2.id }],
+      },
+    },
+  })
+
+  // Create version 1
+  const version1 = await prisma.manuscriptVersion.create({
+    data: {
+      versionNumber: 1,
+      manuscriptId: manuscript.id,
+      documentType: 'WORD',
+      documentUrl: '/documents/manuscript-v1.docx',
+      notes: 'Initial submission',
+    },
+  })
+
+  // Create reviews for version 1
+  await prisma.review.create({
+    data: {
+      versionId: version1.id,
+      reviewerId: reviewerA.id,
+      reviewType: 'EXTERNAL',
+      content: 'The methodology is sound but requires more detailed statistical analysis. The results section needs expansion with additional validation studies.',
+      documentType: 'PDF',
+      documentUrl: '/reviews/review-a-v1.pdf',
+      isSharedExternally: true,
+    },
+  })
+
+  await prisma.review.create({
+    data: {
+      versionId: version1.id,
+      reviewerId: reviewerB.id,
+      reviewType: 'INTERNAL',
+      content: 'Strong technical contribution. Suggest minor revisions to the introduction and discussion sections.',
+      isSharedExternally: false,
+    },
+  })
+
+  // Create version 2
+  const version2 = await prisma.manuscriptVersion.create({
+    data: {
+      versionNumber: 2,
+      manuscriptId: manuscript.id,
+      documentType: 'PDF',
+      documentUrl: '/documents/manuscript-v2.pdf',
+      notes: 'Revised based on reviewer feedback',
+    },
+  })
+
+  // Create review for version 2
+  await prisma.review.create({
+    data: {
+      versionId: version2.id,
+      reviewerId: reviewerC.id,
+      reviewType: 'EXTERNAL',
+      content: 'Significant improvements made. The statistical analysis is now comprehensive. Ready for publication pending minor formatting changes.',
+      documentType: 'TEXT',
+      isSharedExternally: true,
+    },
+  })
+
+  console.log('✅ Seed data created successfully!')
+  console.log('✅ Created manuscript:', manuscript.title)
+  console.log('✅ Created authors:', author1.name, author2.name)
+  console.log('✅ Created reviewers:', reviewerA.code, reviewerB.code, reviewerC.code)
   console.log('🎉 Seeding completed!')
 }
 
