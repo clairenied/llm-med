@@ -11,6 +11,13 @@ interface Author {
   affiliation?: string;
 }
 
+interface ManuscriptFormData {
+  title: string;
+  abstract?: string;
+  keywords: string[];
+  authorNames: string[];
+}
+
 interface ManuscriptVersion {
   id: string;
   versionNumber: number;
@@ -25,8 +32,6 @@ interface Manuscript {
   status: 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED';
   authors: Author[];
   versions: ManuscriptVersion[];
-  pubmedUrl?: string;
-  f1000Url?: string;
   createdAt: string;
 }
 
@@ -58,7 +63,7 @@ export default function ManuscriptList() {
     }
   };
 
-  const handleAddManuscript = async (data: any) => {
+  const handleAddManuscript = async (data: ManuscriptFormData) => {
     try {
       // First create authors if they don't exist
       const authorIds = [];
@@ -89,8 +94,6 @@ export default function ManuscriptList() {
           abstract: data.abstract,
           keywords: data.keywords,
           authorIds,
-          pubmedUrl: data.pubmedUrl,
-          f1000Url: data.f1000Url,
         }),
       });
 
@@ -106,7 +109,7 @@ export default function ManuscriptList() {
     }
   };
 
-  const handleEditManuscript = async (data: any) => {
+  const handleEditManuscript = async (data: ManuscriptFormData) => {
     if (!editingManuscript) return;
 
     try {
@@ -117,8 +120,6 @@ export default function ManuscriptList() {
           title: data.title,
           abstract: data.abstract,
           keywords: data.keywords,
-          pubmedUrl: data.pubmedUrl,
-          f1000Url: data.f1000Url,
         }),
       });
 
@@ -328,26 +329,6 @@ export default function ManuscriptList() {
                     >
                       Delete
                     </button>
-                    {manuscript.pubmedUrl && (
-                      <a 
-                        href={manuscript.pubmedUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        PubMed
-                      </a>
-                    )}
-                    {manuscript.f1000Url && (
-                      <a 
-                        href={manuscript.f1000Url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        F1000Research
-                      </a>
-                    )}
                   </div>
                 </div>
               </div>
@@ -371,8 +352,6 @@ export default function ManuscriptList() {
                 abstract: editingManuscript.abstract || '',
                 keywords: editingManuscript.keywords,
                 authorNames: editingManuscript.authors.map(a => a.name),
-                pubmedUrl: editingManuscript.pubmedUrl || '',
-                f1000Url: editingManuscript.f1000Url || '',
               } : undefined}
             />
           </div>
