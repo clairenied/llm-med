@@ -120,10 +120,57 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.UserScalarFieldEnum = {
+exports.Prisma.AuthorScalarFieldEnum = {
   id: 'id',
-  email: 'email',
   name: 'name',
+  email: 'email',
+  affiliation: 'affiliation',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ManuscriptScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  abstract: 'abstract',
+  keywords: 'keywords',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  pubmedUrl: 'pubmedUrl',
+  f1000Url: 'f1000Url'
+};
+
+exports.Prisma.ManuscriptVersionScalarFieldEnum = {
+  id: 'id',
+  versionNumber: 'versionNumber',
+  manuscriptId: 'manuscriptId',
+  documentUrl: 'documentUrl',
+  documentType: 'documentType',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReviewScalarFieldEnum = {
+  id: 'id',
+  versionId: 'versionId',
+  reviewerId: 'reviewerId',
+  reviewType: 'reviewType',
+  content: 'content',
+  documentUrl: 'documentUrl',
+  documentType: 'documentType',
+  isSharedExternally: 'isSharedExternally',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReviewerScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  code: 'code',
+  affiliation: 'affiliation',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -142,10 +189,33 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
+exports.ManuscriptStatus = exports.$Enums.ManuscriptStatus = {
+  DRAFT: 'DRAFT',
+  UNDER_REVIEW: 'UNDER_REVIEW',
+  REVISED: 'REVISED',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  PUBLISHED: 'PUBLISHED'
+};
 
+exports.DocumentType = exports.$Enums.DocumentType = {
+  WORD: 'WORD',
+  PDF: 'PDF',
+  TEXT: 'TEXT',
+  FREE_TEXT: 'FREE_TEXT'
+};
+
+exports.ReviewType = exports.$Enums.ReviewType = {
+  INTERNAL: 'INTERNAL',
+  EXTERNAL: 'EXTERNAL'
+};
 
 exports.Prisma.ModelName = {
-  User: 'User'
+  Author: 'Author',
+  Manuscript: 'Manuscript',
+  ManuscriptVersion: 'ManuscriptVersion',
+  Review: 'Review',
+  Reviewer: 'Reviewer'
 };
 
 /**

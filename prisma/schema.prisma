@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/lib/prisma"
 }
 
 datasource db {
@@ -14,13 +13,89 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Sample model for testing the connection
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// Manuscript review tracking models
+model Author {
+  id           String       @id @default(cuid())
+  name         String
+  email        String?
+  affiliation  String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  manuscripts  Manuscript[]
+}
+
+model Manuscript {
+  id          String             @id @default(cuid())
+  title       String
+  abstract    String?
+  keywords    String[]
+  status      ManuscriptStatus   @default(DRAFT)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  authors     Author[]
+  versions    ManuscriptVersion[]
+}
+
+model ManuscriptVersion {
+  id           String         @id @default(cuid())
+  versionNumber Int
+  manuscript   Manuscript     @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
+  manuscriptId String
+  documentUrl  String?
+  documentType DocumentType   @default(PDF)
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  reviews      Review[]
+
+  @@unique([manuscriptId, versionNumber])
+}
+
+model Review {
+  id                String            @id @default(cuid())
+  version          ManuscriptVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  versionId        String
+  reviewer         Reviewer          @relation(fields: [reviewerId], references: [id])
+  reviewerId       String
+  reviewType       ReviewType        @default(INTERNAL)
+  content          String
+  documentUrl      String?
+  documentType     DocumentType?
+  isSharedExternally Boolean         @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Reviewer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  code        String   @unique // e.g., "A", "B", "C"
+  affiliation String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reviews     Review[]
+}
+
+enum ManuscriptStatus {
+  DRAFT
+  UNDER_REVIEW
+  REVISED
+  ACCEPTED
+  REJECTED
+  PUBLISHED
+}
+
+enum DocumentType {
+  WORD
+  PDF
+  TEXT
+  FREE_TEXT
+}
+
+enum ReviewType {
+  INTERNAL
+  EXTERNAL
 }
 
 
