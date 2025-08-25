@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import FileUpload from './FileUpload';
 
 interface ManuscriptFormProps {
   onSubmit: (data: ManuscriptFormData) => void;
@@ -13,6 +14,7 @@ interface ManuscriptFormData {
   abstract: string;
   keywords: string[];
   authorNames: string[];
+  documentFile?: File;
 }
 
 export default function ManuscriptForm({ onSubmit, onCancel, initialData }: ManuscriptFormProps) {
@@ -21,6 +23,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
     abstract: initialData?.abstract || '',
     keywords: initialData?.keywords || [],
     authorNames: initialData?.authorNames || [''],
+    documentFile: initialData?.documentFile,
   });
 
   const [keywordInput, setKeywordInput] = useState('');
@@ -70,11 +73,15 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
     }
   };
 
+  const handleFileSelect = (file: File) => {
+    setFormData(prev => ({ ...prev, documentFile: file }));
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 bg-gray-50 rounded-t-lg border-b">
-          <h1 className="text-2xl font-semibold text-gray-900">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div className="p-6 bg-gray-50 dark:bg-gray-700 rounded-t-lg border-b dark:border-gray-600">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             {initialData ? 'Edit Manuscript' : 'Add New Manuscript'}
           </h1>
         </div>
@@ -82,7 +89,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Title *
             </label>
             <input
@@ -91,14 +98,14 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
               required
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter manuscript title"
             />
           </div>
 
           {/* Authors */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Authors *
             </label>
             <div className="space-y-2">
@@ -109,14 +116,14 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
                     required
                     value={author}
                     onChange={(e) => updateAuthor(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder={`Author ${index + 1} name`}
                   />
                   {formData.authorNames.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeAuthor(index)}
-                      className="px-3 py-2 text-red-600 hover:text-red-800"
+                      className="px-3 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
                     >
                       Remove
                     </button>
@@ -126,7 +133,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
               <button
                 type="button"
                 onClick={addAuthor}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
               >
                 + Add Author
               </button>
@@ -135,7 +142,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
 
           {/* Abstract */}
           <div>
-            <label htmlFor="abstract" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="abstract" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Abstract
             </label>
             <textarea
@@ -143,14 +150,14 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
               rows={6}
               value={formData.abstract}
               onChange={(e) => setFormData(prev => ({ ...prev, abstract: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter manuscript abstract"
             />
           </div>
 
           {/* Keywords */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Keywords
             </label>
             <div className="flex space-x-2 mb-2">
@@ -159,7 +166,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
                 value={keywordInput}
                 onChange={(e) => setKeywordInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Add keyword"
               />
               <button
@@ -174,13 +181,13 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
               {formData.keywords.map((keyword, index) => (
                 <span
                   key={index}
-                  className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm flex items-center space-x-1"
+                  className="px-2 py-1 bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm flex items-center space-x-1"
                 >
                   <span>{keyword}</span>
                   <button
                     type="button"
                     onClick={() => removeKeyword(index)}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
                   >
                     ×
                   </button>
@@ -189,14 +196,43 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
             </div>
           </div>
 
+          {/* Document Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Document Upload
+            </label>
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              acceptedTypes=".pdf,.doc,.docx,.txt"
+              maxSize={25}
+              label={formData.documentFile ? `Selected: ${formData.documentFile.name}` : "Upload Manuscript Document"}
+            />
+            {formData.documentFile && (
+              <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-green-700 dark:text-green-300">
+                    📄 {formData.documentFile.name} ({(formData.documentFile.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, documentFile: undefined }))}
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
 
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-6 border-t">
+          <div className="flex justify-end space-x-4 pt-6 border-t dark:border-gray-600">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500"
             >
               Cancel
             </button>
