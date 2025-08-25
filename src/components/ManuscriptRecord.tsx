@@ -49,8 +49,6 @@ interface Manuscript {
   status: 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED';
   authors: Author[];
   versions: ManuscriptVersion[];
-  pubmedUrl?: string;
-  f1000Url?: string;
   createdAt: string;
 }
 
@@ -139,11 +137,7 @@ export default function ManuscriptRecord() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 bg-gray-50 rounded-t-lg">
-          <h1 className="text-xl font-semibold text-gray-900">Record</h1>
-        </div>
-        
+      <div className="bg-white rounded-lg shadow-lg">
         <div className="flex">
           {/* Left side - Version and Review tracking */}
           <div className="w-2/3 p-6">
@@ -164,7 +158,7 @@ export default function ManuscriptRecord() {
           </div>
           
           {/* Right side - Title and Authors */}
-          <div className="w-1/3 p-6 bg-gray-50 rounded-br-lg">
+          <div className="w-1/3 p-6 bg-gray-50 rounded-br-lg rounded-tr-lg">
             <ManuscriptInfo manuscript={manuscript} />
           </div>
         </div>

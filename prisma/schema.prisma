@@ -34,8 +34,6 @@ model Manuscript {
   updatedAt   DateTime           @updatedAt
   authors     Author[]
   versions    ManuscriptVersion[]
-  pubmedUrl   String?
-  f1000Url    String?
 }
 
 model ManuscriptVersion {

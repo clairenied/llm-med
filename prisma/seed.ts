@@ -60,8 +60,6 @@ async function main() {
       abstract: 'This study explores innovative machine learning techniques for improving diagnostic accuracy in clinical settings. We present a comprehensive analysis of deep learning models applied to medical imaging data.',
       keywords: ['machine learning', 'medical diagnosis', 'deep learning', 'clinical applications'],
       status: 'UNDER_REVIEW',
-      pubmedUrl: 'https://pubmed.ncbi.nlm.nih.gov/example',
-      f1000Url: 'https://f1000research.com/example',
       authors: {
         connect: [{ id: author1.id }, { id: author2.id }],
       },

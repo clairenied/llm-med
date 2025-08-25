@@ -1,5 +1,5 @@
-import ManuscriptRecord from '@/components/ManuscriptRecord';
+import ManuscriptList from '@/components/ManuscriptList';
 
 export default function Home() {
-  return <ManuscriptRecord />;
+  return <ManuscriptList />;
 }

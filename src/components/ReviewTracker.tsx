@@ -30,6 +30,8 @@ interface ManuscriptVersion {
 interface ReviewTrackerProps {
   version: ManuscriptVersion;
   reviews: Review[];
+  onReviewEdit?: (review: Review) => void;
+  onReviewDelete?: (reviewId: string) => void;
 }
 
 const reviewTypeColors = {
@@ -44,7 +46,7 @@ const documentTypeIcons = {
   FREE_TEXT: '✏️',
 };
 
-export default function ReviewTracker({ version, reviews }: ReviewTrackerProps) {
+export default function ReviewTracker({ version, reviews, onReviewEdit, onReviewDelete }: ReviewTrackerProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -143,6 +145,26 @@ export default function ReviewTracker({ version, reviews }: ReviewTrackerProps) 
                               <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
                           </a>
+                        )}
+                        {onReviewEdit && (
+                          <button
+                            onClick={() => onReviewEdit(review)}
+                            className="text-sm text-blue-600 hover:text-blue-800"
+                          >
+                            Edit
+                          </button>
+                        )}
+                        {onReviewDelete && (
+                          <button
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete this review?')) {
+                                onReviewDelete(review.id);
+                              }
+                            }}
+                            className="text-sm text-red-600 hover:text-red-800"
+                          >
+                            Delete
+                          </button>
                         )}
                       </div>
                       

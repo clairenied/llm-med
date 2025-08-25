@@ -83,3 +83,22 @@ export async function PUT(
     );
   }
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await prisma.manuscript.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json({ message: 'Manuscript deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting manuscript:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete manuscript' },
+      { status: 500 }
+    );
+  }
+}

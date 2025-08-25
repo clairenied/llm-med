@@ -12,6 +12,7 @@ interface VersionTrackerProps {
   versions: ManuscriptVersion[];
   selectedVersion: ManuscriptVersion | null;
   onVersionSelect: (version: ManuscriptVersion) => void;
+  onVersionDelete?: (versionId: string) => void;
 }
 
 const documentTypeIcons = {
@@ -28,7 +29,7 @@ const documentTypeColors = {
   FREE_TEXT: 'bg-purple-100 text-purple-800',
 };
 
-export default function VersionTracker({ versions, selectedVersion, onVersionSelect }: VersionTrackerProps) {
+export default function VersionTracker({ versions, selectedVersion, onVersionSelect, onVersionDelete }: VersionTrackerProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -86,6 +87,19 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
                     </svg>
                     <span>Download</span>
                   </a>
+                )}
+                {onVersionDelete && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm('Are you sure you want to delete this version? This will also delete all reviews for this version.')) {
+                        onVersionDelete(version.id);
+                      }
+                    }}
+                    className="text-sm text-red-600 hover:text-red-800"
+                  >
+                    Delete
+                  </button>
                 )}
               </div>
               
