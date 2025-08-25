@@ -16,7 +16,8 @@
     "db:reset": "prisma migrate reset",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f postgres"
+    "docker:logs": "docker-compose logs -f postgres",
+    "test:deploy": "./scripts/deploy-test.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
