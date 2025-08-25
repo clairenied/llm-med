@@ -3,11 +3,12 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const manuscript = await prisma.manuscript.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         authors: true,
         versions: {
@@ -44,21 +45,20 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
-    const { title, abstract, keywords, status, pubmedUrl, f1000Url } = body;
+    const { title, abstract, keywords, status } = body;
 
     const manuscript = await prisma.manuscript.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         abstract,
         keywords,
         status,
-        pubmedUrl,
-        f1000Url,
       },
       include: {
         authors: true,
@@ -86,11 +86,12 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     await prisma.manuscript.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ message: 'Manuscript deleted successfully' });

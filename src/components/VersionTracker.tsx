@@ -1,3 +1,16 @@
+interface Review {
+  id: string;
+  reviewer: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  reviewType: 'INTERNAL' | 'EXTERNAL';
+  content: string;
+  isSharedExternally: boolean;
+  createdAt: string;
+}
+
 interface ManuscriptVersion {
   id: string;
   versionNumber: number;
@@ -5,7 +18,7 @@ interface ManuscriptVersion {
   documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
   notes?: string;
   createdAt: string;
-  reviews: any[];
+  reviews: Review[];
 }
 
 interface VersionTrackerProps {

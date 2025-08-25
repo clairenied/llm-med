@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import ManuscriptForm from './ManuscriptForm';
+
 
 interface Author {
   id: string;
@@ -11,12 +11,7 @@ interface Author {
   affiliation?: string;
 }
 
-interface ManuscriptFormData {
-  title: string;
-  abstract?: string;
-  keywords: string[];
-  authorNames: string[];
-}
+
 
 interface ManuscriptVersion {
   id: string;
@@ -39,8 +34,7 @@ export default function ManuscriptList() {
   const [manuscripts, setManuscripts] = useState<Manuscript[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingManuscript, setEditingManuscript] = useState<Manuscript | null>(null);
+
 
   useEffect(() => {
     fetchManuscripts();
@@ -63,77 +57,7 @@ export default function ManuscriptList() {
     }
   };
 
-  const handleAddManuscript = async (data: ManuscriptFormData) => {
-    try {
-      // First create authors if they don't exist
-      const authorIds = [];
-      for (const authorName of data.authorNames) {
-        if (authorName.trim()) {
-          try {
-            const response = await fetch('/api/authors', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: authorName.trim() }),
-            });
-            if (response.ok) {
-              const author = await response.json();
-              authorIds.push(author.id);
-            }
-          } catch (error) {
-            console.error('Error creating author:', error);
-          }
-        }
-      }
 
-      // Create the manuscript
-      const response = await fetch('/api/manuscripts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: data.title,
-          abstract: data.abstract,
-          keywords: data.keywords,
-          authorIds,
-        }),
-      });
-
-      if (response.ok) {
-        setShowAddForm(false);
-        fetchManuscripts(); // Refresh the list
-      } else {
-        throw new Error('Failed to create manuscript');
-      }
-    } catch (error) {
-      console.error('Error creating manuscript:', error);
-      alert('Error creating manuscript. Please try again.');
-    }
-  };
-
-  const handleEditManuscript = async (data: ManuscriptFormData) => {
-    if (!editingManuscript) return;
-
-    try {
-      const response = await fetch(`/api/manuscripts/${editingManuscript.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: data.title,
-          abstract: data.abstract,
-          keywords: data.keywords,
-        }),
-      });
-
-      if (response.ok) {
-        setEditingManuscript(null);
-        fetchManuscripts(); // Refresh the list
-      } else {
-        throw new Error('Failed to update manuscript');
-      }
-    } catch (error) {
-      console.error('Error updating manuscript:', error);
-      alert('Error updating manuscript. Please try again.');
-    }
-  };
 
   const handleDeleteManuscript = async (manuscriptId: string) => {
     if (!confirm('Are you sure you want to delete this manuscript? This will also delete all versions and reviews.')) {
@@ -228,15 +152,15 @@ export default function ManuscriptList() {
               <div className="text-sm text-gray-600">
                 {manuscripts.length} manuscript{manuscripts.length !== 1 ? 's' : ''}
               </div>
-              <button
-                onClick={() => setShowAddForm(true)}
+              <Link
+                href="/manuscripts/new"
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                 </svg>
                 <span>Add Manuscript</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -317,12 +241,12 @@ export default function ManuscriptList() {
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setEditingManuscript(manuscript)}
+                    <Link
+                      href={`/manuscripts/${manuscript.id}/edit`}
                       className="text-blue-600 hover:text-blue-800 text-xs"
                     >
                       Edit
-                    </button>
+                    </Link>
                     <button
                       onClick={() => handleDeleteManuscript(manuscript.id)}
                       className="text-red-600 hover:text-red-800 text-xs"
@@ -337,26 +261,7 @@ export default function ManuscriptList() {
         )}
       </div>
 
-      {/* Add/Edit Manuscript Form */}
-      {(showAddForm || editingManuscript) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <ManuscriptForm
-              onSubmit={editingManuscript ? handleEditManuscript : handleAddManuscript}
-              onCancel={() => {
-                setShowAddForm(false);
-                setEditingManuscript(null);
-              }}
-              initialData={editingManuscript ? {
-                title: editingManuscript.title,
-                abstract: editingManuscript.abstract || '',
-                keywords: editingManuscript.keywords,
-                authorNames: editingManuscript.authors.map(a => a.name),
-              } : undefined}
-            />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }

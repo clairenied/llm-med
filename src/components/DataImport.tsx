@@ -50,7 +50,7 @@ export default function DataImport() {
           authors: parts[3] ? parts[3].split(',').map(a => a.trim()) : [],
           pubmedUrl: parts[4] || '',
           f1000Url: parts[5] || '',
-          status: (parts[6] as any) || 'DRAFT' as const,
+          status: (parts[6] as 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED') || 'DRAFT' as const,
           selected: true,
         };
       });

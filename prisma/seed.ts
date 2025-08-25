@@ -29,7 +29,7 @@ async function main() {
     create: {
       name: 'Anonymous Reviewer',
       code: 'A',
-      affiliation: 'External Institution',
+      affiliation: 'External',
     },
   })
 
@@ -39,7 +39,7 @@ async function main() {
     create: {
       name: 'Internal Reviewer',
       code: 'B',
-      affiliation: 'Same Institution',
+      affiliation: 'Internal',
     },
   })
 
@@ -49,7 +49,7 @@ async function main() {
     create: {
       name: 'Senior Reviewer',
       code: 'C',
-      affiliation: 'Editorial Board',
+      affiliation: 'External',
     },
   })
 

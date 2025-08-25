@@ -12,8 +12,6 @@ interface ManuscriptFormData {
   title: string;
   abstract: string;
   keywords: string[];
-  pubmedUrl?: string;
-  f1000Url?: string;
   authorNames: string[];
 }
 
@@ -22,8 +20,6 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
     title: initialData?.title || '',
     abstract: initialData?.abstract || '',
     keywords: initialData?.keywords || [],
-    pubmedUrl: initialData?.pubmedUrl || '',
-    f1000Url: initialData?.f1000Url || '',
     authorNames: initialData?.authorNames || [''],
   });
 
@@ -193,35 +189,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
             </div>
           </div>
 
-          {/* External Links */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="pubmedUrl" className="block text-sm font-medium text-gray-700 mb-2">
-                PubMed URL
-              </label>
-              <input
-                type="url"
-                id="pubmedUrl"
-                value={formData.pubmedUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, pubmedUrl: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://pubmed.ncbi.nlm.nih.gov/..."
-              />
-            </div>
-            <div>
-              <label htmlFor="f1000Url" className="block text-sm font-medium text-gray-700 mb-2">
-                F1000Research URL
-              </label>
-              <input
-                type="url"
-                id="f1000Url"
-                value={formData.f1000Url}
-                onChange={(e) => setFormData(prev => ({ ...prev, f1000Url: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="https://f1000research.com/articles/..."
-              />
-            </div>
-          </div>
+
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-4 pt-6 border-t">

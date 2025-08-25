@@ -37,15 +37,13 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, abstract, keywords, authorIds, pubmedUrl, f1000Url } = body;
+    const { title, abstract, keywords, authorIds } = body;
 
     const manuscript = await prisma.manuscript.create({
       data: {
         title,
         abstract,
         keywords,
-        pubmedUrl,
-        f1000Url,
         authors: {
           connect: authorIds?.map((id: string) => ({ id })) || [],
         },
