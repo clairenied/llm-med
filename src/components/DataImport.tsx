@@ -8,7 +8,6 @@ interface ImportedManuscript {
   keywords: string[];
   authors: string[];
   pubmedUrl?: string;
-  f1000Url?: string;
   status: 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED';
   selected: boolean;
 }
@@ -32,7 +31,6 @@ export default function DataImport() {
         keywords: Array.isArray(item.keywords) ? item.keywords : [],
         authors: Array.isArray(item.authors) ? item.authors : [],
         pubmedUrl: item.pubmedUrl || '',
-        f1000Url: item.f1000Url || '',
         status: item.status || 'DRAFT' as const,
         selected: true,
       }));
@@ -49,8 +47,7 @@ export default function DataImport() {
           keywords: parts[2] ? parts[2].split(',').map(k => k.trim()) : [],
           authors: parts[3] ? parts[3].split(',').map(a => a.trim()) : [],
           pubmedUrl: parts[4] || '',
-          f1000Url: parts[5] || '',
-          status: (parts[6] as 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED') || 'DRAFT' as const,
+          status: (parts[5] as 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED') || 'DRAFT' as const,
           selected: true,
         };
       });
@@ -109,7 +106,6 @@ export default function DataImport() {
             keywords: manuscript.keywords,
             authorIds,
             pubmedUrl: manuscript.pubmedUrl,
-            f1000Url: manuscript.f1000Url,
           }),
         });
       }
@@ -151,11 +147,11 @@ export default function DataImport() {
               placeholder={`Paste your data here. Supports:
 
 JSON format:
-[{"title": "Paper Title", "abstract": "Abstract text", "keywords": ["keyword1", "keyword2"], "authors": ["Author 1", "Author 2"], "pubmedUrl": "https://...", "f1000Url": "https://..."}]
+[{"title": "Paper Title", "abstract": "Abstract text", "keywords": ["keyword1", "keyword2"], "authors": ["Author 1", "Author 2"], "pubmedUrl": "https://..."}]
 
 Tab-separated format:
-Title	Abstract	Keywords	Authors	PubMed URL	F1000 URL	Status
-Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	https://...	PUBLISHED`}
+Title	Abstract	Keywords	Authors	PubMed URL	Status
+Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	PUBLISHED`}
             />
             <div className="flex justify-between items-center mt-2">
               <p className="text-xs text-gray-500">
@@ -250,7 +246,6 @@ Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	https://...	P
                             {manuscript.status}
                           </span>
                           {manuscript.pubmedUrl && <span>PubMed</span>}
-                          {manuscript.f1000Url && <span>F1000Research</span>}
                         </div>
                       </div>
                     </div>

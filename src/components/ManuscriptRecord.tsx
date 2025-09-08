@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import ManuscriptInfo from './ManuscriptInfo';
 import VersionTracker from './VersionTracker';
 import ReviewTracker from './ReviewTracker';
@@ -54,25 +55,29 @@ interface Manuscript {
 
 
 
-export default function ManuscriptRecord() {
+interface ManuscriptRecordProps {
+  manuscriptId: string;
+}
+
+export default function ManuscriptRecord({ manuscriptId }: ManuscriptRecordProps) {
   const [manuscript, setManuscript] = useState<Manuscript | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<ManuscriptVersion | null>(null);
 
   useEffect(() => {
-    async function fetchManuscripts() {
+    async function fetchManuscript() {
       try {
-        const response = await fetch('/api/manuscripts');
+        const response = await fetch(`/api/manuscripts/${manuscriptId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch manuscripts');
+          if (response.status === 404) {
+            throw new Error('Manuscript not found');
+          }
+          throw new Error('Failed to fetch manuscript');
         }
-        const manuscripts = await response.json();
-        if (manuscripts.length > 0) {
-          const firstManuscript = manuscripts[0];
-          setManuscript(firstManuscript);
-          setSelectedVersion(firstManuscript.versions[0] || null);
-        }
+        const manuscriptData = await response.json();
+        setManuscript(manuscriptData);
+        setSelectedVersion(manuscriptData.versions[0] || null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -80,8 +85,10 @@ export default function ManuscriptRecord() {
       }
     }
 
-    fetchManuscripts();
-  }, []);
+    if (manuscriptId) {
+      fetchManuscript();
+    }
+  }, [manuscriptId]);
 
   if (loading) {
     return (
@@ -99,18 +106,32 @@ export default function ManuscriptRecord() {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Record</h2>
-        </div>
-        <div className="p-8 text-center">
-          <div className="text-red-600 mb-4">
-            <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
+      <div className="max-w-7xl mx-auto p-6">
+        <Link
+          href="/"
+          className="text-blue-600 hover:text-blue-500 dark:text-blue-400 mb-4 inline-block cursor-pointer"
+        >
+          ← Back to Manuscripts
+        </Link>
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="px-6 py-4 bg-gray-50 border-b">
+            <h2 className="text-xl font-semibold text-gray-900">Manuscript Record</h2>
           </div>
-          <p className="text-red-600 font-medium">Error loading manuscript data</p>
-          <p className="text-gray-600 mt-2">{error}</p>
+          <div className="p-8 text-center">
+            <div className="text-red-600 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-red-600 font-medium">Error loading manuscript data</p>
+            <p className="text-gray-600 mt-2">{error}</p>
+            <Link
+              href="/"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer mt-4"
+            >
+              Return to Manuscripts
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -118,18 +139,32 @@ export default function ManuscriptRecord() {
 
   if (!manuscript) {
     return (
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Record</h2>
-        </div>
-        <div className="p-8 text-center">
-          <div className="text-gray-400 mb-4">
-            <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
-            </svg>
+      <div className="max-w-7xl mx-auto p-6">
+        <Link
+          href="/"
+          className="text-blue-600 hover:text-blue-500 dark:text-blue-400 mb-4 inline-block cursor-pointer"
+        >
+          ← Back to Manuscripts
+        </Link>
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="px-6 py-4 bg-gray-50 border-b">
+            <h2 className="text-xl font-semibold text-gray-900">Manuscript Record</h2>
           </div>
-          <p className="text-gray-600">No manuscripts found</p>
-          <p className="text-sm text-gray-500 mt-2">Try running the database seed to create sample data</p>
+          <div className="p-8 text-center">
+            <div className="text-gray-400 mb-4">
+              <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <p className="text-gray-600">Manuscript not found</p>
+            <p className="text-sm text-gray-500 mt-2">The requested manuscript could not be found</p>
+            <Link
+              href="/"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer mt-4"
+            >
+              Return to Manuscripts
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -137,6 +172,12 @@ export default function ManuscriptRecord() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
+      <Link
+        href="/"
+        className="text-blue-600 hover:text-blue-500 dark:text-blue-400 mb-4 inline-block cursor-pointer"
+      >
+        ← Back to Manuscripts
+      </Link>
       <div className="bg-white rounded-lg shadow-lg">
         <div className="flex">
           {/* Left side - Version and Review tracking */}
@@ -147,14 +188,28 @@ export default function ManuscriptRecord() {
               onVersionSelect={setSelectedVersion}
             />
             
-            {selectedVersion && (
+            {selectedVersion ? (
               <div className="mt-6">
                 <ReviewTracker 
                   version={selectedVersion}
                   reviews={selectedVersion.reviews}
                 />
               </div>
-            )}
+            ) : manuscript.versions.length === 0 ? (
+              <div className="mt-6">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-4.79-1.6l-3.21 3.21a1 1 0 01-1.414-1.414l3.21-3.21A8.013 8.013 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Reviews Available</h4>
+                  <p className="text-gray-600">
+                    Add a version first to start collecting peer reviews.
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
           
           {/* Right side - Title and Authors */}

@@ -57,8 +57,32 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
     <div>
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Version History</h3>
       
-      <div className="space-y-4">
-        {versions.map((version) => (
+      {versions.length === 0 ? (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+          <div className="text-gray-400 mb-4">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h4 className="text-lg font-medium text-gray-900 mb-2">No Versions Yet</h4>
+          <p className="text-gray-600 mb-4">
+            This manuscript doesn't have any versions uploaded yet.
+          </p>
+          <div className="space-y-2 text-sm text-gray-500">
+            <p>• Upload a document to create the first version</p>
+            <p>• Track changes and revisions over time</p>
+            <p>• Manage peer reviews for each version</p>
+          </div>
+          <button className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add First Version
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {versions.map((version) => (
           <div
             key={version.id}
             className={`border rounded-lg p-4 cursor-pointer transition-all ${
@@ -142,7 +166,8 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

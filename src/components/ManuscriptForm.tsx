@@ -123,7 +123,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
                     <button
                       type="button"
                       onClick={() => removeAuthor(index)}
-                      className="px-3 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      className="px-3 py-2 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 cursor-pointer"
                     >
                       Remove
                     </button>
@@ -133,7 +133,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
               <button
                 type="button"
                 onClick={addAuthor}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 cursor-pointer"
               >
                 + Add Author
               </button>
@@ -172,7 +172,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
               <button
                 type="button"
                 onClick={addKeyword}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
               >
                 Add
               </button>
@@ -187,7 +187,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
                   <button
                     type="button"
                     onClick={() => removeKeyword(index)}
-                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
                   >
                     ×
                   </button>
@@ -216,7 +216,7 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, documentFile: undefined }))}
-                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 cursor-pointer"
                   >
                     Remove
                   </button>
@@ -232,13 +232,13 @@ export default function ManuscriptForm({ onSubmit, onCancel, initialData }: Manu
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500"
+              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
             >
               {initialData ? 'Update Manuscript' : 'Create Manuscript'}
             </button>

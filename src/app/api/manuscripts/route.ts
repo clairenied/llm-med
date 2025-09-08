@@ -1,11 +1,41 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+
+    // Calculate offset for pagination
+    const offset = (page - 1) * limit;
+
+    // Build where clause for search
+    const whereClause = search ? {
+      OR: [
+        { title: { contains: search, mode: 'insensitive' as const } },
+        { abstract: { contains: search, mode: 'insensitive' as const } },
+        { keywords: { hasSome: [search] } },
+        { authors: { some: { name: { contains: search, mode: 'insensitive' as const } } } }
+      ]
+    } : {};
+
+    // Get total count for pagination metadata
+    const totalCount = await prisma.manuscript.count({
+      where: whereClause
+    });
+
+    // Get paginated manuscripts
     const manuscripts = await prisma.manuscript.findMany({
+      where: whereClause,
       include: {
         authors: true,
+        sources: {
+          include: {
+            source: true
+          }
+        },
         versions: {
           include: {
             reviews: {
@@ -22,9 +52,28 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
+      skip: offset,
+      take: limit,
     });
 
-    return NextResponse.json(manuscripts);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return NextResponse.json({
+      manuscripts,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalCount,
+        limit,
+        hasNextPage,
+        hasPrevPage,
+        nextPage: hasNextPage ? page + 1 : null,
+        prevPage: hasPrevPage ? page - 1 : null,
+      }
+    });
   } catch (error) {
     console.error('Error fetching manuscripts:', error);
     return NextResponse.json(

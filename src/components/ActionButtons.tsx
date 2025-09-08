@@ -20,7 +20,7 @@ export default function ActionButtons({
       {showCreate && onCreate && (
         <button
           onClick={onCreate}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
         >
           Create New
         </button>
@@ -29,7 +29,7 @@ export default function ActionButtons({
       {onEdit && (
         <button
           onClick={onEdit}
-          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
         >
           Edit
         </button>
@@ -38,7 +38,7 @@ export default function ActionButtons({
       {onDuplicate && (
         <button
           onClick={onDuplicate}
-          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
         >
           Duplicate
         </button>
@@ -47,7 +47,7 @@ export default function ActionButtons({
       {onExport && (
         <button
           onClick={onExport}
-          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
         >
           Export
         </button>
@@ -56,7 +56,7 @@ export default function ActionButtons({
       {onDelete && (
         <button
           onClick={onDelete}
-          className="bg-red-100 text-red-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="bg-red-100 text-red-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 cursor-pointer"
         >
           Delete
         </button>

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3010",
+    "dev": "next dev --port 3010",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
@@ -17,17 +17,31 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f postgres",
-    "test:deploy": "./scripts/deploy-test.sh"
+    "test:deploy": "./scripts/deploy-test.sh",
+    "cleanup:fake-data": "tsx scripts/cleanup-fake-data.ts",
+    "cleanup:production": "tsx scripts/cleanup-production-fake-data.ts",
+    "scrape:bulk": "tsx scripts/run-bulk-scraper.ts",
+    "scrape:quick": "tsx scripts/run-bulk-scraper.ts --pages 3 --delay 1500",
+    "scrape:deep": "tsx scripts/run-bulk-scraper.ts --pages 20 --delay 3000",
+    "deploy:production": "./scripts/deploy-production.sh",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:status": "prisma migrate status"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.10.0",
     "@prisma/client": "^6.14.0",
+    "@types/bcryptjs": "^2.4.6",
     "@vercel/postgres": "^0.10.0",
+    "bcryptjs": "^3.0.2",
+    "cheerio": "^1.1.2",
     "dotenv": "^17.2.1",
     "next": "15.4.6",
+    "next-auth": "^5.0.0-beta.29",
     "pg": "^8.16.3",
     "prisma": "^6.14.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

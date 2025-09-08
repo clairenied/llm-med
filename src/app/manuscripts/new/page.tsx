@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 import ManuscriptForm from '@/components/ManuscriptForm';
 
 interface ManuscriptFormData {
@@ -12,6 +14,14 @@ interface ManuscriptFormData {
 
 export default function NewManuscriptPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    if (!session) {
+      router.push('/auth/signin');
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (data: ManuscriptFormData) => {
     try {
@@ -56,6 +66,18 @@ export default function NewManuscriptPage() {
   const handleCancel = () => {
     router.push('/');
   };
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null; // Will redirect in useEffect
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

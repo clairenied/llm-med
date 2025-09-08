@@ -1,4 +1,6 @@
 import ManuscriptRecord from '@/components/ManuscriptRecord';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{
@@ -7,6 +9,12 @@ interface PageProps {
 }
 
 export default async function ManuscriptPage({ params }: PageProps) {
-  await params; // Consume params to avoid unused variable warning
-  return <ManuscriptRecord />;
+  const session = await auth();
+  
+  if (!session) {
+    redirect('/auth/signin');
+  }
+
+  const { id } = await params;
+  return <ManuscriptRecord manuscriptId={id} />;
 }

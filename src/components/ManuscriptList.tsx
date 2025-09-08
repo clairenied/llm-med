@@ -30,31 +30,67 @@ interface Manuscript {
   createdAt: string;
 }
 
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: number | null;
+  prevPage: number | null;
+}
+
+interface ManuscriptResponse {
+  manuscripts: Manuscript[];
+  pagination: PaginationInfo;
+}
+
 export default function ManuscriptList() {
   const [manuscripts, setManuscripts] = useState<Manuscript[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
 
 
   useEffect(() => {
     fetchManuscripts();
-  }, []);
+  }, [currentPage, searchQuery]);
 
   const fetchManuscripts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/manuscripts');
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        ...(searchQuery && { search: searchQuery })
+      });
+      
+      const response = await fetch(`/api/manuscripts?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch manuscripts');
       }
-      const data = await response.json();
-      setManuscripts(data);
+      const data: ManuscriptResponse = await response.json();
+      setManuscripts(data.manuscripts);
+      setPagination(data.pagination);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
 
@@ -146,11 +182,11 @@ export default function ManuscriptList() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-6 bg-gray-50 rounded-t-lg border-b">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-semibold text-gray-900">Manuscripts</h1>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
-                {manuscripts.length} manuscript{manuscripts.length !== 1 ? 's' : ''}
+                {pagination ? `${pagination.totalCount} total manuscript${pagination.totalCount !== 1 ? 's' : ''}` : `${manuscripts.length} manuscript${manuscripts.length !== 1 ? 's' : ''}`}
               </div>
               <Link
                 href="/manuscripts/new"
@@ -162,6 +198,31 @@ export default function ManuscriptList() {
                 <span>Add Manuscript</span>
               </Link>
             </div>
+          </div>
+          
+          {/* Search Bar */}
+          <div className="flex items-center space-x-4">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search manuscripts, authors, keywords..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+            </div>
+            {pagination && (
+              <div className="text-sm text-gray-600">
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </div>
+            )}
           </div>
         </div>
 
@@ -190,9 +251,13 @@ export default function ManuscriptList() {
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(manuscript.status)}`}>
                       {manuscript.status.replace('_', ' ')}
                     </span>
-                    {manuscript.versions.length > 0 && (
+                    {manuscript.versions.length > 0 ? (
                       <span className="text-xs text-gray-500">
                         {manuscript.versions.length} version{manuscript.versions.length !== 1 ? 's' : ''}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
+                        No versions
                       </span>
                     )}
                   </div>
@@ -249,7 +314,7 @@ export default function ManuscriptList() {
                     </Link>
                     <button
                       onClick={() => handleDeleteManuscript(manuscript.id)}
-                      className="text-red-600 hover:text-red-800 text-xs"
+                      className="text-red-600 hover:text-red-800 text-xs cursor-pointer"
                     >
                       Delete
                     </button>
@@ -259,9 +324,81 @@ export default function ManuscriptList() {
             ))}
           </div>
         )}
+
+        {/* Pagination Controls */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="px-6 py-4 bg-gray-50 border-t rounded-b-lg">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing {((pagination.currentPage - 1) * pagination.limit) + 1} to {Math.min(pagination.currentPage * pagination.limit, pagination.totalCount)} of {pagination.totalCount} results
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage - 1)}
+                  disabled={!pagination.hasPrevPage}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                    pagination.hasPrevPage
+                      ? 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 cursor-pointer'
+                      : 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
+                  }`}
+                >
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      // Show first page, last page, current page, and pages around current
+                      return (
+                        page === 1 ||
+                        page === pagination.totalPages ||
+                        Math.abs(page - pagination.currentPage) <= 1
+                      );
+                    })
+                    .map((page, index, array) => {
+                      // Add ellipsis if there's a gap
+                      const showEllipsis = index > 0 && page - array[index - 1] > 1;
+                      
+                      return (
+                        <div key={page} className="flex items-center">
+                          {showEllipsis && (
+                            <span className="px-2 py-2 text-sm text-gray-500">...</span>
+                          )}
+                          <button
+                            onClick={() => handlePageChange(page)}
+                            className={`px-3 py-2 text-sm font-medium rounded-md cursor-pointer ${
+                              page === pagination.currentPage
+                                ? 'text-blue-600 bg-blue-50 border border-blue-300'
+                                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(pagination.currentPage + 1)}
+                  disabled={!pagination.hasNextPage}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                    pagination.hasNextPage
+                      ? 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 cursor-pointer'
+                      : 'text-gray-400 bg-gray-100 border border-gray-200 cursor-not-allowed'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-
     </div>
   );
 }
