@@ -35,6 +35,9 @@ model Manuscript {
   authors     Author[]
   versions    ManuscriptVersion[]
   sources     ManuscriptSource[]
+
+  @@index([title])
+  @@index([createdAt])
 }
 
 model ManuscriptVersion {
@@ -128,6 +131,9 @@ model ManuscriptSource {
   updatedAt    DateTime   @updatedAt
 
   @@unique([manuscriptId, sourceId, url])
+  @@index([url])
+  @@index([externalId])
+  @@index([doi])
 }
 
 // Authentication models for NextAuth.js

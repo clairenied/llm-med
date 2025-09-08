@@ -169,25 +169,44 @@ class ProgrammaticBulkScraper {
   private async processBatch(articles: ScrapedArticle[]): Promise<void> {
     for (const article of articles) {
       try {
-        // Check if article already exists
+        // Normalize title and URL for better duplicate detection
+        const normalizedTitle = this.normalizeTitle(article.title);
+        const normalizedUrl = this.normalizeUrl(article.url);
+
+        // Check if article already exists with multiple strategies
         const existing = await prisma.manuscript.findFirst({
           where: {
             OR: [
+              // Exact title match
               { title: article.title },
+              // Normalized title match (handles minor variations)
+              { title: normalizedTitle },
+              // URL-based matching
               {
                 sources: {
                   some: {
-                    url: article.url
+                    OR: [
+                      { url: article.url },
+                      { url: normalizedUrl },
+                      // Handle URL variations (http vs https, trailing slashes, etc.)
+                      { url: { contains: this.extractArticleId(article.url) } }
+                    ]
                   }
                 }
               }
             ]
+          },
+          include: {
+            sources: {
+              select: { url: true }
+            }
           }
         });
 
         if (existing) {
           this.duplicateCount++;
           console.log(`     ⏭️  Skipping duplicate: ${article.title.substring(0, 50)}...`);
+          console.log(`        Existing: ${existing.title.substring(0, 50)}...`);
           continue;
         }
 
@@ -240,6 +259,48 @@ class ProgrammaticBulkScraper {
 
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private normalizeTitle(title: string): string {
+    return title
+      .toLowerCase()
+      .trim()
+      // Remove extra whitespace
+      .replace(/\s+/g, ' ')
+      // Remove common punctuation variations
+      .replace(/[""'']/g, '"')
+      .replace(/[–—]/g, '-')
+      // Remove trailing punctuation that might vary
+      .replace(/[.!?]+$/, '');
+  }
+
+  private normalizeUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+      // Normalize protocol to https
+      urlObj.protocol = 'https:';
+      // Remove trailing slash
+      urlObj.pathname = urlObj.pathname.replace(/\/$/, '');
+      // Remove common tracking parameters
+      urlObj.searchParams.delete('utm_source');
+      urlObj.searchParams.delete('utm_medium');
+      urlObj.searchParams.delete('utm_campaign');
+      urlObj.searchParams.delete('ref');
+      return urlObj.toString();
+    } catch {
+      // If URL parsing fails, just clean up basic issues
+      return url
+        .replace(/^http:/, 'https:')
+        .replace(/\/$/, '')
+        .toLowerCase();
+    }
+  }
+
+  private extractArticleId(url: string): string {
+    // Extract article ID from F1000Research URLs
+    // e.g., https://f1000research.com/articles/12-345 -> "12-345"
+    const match = url.match(/\/articles\/([^/?#]+)/);
+    return match ? match[1] : '';
   }
 
   private printSummary(durationSeconds: number): void {
