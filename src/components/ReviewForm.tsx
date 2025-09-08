@@ -26,7 +26,7 @@ interface ReviewFormData {
   isSharedExternally: boolean;
 }
 
-export default function ReviewForm({ versionId, onSubmit, onCancel, initialData }: ReviewFormProps) {
+export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFormProps) {
   const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<ReviewFormData>({

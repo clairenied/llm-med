@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 
@@ -54,12 +54,7 @@ export default function ManuscriptList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
 
-
-  useEffect(() => {
-    fetchManuscripts();
-  }, [currentPage, searchQuery]);
-
-  const fetchManuscripts = async () => {
+  const fetchManuscripts = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -81,7 +76,11 @@ export default function ManuscriptList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchQuery]);
+
+  useEffect(() => {
+    fetchManuscripts();
+  }, [fetchManuscripts]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);

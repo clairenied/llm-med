@@ -9,7 +9,7 @@ export default function UnauthorizedPage() {
           Access Denied
         </h2>
         <p className="text-gray-600 dark:text-gray-400 mb-6">
-          You don't have permission to access this page. Please contact an administrator if you believe this is an error.
+          You don&apos;t have permission to access this page. Please contact an administrator if you believe this is an error.
         </p>
         <Link
           href="/"

@@ -15,7 +15,6 @@ interface ImportedManuscript {
 export default function DataImport() {
   const [importData, setImportData] = useState('');
   const [parsedData, setParsedData] = useState<ImportedManuscript[]>([]);
-  const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
 
   const parseImportData = () => {
@@ -36,7 +35,7 @@ export default function DataImport() {
       }));
 
       setParsedData(normalizedData);
-    } catch (error) {
+    } catch {
       // If JSON parsing fails, try to parse as CSV or plain text
       const lines = importData.split('\n').filter(line => line.trim());
       const manuscripts: ImportedManuscript[] = lines.map((line, index) => {

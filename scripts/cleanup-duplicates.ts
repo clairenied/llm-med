@@ -163,10 +163,8 @@ class DuplicateCleanup {
         where: { manuscriptId: manuscriptId }
       });
 
-      // Delete authors
-      await tx.author.deleteMany({
-        where: { manuscriptId: manuscriptId }
-      });
+      // Delete authors (they will be automatically disconnected due to the many-to-many relationship)
+      // No need to explicitly delete authors as they may be associated with other manuscripts
 
       // Finally delete the manuscript
       await tx.manuscript.delete({

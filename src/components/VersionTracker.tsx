@@ -66,7 +66,7 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
           </div>
           <h4 className="text-lg font-medium text-gray-900 mb-2">No Versions Yet</h4>
           <p className="text-gray-600 mb-4">
-            This manuscript doesn't have any versions uploaded yet.
+            This manuscript doesn&apos;t have any versions uploaded yet.
           </p>
           <div className="space-y-2 text-sm text-gray-500">
             <p>• Upload a document to create the first version</p>

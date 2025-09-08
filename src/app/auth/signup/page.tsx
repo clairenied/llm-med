@@ -186,7 +186,7 @@ export default function SignUpPage() {
                 id="role"
                 name="role"
                 value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                onChange={(e) => setFormData({ ...formData, role: e.target.value as 'AUTHOR' | 'REVIEWER' | 'ADMIN' })}
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="AUTHOR">Author</option>

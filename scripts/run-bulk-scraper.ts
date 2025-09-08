@@ -391,4 +391,5 @@ if (require.main === module) {
   main().catch(console.error);
 }
 
-export { ProgrammaticBulkScraper, ScrapingConfig };
+export { ProgrammaticBulkScraper };
+export type { ScrapingConfig };
