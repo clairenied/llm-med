@@ -32,15 +32,9 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            {session ? (
-              <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                LLM-Med Review Tracker
-              </Link>
-            ) : (
-              <div className="text-xl font-bold text-gray-900 dark:text-white">
-                LLM-Med Review Tracker
-              </div>
-            )}
+            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer">
+              📚 LLM-Med Review Tracker
+            </Link>
             {navItems.length > 0 && (
               <div className="flex space-x-6">
                 {navItems.map((item) => (
