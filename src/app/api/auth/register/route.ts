@@ -8,7 +8,7 @@ const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  invitationId: z.string().optional()
+  invitationId: z.string().min(1, "Invitation is required")
 })
 
 export async function POST(request: NextRequest) {
@@ -28,43 +28,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    let userRole: 'AUTHOR' | 'REVIEWER' | 'ADMIN' = 'AUTHOR'; // Default role
+    // Validate invitation (now required)
+    const invitation = await prisma.invitation.findUnique({
+      where: { id: invitationId }
+    });
 
-    // If invitation ID is provided, validate and use the invitation role
-    if (invitationId) {
-      const invitation = await prisma.invitation.findUnique({
-        where: { id: invitationId }
-      });
-
-      if (!invitation) {
-        return NextResponse.json(
-          { error: "Invalid invitation" },
-          { status: 400 }
-        );
-      }
-
-      if (invitation.email !== email) {
-        return NextResponse.json(
-          { error: "Email does not match invitation" },
-          { status: 400 }
-        );
-      }
-
-      if (invitation.expiresAt < new Date()) {
-        return NextResponse.json(
-          { error: "Invitation has expired" },
-          { status: 400 }
-        );
-      }
-
-      userRole = invitation.role as 'AUTHOR' | 'REVIEWER' | 'ADMIN';
-
-      // Mark invitation as used
-      await prisma.invitation.update({
-        where: { id: invitationId },
-        data: { usedAt: new Date() }
-      });
+    if (!invitation) {
+      return NextResponse.json(
+        { error: "Invalid invitation" },
+        { status: 400 }
+      );
     }
+
+    if (invitation.email !== email) {
+      return NextResponse.json(
+        { error: "Email does not match invitation" },
+        { status: 400 }
+      );
+    }
+
+    if (invitation.expiresAt < new Date()) {
+      return NextResponse.json(
+        { error: "Invitation has expired" },
+        { status: 400 }
+      );
+    }
+
+    if (invitation.usedAt) {
+      return NextResponse.json(
+        { error: "Invitation has already been used" },
+        { status: 400 }
+      );
+    }
+
+    const userRole = invitation.role as 'AUTHOR' | 'REVIEWER' | 'ADMIN';
+
+    // Mark invitation as used
+    await prisma.invitation.update({
+      where: { id: invitationId },
+      data: { usedAt: new Date() }
+    });
 
     // Hash password
     const hashedPassword = await hashPassword(password)

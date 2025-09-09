@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { signIn, getSession, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 
 function SignInForm() {
   const [email, setEmail] = useState('');
@@ -126,13 +125,7 @@ function SignInForm() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Don&apos;t have an account?{' '}
-              <Link
-                href="/auth/signup"
-                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
-              >
-                Sign up
-              </Link>
+              Need an account? Contact an administrator for an invitation.
             </p>
           </div>
         </div>

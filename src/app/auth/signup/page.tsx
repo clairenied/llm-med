@@ -21,30 +21,33 @@ function SignUpForm() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
 
-  // Check for invitation parameter and validate it
+  // Check for invitation parameter and validate it (required)
   useEffect(() => {
     const invitationId = searchParams.get('invitation');
-    if (invitationId) {
-      // Validate invitation
-      fetch(`/api/admin/invitations/${invitationId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.invitation && !data.invitation.usedAt && new Date(data.invitation.expiresAt) > new Date()) {
-            setInvitationInfo({
-              id: data.invitation.id,
-              email: data.invitation.email,
-              role: data.invitation.role
-            });
-            // Pre-fill email from invitation
-            setFormData(prev => ({ ...prev, email: data.invitation.email }));
-          } else {
-            setError('Invalid or expired invitation');
-          }
-        })
-        .catch(() => {
-          setError('Failed to validate invitation');
-        });
+    if (!invitationId) {
+      setError('Account creation requires an invitation. Please contact an administrator.');
+      return;
     }
+
+    // Validate invitation
+    fetch(`/api/admin/invitations/${invitationId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.invitation && !data.invitation.usedAt && new Date(data.invitation.expiresAt) > new Date()) {
+          setInvitationInfo({
+            id: data.invitation.id,
+            email: data.invitation.email,
+            role: data.invitation.role
+          });
+          // Pre-fill email from invitation
+          setFormData(prev => ({ ...prev, email: data.invitation.email }));
+        } else {
+          setError('Invalid or expired invitation');
+        }
+      })
+      .catch(() => {
+        setError('Failed to validate invitation');
+      });
   }, [searchParams]);
 
   // Redirect if already authenticated
@@ -82,7 +85,7 @@ function SignUpForm() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          invitationId: invitationInfo?.id,
+          invitationId: invitationInfo?.id || '',
         }),
       });
 
@@ -150,7 +153,7 @@ function SignUpForm() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            {invitationInfo ? `Join as ${invitationInfo.role.toLowerCase()}` : 'Create your account'}
+            {invitationInfo ? `Join as ${invitationInfo.role.toLowerCase()}` : 'Invitation Required'}
           </h2>
           {invitationInfo ? (
             <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
@@ -158,12 +161,12 @@ function SignUpForm() {
             </p>
           ) : (
             <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-              Or{' '}
+              Already have an account?{' '}
               <Link
                 href="/auth/signin"
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
               >
-                sign in to existing account
+                Sign in here
               </Link>
             </p>
           )}
@@ -255,10 +258,10 @@ function SignUpForm() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !invitationInfo}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isLoading ? 'Creating account...' : 'Create account'}
+                {!invitationInfo ? 'Valid invitation required' : isLoading ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>

@@ -1,0 +1,54 @@
+# Invitation-Only Account Creation
+
+## Purpose
+Ensure all account creation requires admin-issued invitations for security and access control
+
+## Strict Guidelines
+- **NO public signup** - all accounts must be created via invitation
+- **Invitation required** for registration API calls
+- **No signup links** in public UI components
+- **Clear messaging** about invitation requirement
+
+## Implementation Requirements
+
+### Registration API (`/api/auth/register`)
+- **MUST require** `invitationId` parameter (not optional)
+- **MUST validate** invitation exists, matches email, not expired, not used
+- **MUST mark** invitation as used after successful registration
+- **MUST assign** role from invitation (not user-selectable)
+
+### Signup Page (`/auth/signup`)
+- **MUST check** for invitation parameter in URL
+- **MUST show error** if no invitation provided
+- **MUST validate** invitation before showing form
+- **MUST disable** form if no valid invitation
+- **MUST pre-fill** email from invitation (read-only)
+
+### Signin Page (`/auth/signin`)
+- **NO signup links** - remove all "Sign up" buttons/links
+- **Clear messaging** directing users to contact admin for invitations
+- **NO direct paths** to public registration
+
+### Admin Dashboard
+- **Invitation management** is the ONLY way to create accounts
+- **Email invitations** sent automatically with signup links
+- **Track invitation status** (pending/used/expired)
+
+## Security Benefits
+- **Controlled access** - only invited users can join
+- **Role assignment** by admins only
+- **Audit trail** of who invited whom
+- **Prevents spam** and unauthorized registrations
+
+## User Experience
+- **Clear messaging** about invitation requirement
+- **Professional email** invitations with branded templates
+- **Seamless signup** flow for invited users
+- **Admin controls** for user management
+
+## Forbidden
+- Public signup pages or forms
+- Self-service account creation
+- Bypass mechanisms for invitation requirement
+- User-selectable roles during registration
+- Generic "Sign up" links in UI
