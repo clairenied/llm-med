@@ -12,6 +12,7 @@ interface Invitation {
   status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
   createdAt: string;
   expiresAt: string;
+  usedAt?: string;
 }
 
 export default function AdminInvitationsPage() {
@@ -24,6 +25,7 @@ export default function AdminInvitationsPage() {
     role: 'AUTHOR' as 'ADMIN' | 'REVIEWER' | 'AUTHOR'
   });
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState<string | null>(null);
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -82,6 +84,37 @@ export default function AdminInvitationsPage() {
       setError(error instanceof Error ? error.message : 'Failed to send invitation');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const resendInvitation = async (invitationId: string) => {
+    setResending(invitationId);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/admin/invitations/${invitationId}/resend`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to resend invitation');
+      }
+
+      // Refresh invitations list
+      fetchInvitations();
+      
+      // Show success message briefly
+      const successMessage = 'Invitation email resent successfully!';
+      setError(''); // Clear any previous errors
+      
+      // You could add a success state here if you want to show success messages
+      console.log(successMessage);
+      
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to resend invitation');
+    } finally {
+      setResending(null);
     }
   };
 
@@ -257,13 +290,18 @@ export default function AdminInvitationsPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              invitation.status === 'PENDING' 
-                                ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-                                : invitation.status === 'ACCEPTED'
+                              invitation.usedAt
                                 ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                                : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                : new Date(invitation.expiresAt) < new Date()
+                                ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
                             }`}>
-                              {invitation.status}
+                              {invitation.usedAt 
+                                ? 'USED' 
+                                : new Date(invitation.expiresAt) < new Date() 
+                                ? 'EXPIRED' 
+                                : 'PENDING'
+                              }
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -273,12 +311,23 @@ export default function AdminInvitationsPage() {
                             {new Date(invitation.expiresAt).toLocaleDateString()}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => deleteInvitation(invitation.id)}
-                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 cursor-pointer"
-                            >
-                              Delete
-                            </button>
+                            <div className="flex space-x-2">
+                              {!invitation.usedAt && (
+                                <button
+                                  onClick={() => resendInvitation(invitation.id)}
+                                  disabled={resending === invitation.id}
+                                  className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                  {resending === invitation.id ? 'Resending...' : 'Resend'}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => deleteInvitation(invitation.id)}
+                                className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 cursor-pointer"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
