@@ -135,9 +135,22 @@ class ProgrammaticBulkScraper {
         const $parent = $link.closest('.article-item, .search-result, .article-card');
         const abstract = $parent.find('.abstract, .summary').text().trim() || undefined;
         
-        // Try to extract authors
-        const authorText = $parent.find('.authors, .author-list').text().trim();
-        const authors = authorText ? authorText.split(',').map(a => a.trim()).filter(a => a.length > 0) : undefined;
+        // Try to extract authors from various sources
+        let authors: string[] | undefined;
+        
+        // Method 1: Look for author elements in the parent
+        const authorText = $parent.find('.authors, .author-list, .author-names').text().trim();
+        if (authorText) {
+          authors = authorText.split(',').map(a => a.trim()).filter(a => a.length > 0);
+        }
+        
+        // Method 2: Look for author links
+        if (!authors || authors.length === 0) {
+          const authorLinks = $parent.find('a[href*="/authors/"], .author-link').map((_, el) => $(el).text().trim()).get();
+          if (authorLinks.length > 0) {
+            authors = authorLinks.filter(a => a.length > 0);
+          }
+        }
 
         articles.push({
           title,
@@ -166,8 +179,63 @@ class ProgrammaticBulkScraper {
     }
   }
 
+  private async enhanceArticleMetadata(article: ScrapedArticle): Promise<ScrapedArticle> {
+    try {
+      // Fetch the individual article page to get detailed metadata
+      const response = await fetch(article.url);
+      if (!response.ok) {
+        console.warn(`Failed to fetch article page: ${article.url}`);
+        return article;
+      }
+      
+      const html = await response.text();
+      const $ = cheerio.load(html);
+      
+      // Extract authors from meta tags
+      const authors: string[] = [];
+      $('meta[name="citation_author"]').each((_, element) => {
+        const author = $(element).attr('content');
+        if (author && author.trim()) {
+          authors.push(author.trim());
+        }
+      });
+      
+      // Extract abstract if not already present
+      let abstract = article.abstract;
+      if (!abstract) {
+        const abstractText = $('meta[name="citation_abstract"]').attr('content') || 
+                           $('.abstract-content, .article-abstract').text().trim();
+        if (abstractText && abstractText.length > 20) {
+          abstract = abstractText;
+        }
+      }
+      
+      // Extract keywords
+      const keywords: string[] = [];
+      $('meta[name="citation_keywords"]').each((_, element) => {
+        const keyword = $(element).attr('content');
+        if (keyword && keyword.trim()) {
+          keywords.push(keyword.trim());
+        }
+      });
+      
+      return {
+        ...article,
+        authors: authors.length > 0 ? authors : article.authors,
+        abstract: abstract || article.abstract,
+        keywords: keywords.length > 0 ? keywords : article.keywords,
+      };
+    } catch (error) {
+      console.warn(`Error enhancing metadata for ${article.url}:`, error);
+      return article;
+    }
+  }
+
   private async processBatch(articles: ScrapedArticle[]): Promise<void> {
-    for (const article of articles) {
+    // First enhance all articles with detailed metadata
+    const enhancedArticles = await Promise.all(articles.map(article => this.enhanceArticleMetadata(article)));
+    
+    for (const article of enhancedArticles) {
       try {
         // Normalize title and URL for better duplicate detection
         const normalizedTitle = this.normalizeTitle(article.title);
