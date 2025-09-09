@@ -197,14 +197,14 @@ export default function ManuscriptRecord({ manuscriptId }: ManuscriptRecordProps
               </div>
             ) : manuscript.versions.length === 0 ? (
               <div className="mt-6">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <div className="text-gray-400 mb-4">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+                  <div className="text-gray-400 dark:text-gray-500 mb-4">
                     <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.013 8.013 0 01-4.79-1.6l-3.21 3.21a1 1 0 01-1.414-1.414l3.21-3.21A8.013 8.013 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10m0 0V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2m10 0v10a2 2 0 01-2 2H9a2 2 0 01-2-2V8m10 0H7m5 5v3" />
                     </svg>
                   </div>
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">No Reviews Available</h4>
-                  <p className="text-gray-600">
+                  <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Reviews Available</h4>
+                  <p className="text-gray-600 dark:text-gray-400">
                     Add a version first to start collecting peer reviews.
                   </p>
                 </div>
