@@ -1,0 +1,93 @@
+# Role Assignment Security
+
+## Purpose
+Enforce secure role assignment patterns to prevent privilege escalation
+
+## Strict Guidelines
+
+### User Self-Registration
+- **NO role selection** during sign-up
+- **Always default to AUTHOR** role for new registrations
+- **Only admins can assign roles** to other users
+
+### Admin-Only Role Assignment
+- **Admin invitation system** can specify roles
+- **Admin user management** can change user roles
+- **API endpoints** must validate admin permissions before role changes
+
+### Forbidden Patterns
+- Self-service role selection during registration
+- Role parameter in public registration APIs
+- Client-side role assignment without server validation
+- Default roles other than AUTHOR for public registration
+
+### Security Validation
+- **Server-side validation** of all role assignments
+- **Authentication required** for role changes
+- **Admin permission check** before role modifications
+- **Audit logging** of role changes (future enhancement)
+
+## Implementation Requirements
+
+### Registration API (`/api/auth/register`)
+```typescript
+// ✅ CORRECT - No role parameter
+const registerSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(6)
+});
+
+// Always default to AUTHOR
+const user = await prisma.user.create({
+  data: {
+    name,
+    email, 
+    password: hashedPassword,
+    role: 'AUTHOR' // Fixed - no user input
+  }
+});
+```
+
+### Admin Role Assignment (`/api/admin/users/[id]`)
+```typescript
+// ✅ CORRECT - Admin-only with validation
+const session = await auth();
+if (!session || session.user.role !== 'ADMIN') {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+}
+
+// Then allow role assignment
+```
+
+### Sign-Up Form
+```typescript
+// ✅ CORRECT - No role selection
+const [formData, setFormData] = useState({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+  // NO role field
+});
+```
+
+## Examples
+
+### ✅ Secure Patterns
+- Public registration → AUTHOR role automatically
+- Admin creates invitation → Can specify role
+- Admin edits user → Can change role
+- Role changes require admin authentication
+
+### ❌ Insecure Patterns
+- User selects own role during sign-up
+- Role parameter in public APIs without validation
+- Client-side role assignment
+- Default admin or reviewer roles for public registration
+
+## Enforcement
+- All role assignments must go through admin-validated endpoints
+- Public registration APIs must not accept role parameters
+- Client-side role selection is forbidden for self-registration
+- Server-side validation is mandatory for all role changes

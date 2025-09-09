@@ -10,8 +10,7 @@ export default function SignUpPage() {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'AUTHOR' as 'ADMIN' | 'REVIEWER' | 'AUTHOR'
+    confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -55,7 +54,6 @@ export default function SignUpPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: formData.role,
         }),
       });
 
@@ -178,22 +176,6 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={(e) => setFormData({ ...formData, role: e.target.value as 'AUTHOR' | 'REVIEWER' | 'ADMIN' })}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-              >
-                <option value="AUTHOR">Author</option>
-                <option value="REVIEWER">Reviewer</option>
-                <option value="ADMIN">Admin</option>
-              </select>
-            </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
