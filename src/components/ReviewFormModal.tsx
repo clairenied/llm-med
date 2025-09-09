@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 interface Review {
   id: string;
@@ -17,11 +18,6 @@ interface Review {
   createdAt: string;
 }
 
-interface Reviewer {
-  id: string;
-  code: string;
-  name: string;
-}
 
 interface ReviewFormProps {
   review?: Review;
@@ -32,7 +28,6 @@ interface ReviewFormProps {
 }
 
 interface ReviewFormData {
-  reviewerId: string;
   reviewType: 'INTERNAL' | 'EXTERNAL';
   content: string;
   documentUrl?: string;
@@ -53,8 +48,8 @@ const documentTypes = [
 ] as const;
 
 export default function ReviewFormModal({ review, onSubmit, onCancel, isLoading }: ReviewFormProps) {
+  const { data: session } = useSession();
   const [formData, setFormData] = useState<ReviewFormData>({
-    reviewerId: review?.reviewer.id || '',
     reviewType: review?.reviewType || 'EXTERNAL',
     content: review?.content || '',
     documentUrl: review?.documentUrl || '',
@@ -62,35 +57,15 @@ export default function ReviewFormModal({ review, onSubmit, onCancel, isLoading 
     isSharedExternally: review?.isSharedExternally || false,
   });
 
-  const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loadingReviewers, setLoadingReviewers] = useState(true);
-
-  useEffect(() => {
-    fetchReviewers();
-  }, []);
-
-  const fetchReviewers = async () => {
-    try {
-      const response = await fetch('/api/reviewers');
-      if (response.ok) {
-        const data = await response.json();
-        setReviewers(data);
-      }
-    } catch (error) {
-      console.error('Error fetching reviewers:', error);
-    } finally {
-      setLoadingReviewers(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
     const newErrors: Record<string, string> = {};
-    if (!formData.reviewerId) {
-      newErrors.reviewerId = 'Please select a reviewer';
+    if (!session?.user?.id) {
+      newErrors.session = 'You must be logged in to create a review';
     }
     if (!formData.content.trim()) {
       newErrors.content = 'Review content is required';
@@ -99,6 +74,7 @@ export default function ReviewFormModal({ review, onSubmit, onCancel, isLoading 
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
+      // The parent component will handle adding the reviewerId
       await onSubmit(formData);
     }
   };
@@ -121,35 +97,19 @@ export default function ReviewFormModal({ review, onSubmit, onCancel, isLoading 
         </div>
         
         <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
-          {/* Reviewer Selection */}
+          {/* Current Reviewer Info */}
           <div>
-            <label htmlFor="reviewerId" className="block text-sm font-medium text-gray-700 mb-1">
-              Reviewer *
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reviewer
             </label>
-            {loadingReviewers ? (
-              <div className="text-sm text-gray-500">Loading reviewers...</div>
-            ) : (
-              <select
-                id="reviewerId"
-                value={formData.reviewerId}
-                onChange={(e) => handleChange('reviewerId', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors.reviewerId ? 'border-red-500' : 'border-gray-300'
-                }`}
-                disabled={!!review} // Don't allow changing reviewer for existing reviews
-              >
-                <option value="">Select a reviewer</option>
-                {reviewers.map((reviewer) => (
-                  <option key={reviewer.id} value={reviewer.id}>
-                    {reviewer.name} ({reviewer.code})
-                  </option>
-                ))}
-              </select>
-            )}
-            {errors.reviewerId && (
-              <p className="text-red-500 text-sm mt-1">{errors.reviewerId}</p>
-            )}
+            <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700">
+              {session?.user?.name || session?.user?.email || 'Current User'}
+            </div>
           </div>
+
+          {errors.session && (
+            <p className="text-red-500 text-sm">{errors.session}</p>
+          )}
 
           {/* Review Type */}
           <div>

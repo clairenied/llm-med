@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import ReviewFormModal from './ReviewFormModal';
 
 interface Reviewer {
@@ -49,6 +50,7 @@ const documentTypeIcons = {
 };
 
 export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTrackerProps) {
+  const { data: session } = useSession();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +102,6 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
   };
 
   const handleReviewFormSubmit = async (data: {
-    reviewerId: string;
     reviewType: 'INTERNAL' | 'EXTERNAL';
     content: string;
     documentUrl?: string;
@@ -109,6 +110,10 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
   }) => {
     try {
       setIsLoading(true);
+      
+      if (!session?.user?.id) {
+        throw new Error('You must be logged in to create a review');
+      }
       
       if (editingReview) {
         // Update existing review
@@ -133,6 +138,7 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
           body: JSON.stringify({
             ...data,
             versionId: version.id,
+            reviewerId: session.user.id,
           }),
         });
 
