@@ -57,43 +57,29 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
 
   const handleAddFirstVersion = async () => {
     try {
-      console.log('Creating version for manuscript:', manuscriptId);
       const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
-      console.log('Next version number:', nextVersionNumber);
-      
-      const requestBody = {
-        manuscriptId,
-        versionNumber: nextVersionNumber,
-        documentType: 'PDF',
-        notes: 'Initial version',
-      };
-      console.log('Request body:', requestBody);
       
       const response = await fetch('/api/versions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          manuscriptId,
+          versionNumber: nextVersionNumber,
+          documentType: 'PDF',
+          notes: 'Initial version',
+        }),
       });
 
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error:', errorText);
-        throw new Error(`Failed to create version: ${response.status}`);
+        throw new Error(`Failed to create version: ${response.status} - ${errorText}`);
       }
-
-      const result = await response.json();
-      console.log('Version created:', result);
 
       // Refresh the manuscript data
       if (onVersionAdd) {
-        console.log('Calling onVersionAdd to refresh data');
         onVersionAdd();
-      } else {
-        console.warn('onVersionAdd callback not provided');
       }
     } catch (error) {
       console.error('Error creating version:', error);
