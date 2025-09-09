@@ -1,16 +1,38 @@
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import Link from 'next/link';
 
-export default async function AdminDashboard() {
-  const session = await auth();
+export default function AdminDashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   
-  if (!session) {
-    redirect('/auth/signin');
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+
+    if (session.user.role !== 'ADMIN') {
+      router.push('/auth/unauthorized');
+      return;
+    }
+  }, [session, status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    );
   }
 
-  if (session.user.role !== 'ADMIN') {
-    redirect('/auth/unauthorized');
+  if (!session || session.user.role !== 'ADMIN') {
+    return null;
   }
 
   return (
@@ -108,6 +130,57 @@ export default async function AdminDashboard() {
                 >
                   Import Data
                 </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Management */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Data Management
+            </h2>
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <button
+                  onClick={() => {
+                    if (confirm('This will scrape new articles from F1000Research. Continue?')) {
+                      fetch('/api/admin/scrape', { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => alert(data.message || 'Scraping completed'))
+                        .catch(err => alert('Scraping failed: ' + err.message));
+                    }
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors cursor-pointer"
+                >
+                  🔄 Scrape New Articles
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('This will permanently delete ALL scraped articles. This cannot be undone. Are you sure?')) {
+                      fetch('/api/admin/delete-scraped', { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(data => {
+                          alert(data.message || 'Deletion completed');
+                          window.location.reload();
+                        })
+                        .catch(err => alert('Deletion failed: ' + err.message));
+                    }
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  🗑️ Delete Scraped Articles
+                </button>
+                <button
+                  onClick={() => {
+                    fetch('/api/admin/fix-authors', { method: 'POST' })
+                      .then(res => res.json())
+                      .then(data => alert(data.message || 'Author fix completed'))
+                      .catch(err => alert('Author fix failed: ' + err.message));
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                >
+                  🔧 Fix Missing Authors
+                </button>
               </div>
             </div>
           </div>
