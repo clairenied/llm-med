@@ -26,6 +26,8 @@ interface VersionTrackerProps {
   selectedVersion: ManuscriptVersion | null;
   onVersionSelect: (version: ManuscriptVersion) => void;
   onVersionDelete?: (versionId: string) => void;
+  manuscriptId: string;
+  onVersionAdd?: () => void;
 }
 
 const documentTypeIcons = {
@@ -42,7 +44,7 @@ const documentTypeColors = {
   FREE_TEXT: 'bg-purple-100 text-purple-800',
 };
 
-export default function VersionTracker({ versions, selectedVersion, onVersionSelect, onVersionDelete }: VersionTrackerProps) {
+export default function VersionTracker({ versions, selectedVersion, onVersionSelect, onVersionDelete, manuscriptId, onVersionAdd }: VersionTrackerProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -51,6 +53,37 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleAddFirstVersion = async () => {
+    try {
+      const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
+      
+      const response = await fetch('/api/versions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          manuscriptId,
+          versionNumber: nextVersionNumber,
+          documentType: 'PDF',
+          notes: 'Initial version',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create version');
+      }
+
+      // Refresh the manuscript data
+      if (onVersionAdd) {
+        onVersionAdd();
+      }
+    } catch (error) {
+      console.error('Error creating version:', error);
+      alert('Failed to create version. Please try again.');
+    }
   };
 
   return (
@@ -73,7 +106,10 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
             <p>• Track changes and revisions over time</p>
             <p>• Manage peer reviews for each version</p>
           </div>
-          <button className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer">
+          <button 
+            onClick={handleAddFirstVersion}
+            className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer"
+          >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>

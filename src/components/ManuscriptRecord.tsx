@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ManuscriptInfo from './ManuscriptInfo';
 import VersionTracker from './VersionTracker';
@@ -65,30 +65,31 @@ export default function ManuscriptRecord({ manuscriptId }: ManuscriptRecordProps
   const [error, setError] = useState<string | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<ManuscriptVersion | null>(null);
 
-  useEffect(() => {
-    async function fetchManuscript() {
-      try {
-        const response = await fetch(`/api/manuscripts/${manuscriptId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Manuscript not found');
-          }
-          throw new Error('Failed to fetch manuscript');
+  const fetchManuscript = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/manuscripts/${manuscriptId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Manuscript not found');
         }
-        const manuscriptData = await response.json();
-        setManuscript(manuscriptData);
-        setSelectedVersion(manuscriptData.versions[0] || null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+        throw new Error('Failed to fetch manuscript');
       }
+      const manuscriptData = await response.json();
+      setManuscript(manuscriptData);
+      setSelectedVersion(manuscriptData.versions[0] || null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
+  }, [manuscriptId]);
 
+  useEffect(() => {
     if (manuscriptId) {
       fetchManuscript();
     }
-  }, [manuscriptId]);
+  }, [manuscriptId, fetchManuscript]);
 
   if (loading) {
     return (
@@ -186,6 +187,8 @@ export default function ManuscriptRecord({ manuscriptId }: ManuscriptRecordProps
               versions={manuscript.versions}
               selectedVersion={selectedVersion}
               onVersionSelect={setSelectedVersion}
+              manuscriptId={manuscriptId}
+              onVersionAdd={fetchManuscript}
             />
             
             {selectedVersion ? (
