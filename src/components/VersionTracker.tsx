@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import VersionForm from './VersionForm';
+
 interface Review {
   id: string;
   reviewer: {
@@ -18,6 +21,7 @@ interface ManuscriptVersion {
   documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
   notes?: string;
   createdAt: string;
+  updatedAt: string;
   reviews: Review[];
 }
 
@@ -25,7 +29,6 @@ interface VersionTrackerProps {
   versions: ManuscriptVersion[];
   selectedVersion: ManuscriptVersion | null;
   onVersionSelect: (version: ManuscriptVersion) => void;
-  onVersionDelete?: (versionId: string) => void;
   manuscriptId: string;
   onVersionAdd?: () => void;
 }
@@ -44,7 +47,11 @@ const documentTypeColors = {
   FREE_TEXT: 'bg-purple-100 text-purple-800',
 };
 
-export default function VersionTracker({ versions, selectedVersion, onVersionSelect, onVersionDelete, manuscriptId, onVersionAdd }: VersionTrackerProps) {
+export default function VersionTracker({ versions, selectedVersion, onVersionSelect, manuscriptId, onVersionAdd }: VersionTrackerProps) {
+  const [showVersionForm, setShowVersionForm] = useState(false);
+  const [editingVersion, setEditingVersion] = useState<ManuscriptVersion | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -56,25 +63,32 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
   };
 
   const handleAddFirstVersion = async () => {
+    setShowVersionForm(true);
+  };
+
+  const handleCreateVersion = () => {
+    setEditingVersion(null);
+    setShowVersionForm(true);
+  };
+
+  const handleEditVersion = (version: ManuscriptVersion) => {
+    setEditingVersion(version);
+    setShowVersionForm(true);
+  };
+
+  const handleDeleteVersion = async (versionId: string) => {
+    if (!confirm('Are you sure you want to delete this version? This action cannot be undone.')) {
+      return;
+    }
+
     try {
-      const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
-      
-      const response = await fetch('/api/versions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          manuscriptId,
-          versionNumber: nextVersionNumber,
-          documentType: 'PDF',
-          notes: 'Initial version',
-        }),
+      setIsLoading(true);
+      const response = await fetch(`/api/versions/${versionId}`, {
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to create version: ${response.status} - ${errorText}`);
+        throw new Error('Failed to delete version');
       }
 
       // Refresh the manuscript data
@@ -82,10 +96,73 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
         onVersionAdd();
       }
     } catch (error) {
-      console.error('Error creating version:', error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to create version: ${message}`);
+      console.error('Error deleting version:', error);
+      alert('Failed to delete version. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const handleVersionFormSubmit = async (data: {
+    versionNumber: number;
+    documentUrl?: string;
+    documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
+    notes?: string;
+  }) => {
+    try {
+      setIsLoading(true);
+      
+      if (editingVersion) {
+        // Update existing version
+        const response = await fetch(`/api/versions/${editingVersion.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update version');
+        }
+      } else {
+        // Create new version
+        const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
+        const response = await fetch('/api/versions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...data,
+            manuscriptId,
+            versionNumber: nextVersionNumber,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create version');
+        }
+      }
+
+      setShowVersionForm(false);
+      setEditingVersion(null);
+      
+      // Refresh the manuscript data
+      if (onVersionAdd) {
+        onVersionAdd();
+      }
+    } catch (error) {
+      console.error('Error saving version:', error);
+      alert('Failed to save version. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVersionFormCancel = () => {
+    setShowVersionForm(false);
+    setEditingVersion(null);
   };
 
   return (
@@ -120,6 +197,19 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
         </div>
       ) : (
         <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600">{versions.length} version{versions.length !== 1 ? 's' : ''}</span>
+            <button
+              onClick={handleCreateVersion}
+              className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Version
+            </button>
+          </div>
+          
           {versions.map((version) => (
           <div
             key={version.id}
@@ -163,19 +253,33 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
                     <span>Download</span>
                   </a>
                 )}
-                {onVersionDelete && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm('Are you sure you want to delete this version? This will also delete all reviews for this version.')) {
-                        onVersionDelete(version.id);
-                      }
-                    }}
-                    className="text-sm text-red-600 hover:text-red-800"
-                  >
-                    Delete
-                  </button>
-                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditVersion(version);
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                  title="Edit version"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteVersion(version.id);
+                  }}
+                  className="text-sm text-red-600 hover:text-red-800 flex items-center space-x-1"
+                  title="Delete version"
+                  disabled={isLoading}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Delete</span>
+                </button>
               </div>
               
               <div className="flex items-center space-x-2">
@@ -205,6 +309,16 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
           </div>
         ))}
         </div>
+      )}
+      
+      {showVersionForm && (
+        <VersionForm
+          version={editingVersion || undefined}
+          manuscriptId={manuscriptId}
+          onSubmit={handleVersionFormSubmit}
+          onCancel={handleVersionFormCancel}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );

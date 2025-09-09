@@ -39,6 +39,7 @@ interface ManuscriptVersion {
   documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
   notes?: string;
   createdAt: string;
+  updatedAt: string;
   reviews: Review[];
 }
 
@@ -196,6 +197,7 @@ export default function ManuscriptRecord({ manuscriptId }: ManuscriptRecordProps
                 <ReviewTracker 
                   version={selectedVersion}
                   reviews={selectedVersion.reviews}
+                  onRefresh={fetchManuscript}
                 />
               </div>
             ) : manuscript.versions.length === 0 ? (

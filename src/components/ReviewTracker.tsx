@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import ReviewFormModal from './ReviewFormModal';
+
 interface Reviewer {
   id: string;
   name: string;
@@ -30,8 +33,7 @@ interface ManuscriptVersion {
 interface ReviewTrackerProps {
   version: ManuscriptVersion;
   reviews: Review[];
-  onReviewEdit?: (review: Review) => void;
-  onReviewDelete?: (reviewId: string) => void;
+  onRefresh?: () => void;
 }
 
 const reviewTypeColors = {
@@ -46,7 +48,10 @@ const documentTypeIcons = {
   FREE_TEXT: '✏️',
 };
 
-export default function ReviewTracker({ version, reviews, onReviewEdit, onReviewDelete }: ReviewTrackerProps) {
+export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTrackerProps) {
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -55,6 +60,105 @@ export default function ReviewTracker({ version, reviews, onReviewEdit, onReview
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleCreateReview = () => {
+    setEditingReview(null);
+    setShowReviewForm(true);
+  };
+
+  const handleEditReview = (review: Review) => {
+    setEditingReview(review);
+    setShowReviewForm(true);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/reviews/${reviewId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete review');
+      }
+
+      // Refresh the manuscript data
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      alert('Failed to delete review. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReviewFormSubmit = async (data: {
+    reviewerId: string;
+    reviewType: 'INTERNAL' | 'EXTERNAL';
+    content: string;
+    documentUrl?: string;
+    documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
+    isSharedExternally: boolean;
+  }) => {
+    try {
+      setIsLoading(true);
+      
+      if (editingReview) {
+        // Update existing review
+        const response = await fetch(`/api/reviews/${editingReview.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update review');
+        }
+      } else {
+        // Create new review
+        const response = await fetch('/api/reviews', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...data,
+            versionId: version.id,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create review');
+        }
+      }
+
+      setShowReviewForm(false);
+      setEditingReview(null);
+      
+      // Refresh the manuscript data
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Error saving review:', error);
+      alert('Failed to save review. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReviewFormCancel = () => {
+    setShowReviewForm(false);
+    setEditingReview(null);
   };
 
   const sortedReviews = [...reviews].sort((a, b) => 
@@ -67,9 +171,20 @@ export default function ReviewTracker({ version, reviews, onReviewEdit, onReview
         <h3 className="text-lg font-semibold text-gray-900">
           Reviews for Version {version.versionNumber}
         </h3>
-        <span className="text-sm text-gray-500">
-          {reviews.length} review{reviews.length !== 1 ? 's' : ''}
-        </span>
+        <div className="flex items-center space-x-3">
+          <span className="text-sm text-gray-500">
+            {reviews.length} review{reviews.length !== 1 ? 's' : ''}
+          </span>
+          <button
+            onClick={handleCreateReview}
+            className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Review
+          </button>
+        </div>
       </div>
 
       {reviews.length === 0 ? (
@@ -146,26 +261,25 @@ export default function ReviewTracker({ version, reviews, onReviewEdit, onReview
                             </svg>
                           </a>
                         )}
-                        {onReviewEdit && (
-                          <button
-                            onClick={() => onReviewEdit(review)}
-                            className="text-sm text-blue-600 hover:text-blue-800"
-                          >
-                            Edit
-                          </button>
-                        )}
-                        {onReviewDelete && (
-                          <button
-                            onClick={() => {
-                              if (confirm('Are you sure you want to delete this review?')) {
-                                onReviewDelete(review.id);
-                              }
-                            }}
-                            className="text-sm text-red-600 hover:text-red-800"
-                          >
-                            Delete
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleEditReview(review)}
+                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(review.id)}
+                          className="text-sm text-red-600 hover:text-red-800 flex items-center space-x-1"
+                          disabled={isLoading}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>Delete</span>
+                        </button>
                       </div>
                       
                       <div className="flex items-center space-x-2">
@@ -192,6 +306,16 @@ export default function ReviewTracker({ version, reviews, onReviewEdit, onReview
             </div>
           ))}
         </div>
+      )}
+      
+      {showReviewForm && (
+        <ReviewFormModal
+          review={editingReview || undefined}
+          versionId={version.id}
+          onSubmit={handleReviewFormSubmit}
+          onCancel={handleReviewFormCancel}
+          isLoading={isLoading}
+        />
       )}
     </div>
   );
