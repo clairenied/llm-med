@@ -1,4 +1,35 @@
+---
+alwaysApply: true
+---
+
 # Sign-In Page Rules
+
+## Purpose
+Keep sign-in page minimal and focused
+
+## Strict Guidelines
+- **NO additions** to `/src/app/auth/signin/page.tsx`
+- Keep only: title, email field, password field, sign-in button, sign-up link
+- **NO extra features, links, or components**
+- Maintain current clean design
+- Only allow bug fixes or security updates
+
+## Current Approved Elements
+- App title with book emoji
+- Email input
+- Password input  
+- Sign In button
+- "Don't have an account? Sign up" link
+- Error message display
+- Loading state
+
+## Forbidden
+- Additional form fields
+- Social login buttons
+- Forgot password links
+- Extra navigation
+- Marketing content
+- Feature additions# Sign-In Page Rules
 
 ## Purpose
 Keep sign-in page minimal and focused
