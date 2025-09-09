@@ -194,6 +194,7 @@ model Invitation {
   token     String           @unique @default(cuid())
   createdAt DateTime         @default(now())
   expiresAt DateTime
+  usedAt    DateTime?
 }
 
 enum UserRole {

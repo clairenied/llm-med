@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn, useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function SignUpPage() {
+function SignUpForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,9 +15,37 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [invitationInfo, setInvitationInfo] = useState<{id: string, email: string, role: string} | null>(null);
   
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
+
+  // Check for invitation parameter and validate it
+  useEffect(() => {
+    const invitationId = searchParams.get('invitation');
+    if (invitationId) {
+      // Validate invitation
+      fetch(`/api/admin/invitations/${invitationId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.invitation && !data.invitation.usedAt && new Date(data.invitation.expiresAt) > new Date()) {
+            setInvitationInfo({
+              id: data.invitation.id,
+              email: data.invitation.email,
+              role: data.invitation.role
+            });
+            // Pre-fill email from invitation
+            setFormData(prev => ({ ...prev, email: data.invitation.email }));
+          } else {
+            setError('Invalid or expired invitation');
+          }
+        })
+        .catch(() => {
+          setError('Failed to validate invitation');
+        });
+    }
+  }, [searchParams]);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -54,6 +82,7 @@ export default function SignUpPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          invitationId: invitationInfo?.id,
         }),
       });
 
@@ -121,17 +150,23 @@ export default function SignUpPage() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Create your account
+            {invitationInfo ? `Join as ${invitationInfo.role.toLowerCase()}` : 'Create your account'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Or{' '}
-            <Link
-              href="/auth/signin"
-              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
-            >
-              sign in to existing account
-            </Link>
-          </p>
+          {invitationInfo ? (
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              You&apos;ve been invited to join LLM-Med Review Tracker
+            </p>
+          ) : (
+            <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+              Or{' '}
+              <Link
+                href="/auth/signin"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              >
+                sign in to existing account
+              </Link>
+            </p>
+          )}
         </div>
         
         <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow rounded-lg">
@@ -171,9 +206,15 @@ export default function SignUpPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                disabled={!!invitationInfo}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:bg-gray-100 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
                 placeholder="Enter your email"
               />
+              {invitationInfo && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Email from invitation (cannot be changed)
+                </p>
+              )}
             </div>
 
 
@@ -224,5 +265,17 @@ export default function SignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   );
 }
