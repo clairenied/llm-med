@@ -297,7 +297,7 @@ class ProgrammaticBulkScraper {
               title: article.title,
               abstract: article.abstract,
               keywords: article.keywords || [],
-              status: 'DRAFT',
+              status: 'PUBLISHED', // F1000Research articles are already published
               authors: article.authors ? {
                 create: article.authors.map(name => ({
                   name,
