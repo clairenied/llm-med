@@ -1,0 +1,45 @@
+# Code Efficiency Rules
+
+## Purpose
+Minimize tokens, ensure clean builds, and maintain code quality
+
+## TypeScript & Build Optimization
+- Use concise variable names (prefer `data` over `responseData`)
+- Prefer `const` over `let` when possible
+- Use type inference instead of explicit types when clear
+- Avoid redundant type annotations
+- Use destructuring for cleaner code
+- Prefer arrow functions for callbacks
+- Remove unused imports immediately
+- Use `export type` for type-only exports
+
+## Linting Requirements
+- **MUST pass all ESLint checks before commit**
+- Fix unused variables immediately
+- Remove console.logs in production code
+- Use proper React hooks dependencies
+- Handle async/await errors properly
+- Use proper TypeScript types (no `any`)
+
+## Code Patterns
+- Prefer early returns over nested conditions
+- Use optional chaining (`?.`) over manual checks
+- Combine related state updates
+- Use `useCallback` for expensive functions
+- Minimize component re-renders
+- Keep components under 200 lines
+
+## Forbidden Patterns
+- Unused variables or imports
+- `any` types without justification
+- Missing error handling
+- Unescaped entities in JSX
+- Missing React keys in lists
+- Blocking synchronous operations
+
+## Always Apply
+- Run `npm run build` before commits
+- Fix all linting errors immediately
+- Use meaningful but concise names
+- Remove dead code promptly
+- Optimize for readability and performance
