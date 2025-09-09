@@ -12,8 +12,7 @@ export async function PUT(
       reviewType, 
       content, 
       documentUrl, 
-      documentType, 
-      isSharedExternally 
+      documentType
     } = body;
 
     const review = await prisma.review.update({
@@ -23,7 +22,6 @@ export async function PUT(
         content,
         documentUrl,
         documentType,
-        isSharedExternally,
       },
       include: {
         reviewer: true,

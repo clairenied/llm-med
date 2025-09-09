@@ -1,0 +1,71 @@
+# CRUD UI Patterns
+
+## Purpose
+Establish consistent patterns for Create, Read, Update, Delete operations in the UI
+
+## Strict Guidelines
+
+### Page-Based CRUD Operations
+- **NO modals** for CRUD operations
+- **Use dedicated pages** for create/edit forms
+- **Navigate using Next.js router** to separate pages
+- **Clean URLs** that reflect the operation (e.g., `/manuscripts/123/versions/new`)
+
+### URL Structure
+- Create: `/resource/new` or `/parent/123/resource/new`
+- Edit: `/resource/123/edit` or `/parent/123/resource/456/edit`
+- View: `/resource/123` or `/parent/123/resource/456`
+- List: `/resource` or `/parent/123/resource`
+
+### Navigation Patterns
+- **Buttons link to pages** using Next.js `Link` component
+- **Form submissions redirect** to appropriate view page
+- **Cancel buttons navigate back** to previous page
+- **Breadcrumbs** for complex nested resources
+
+### Forbidden Patterns
+- Modal forms for CRUD operations
+- Inline editing without page navigation
+- Complex nested modals
+- Popup forms for data entry
+
+### Form Guidelines
+- **Full-page forms** with proper layout
+- **Clear page titles** indicating operation
+- **Consistent button placement** (Cancel left, Submit right)
+- **Proper error handling** with page-level error states
+- **Loading states** during form submission
+
+## Examples
+
+### Good - Page-based
+```tsx
+// Button that navigates to create page
+<Link href="/manuscripts/123/versions/new">
+  <button>Add Version</button>
+</Link>
+
+// Dedicated create page
+export default function NewVersionPage() {
+  return (
+    <div>
+      <h1>Create New Version</h1>
+      <VersionForm onSubmit={handleSubmit} />
+    </div>
+  );
+}
+```
+
+### Bad - Modal-based
+```tsx
+// Don't do this
+<button onClick={() => setShowModal(true)}>Add Version</button>
+{showModal && <VersionModal />}
+```
+
+## Implementation Requirements
+- All CRUD operations must use dedicated pages
+- Forms must be full-page components
+- Navigation must use Next.js routing
+- No modal dialogs for data entry
+- Consistent URL patterns across all resources

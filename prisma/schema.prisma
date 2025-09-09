@@ -65,7 +65,6 @@ model Review {
   content          String
   documentUrl      String?
   documentType     DocumentType?
-  isSharedExternally Boolean         @default(false)
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }

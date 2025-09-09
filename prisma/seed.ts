@@ -86,7 +86,6 @@ async function main() {
       content: 'The methodology is sound but requires more detailed statistical analysis. The results section needs expansion with additional validation studies.',
       documentType: 'PDF',
       documentUrl: '/reviews/review-a-v1.pdf',
-      isSharedExternally: true,
     },
   })
 
@@ -96,7 +95,6 @@ async function main() {
       reviewerId: reviewerB.id,
       reviewType: 'INTERNAL',
       content: 'Strong technical contribution. Suggest minor revisions to the introduction and discussion sections.',
-      isSharedExternally: false,
     },
   })
 
@@ -119,7 +117,6 @@ async function main() {
       reviewType: 'EXTERNAL',
       content: 'Significant improvements made. The statistical analysis is now comprehensive. Ready for publication pending minor formatting changes.',
       documentType: 'TEXT',
-      isSharedExternally: true,
     },
   })
 

@@ -28,13 +28,13 @@ interface Review {
   content: string;
   documentUrl?: string;
   documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
-  isSharedExternally: boolean;
   createdAt: string;
 }
 
 interface ManuscriptVersion {
   id: string;
   versionNumber: number;
+  manuscriptId: string;
   documentUrl?: string;
   documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
   notes?: string;

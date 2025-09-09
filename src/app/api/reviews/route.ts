@@ -10,8 +10,7 @@ export async function POST(request: Request) {
       reviewType, 
       content, 
       documentUrl, 
-      documentType, 
-      isSharedExternally 
+      documentType
     } = body;
 
     const review = await prisma.review.create({
@@ -22,7 +21,6 @@ export async function POST(request: Request) {
         content,
         documentUrl,
         documentType,
-        isSharedExternally: isSharedExternally || false,
       },
       include: {
         reviewer: true,

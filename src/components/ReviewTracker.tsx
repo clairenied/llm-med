@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import ReviewFormModal from './ReviewFormModal';
+import Link from 'next/link';
 
 interface Reviewer {
   id: string;
@@ -17,13 +16,13 @@ interface Review {
   content: string;
   documentUrl?: string;
   documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
-  isSharedExternally: boolean;
   createdAt: string;
 }
 
 interface ManuscriptVersion {
   id: string;
   versionNumber: number;
+  manuscriptId: string;
   documentUrl?: string;
   documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
   notes?: string;
@@ -50,9 +49,6 @@ const documentTypeIcons = {
 };
 
 export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTrackerProps) {
-  const { data: session } = useSession();
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -64,15 +60,6 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
     });
   };
 
-  const handleCreateReview = () => {
-    setEditingReview(null);
-    setShowReviewForm(true);
-  };
-
-  const handleEditReview = (review: Review) => {
-    setEditingReview(review);
-    setShowReviewForm(true);
-  };
 
   const handleDeleteReview = async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
@@ -101,71 +88,6 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
     }
   };
 
-  const handleReviewFormSubmit = async (data: {
-    reviewType: 'INTERNAL' | 'EXTERNAL';
-    content: string;
-    documentUrl?: string;
-    documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
-    isSharedExternally: boolean;
-  }) => {
-    try {
-      setIsLoading(true);
-      
-      if (!session?.user?.id) {
-        throw new Error('You must be logged in to create a review');
-      }
-      
-      if (editingReview) {
-        // Update existing review
-        const response = await fetch(`/api/reviews/${editingReview.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update review');
-        }
-      } else {
-        // Create new review
-        const response = await fetch('/api/reviews', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...data,
-            versionId: version.id,
-            reviewerId: session.user.id,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to create review');
-        }
-      }
-
-      setShowReviewForm(false);
-      setEditingReview(null);
-      
-      // Refresh the manuscript data
-      if (onRefresh) {
-        onRefresh();
-      }
-    } catch (error) {
-      console.error('Error saving review:', error);
-      alert('Failed to save review. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleReviewFormCancel = () => {
-    setShowReviewForm(false);
-    setEditingReview(null);
-  };
 
   const sortedReviews = [...reviews].sort((a, b) => 
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -181,15 +103,15 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
           <span className="text-sm text-gray-500">
             {reviews.length} review{reviews.length !== 1 ? 's' : ''}
           </span>
-          <button
-            onClick={handleCreateReview}
+          <Link
+            href={`/manuscripts/${version.manuscriptId}/versions/${version.id}/reviews/new`}
             className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
           >
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add Review
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -267,15 +189,15 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
                             </svg>
                           </a>
                         )}
-                        <button
-                          onClick={() => handleEditReview(review)}
+                        <Link
+                          href={`/manuscripts/${version.manuscriptId}/versions/${version.id}/reviews/${review.id}/edit`}
                           className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                           <span>Edit</span>
-                        </button>
+                        </Link>
                         <button
                           onClick={() => handleDeleteReview(review.id)}
                           className="text-sm text-red-600 hover:text-red-800 flex items-center space-x-1"
@@ -288,23 +210,6 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
                         </button>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
-                        {review.isSharedExternally ? (
-                          <span className="text-xs text-green-600 flex items-center space-x-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                            <span>Shared Externally</span>
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-500 flex items-center space-x-1">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                            </svg>
-                            <span>Internal Only</span>
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -312,16 +217,6 @@ export default function ReviewTracker({ version, reviews, onRefresh }: ReviewTra
             </div>
           ))}
         </div>
-      )}
-      
-      {showReviewForm && (
-        <ReviewFormModal
-          review={editingReview || undefined}
-          versionId={version.id}
-          onSubmit={handleReviewFormSubmit}
-          onCancel={handleReviewFormCancel}
-          isLoading={isLoading}
-        />
       )}
     </div>
   );

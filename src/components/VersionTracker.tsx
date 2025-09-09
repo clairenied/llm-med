@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import VersionForm from './VersionForm';
+import Link from 'next/link';
 
 interface Review {
   id: string;
@@ -10,13 +10,13 @@ interface Review {
   };
   reviewType: 'INTERNAL' | 'EXTERNAL';
   content: string;
-  isSharedExternally: boolean;
   createdAt: string;
 }
 
 interface ManuscriptVersion {
   id: string;
   versionNumber: number;
+  manuscriptId: string;
   documentUrl?: string;
   documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
   notes?: string;
@@ -48,8 +48,6 @@ const documentTypeColors = {
 };
 
 export default function VersionTracker({ versions, selectedVersion, onVersionSelect, manuscriptId, onVersionAdd }: VersionTrackerProps) {
-  const [showVersionForm, setShowVersionForm] = useState(false);
-  const [editingVersion, setEditingVersion] = useState<ManuscriptVersion | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -62,19 +60,6 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
     });
   };
 
-  const handleAddFirstVersion = async () => {
-    setShowVersionForm(true);
-  };
-
-  const handleCreateVersion = () => {
-    setEditingVersion(null);
-    setShowVersionForm(true);
-  };
-
-  const handleEditVersion = (version: ManuscriptVersion) => {
-    setEditingVersion(version);
-    setShowVersionForm(true);
-  };
 
   const handleDeleteVersion = async (versionId: string) => {
     if (!confirm('Are you sure you want to delete this version? This action cannot be undone.')) {
@@ -103,67 +88,6 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
     }
   };
 
-  const handleVersionFormSubmit = async (data: {
-    versionNumber: number;
-    documentUrl?: string;
-    documentType: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
-    notes?: string;
-  }) => {
-    try {
-      setIsLoading(true);
-      
-      if (editingVersion) {
-        // Update existing version
-        const response = await fetch(`/api/versions/${editingVersion.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update version');
-        }
-      } else {
-        // Create new version
-        const nextVersionNumber = Math.max(...versions.map(v => v.versionNumber), 0) + 1;
-        const response = await fetch('/api/versions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...data,
-            manuscriptId,
-            versionNumber: nextVersionNumber,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to create version');
-        }
-      }
-
-      setShowVersionForm(false);
-      setEditingVersion(null);
-      
-      // Refresh the manuscript data
-      if (onVersionAdd) {
-        onVersionAdd();
-      }
-    } catch (error) {
-      console.error('Error saving version:', error);
-      alert('Failed to save version. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVersionFormCancel = () => {
-    setShowVersionForm(false);
-    setEditingVersion(null);
-  };
 
   return (
     <div>
@@ -185,29 +109,29 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
             <p>• Track changes and revisions over time</p>
             <p>• Manage peer reviews for each version</p>
           </div>
-          <button 
-            onClick={handleAddFirstVersion}
-            className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer"
+          <Link 
+            href={`/manuscripts/${manuscriptId}/versions/new`}
+            className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add First Version
-          </button>
+          </Link>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-600">{versions.length} version{versions.length !== 1 ? 's' : ''}</span>
-            <button
-              onClick={handleCreateVersion}
+            <Link
+              href={`/manuscripts/${manuscriptId}/versions/new`}
               className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Add Version
-            </button>
+            </Link>
           </div>
           
           {versions.map((version) => (
@@ -253,11 +177,9 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
                     <span>Download</span>
                   </a>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleEditVersion(version);
-                  }}
+                <Link
+                  href={`/manuscripts/${manuscriptId}/versions/${version.id}/edit`}
+                  onClick={(e) => e.stopPropagation()}
                   className="text-sm text-blue-600 hover:text-blue-800 flex items-center space-x-1"
                   title="Edit version"
                 >
@@ -265,7 +187,7 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                   <span>Edit</span>
-                </button>
+                </Link>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -309,16 +231,6 @@ export default function VersionTracker({ versions, selectedVersion, onVersionSel
           </div>
         ))}
         </div>
-      )}
-      
-      {showVersionForm && (
-        <VersionForm
-          version={editingVersion || undefined}
-          manuscriptId={manuscriptId}
-          onSubmit={handleVersionFormSubmit}
-          onCancel={handleVersionFormCancel}
-          isLoading={isLoading}
-        />
       )}
     </div>
   );
