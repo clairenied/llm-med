@@ -44,9 +44,15 @@ export default function AdminInvitationsPage() {
 
   const fetchInvitations = async () => {
     try {
-      const response = await fetch('/api/admin/invitations');
+      const response = await fetch('/api/admin/invitations', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!response.ok) {
-        throw new Error('Failed to fetch invitations');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch invitations`);
       }
       const data = await response.json();
       setInvitations(data.invitations);
@@ -65,6 +71,7 @@ export default function AdminInvitationsPage() {
     try {
       const response = await fetch('/api/admin/invitations', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -94,6 +101,10 @@ export default function AdminInvitationsPage() {
     try {
       const response = await fetch(`/api/admin/invitations/${invitationId}/resend`, {
         method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
@@ -126,6 +137,10 @@ export default function AdminInvitationsPage() {
     try {
       const response = await fetch(`/api/admin/invitations/${invitationId}`, {
         method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
