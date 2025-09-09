@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import ManuscriptList from '@/components/ManuscriptList';
-import LandingPage from '@/components/LandingPage';
+import SignInForm from '@/components/SignInForm';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -19,7 +19,7 @@ export default function Home() {
   }
   
   if (!session) {
-    return <LandingPage />;
+    return <SignInForm />;
   }
 
   return <ManuscriptList />;
