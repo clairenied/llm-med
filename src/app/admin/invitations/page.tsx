@@ -289,6 +289,9 @@ export default function AdminInvitationsPage() {
                           Status
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                          Signup Link
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                           Created
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -325,6 +328,31 @@ export default function AdminInvitationsPage() {
                                 : 'PENDING'
                               }
                             </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                            {!invitation.usedAt && new Date(invitation.expiresAt) >= new Date() ? (
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="text"
+                                  value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3010'}/auth/signup?invitation=${invitation.id}`}
+                                  readOnly
+                                  className="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 w-64 font-mono"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const link = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3010'}/auth/signup?invitation=${invitation.id}`;
+                                    navigator.clipboard.writeText(link);
+                                    // Could add toast notification here
+                                  }}
+                                  className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 cursor-pointer"
+                                  title="Copy signup link"
+                                >
+                                  Copy
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400 text-xs">N/A</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                             {new Date(invitation.createdAt).toLocaleDateString()}
