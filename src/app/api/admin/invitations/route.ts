@@ -76,15 +76,24 @@ export async function POST(request: NextRequest) {
     });
 
     // Send invitation email
-    const emailResult = await sendInvitationEmail({
-      email: invitation.email,
-      role: invitation.role,
-      invitationId: invitation.id,
-      inviterName: session.user.name || session.user.email || 'Admin'
-    });
+    let emailResult = { success: false, error: 'Email service not configured' };
+    try {
+      emailResult = await sendInvitationEmail({
+        email: invitation.email,
+        role: invitation.role,
+        invitationId: invitation.id,
+        inviterName: session.user.name || session.user.email || 'Admin'
+      });
+    } catch (emailError) {
+      console.warn('Failed to send invitation email:', emailError);
+      emailResult = { 
+        success: false, 
+        error: emailError instanceof Error ? emailError.message : 'Email sending failed' 
+      };
+    }
 
     if (!emailResult.success) {
-      console.warn('Failed to send invitation email:', emailResult.error);
+      console.warn('Email not sent:', emailResult.error);
       // Don't fail the API call if email fails, but log it
     }
 

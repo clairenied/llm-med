@@ -83,6 +83,13 @@ export default function AdminInvitationsPage() {
         throw new Error(data.error || 'Failed to send invitation');
       }
 
+      const data = await response.json();
+      
+      // Show warning if email wasn't sent
+      if (!data.emailSent && data.emailError) {
+        setError(`Invitation created but email not sent: ${data.emailError}. The user can still sign up using the invitation link.`);
+      }
+
       // Reset form and refresh list
       setFormData({ email: '', role: 'AUTHOR' });
       setShowForm(false);
