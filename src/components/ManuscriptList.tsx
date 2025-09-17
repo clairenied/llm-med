@@ -314,7 +314,7 @@ export default function ManuscriptList() {
                         Latest version: {formatDate(manuscript.versions[manuscript.versions.length - 1].createdAt)}
                       </span>
                     ) : (
-                      <span className="text-orange-600">No versions yet</span>
+                      <span className="text-gray-500">No versions yet</span>
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
