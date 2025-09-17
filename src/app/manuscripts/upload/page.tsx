@@ -10,7 +10,8 @@ interface ArticleFormData {
   keywords: string[];
   authors: string[];
   content?: string;
-  uploadType: 'text' | 'pdf';
+  url?: string;
+  uploadType: 'text' | 'pdf' | 'url';
 }
 
 export default function UploadArticlePage() {
@@ -21,6 +22,7 @@ export default function UploadArticlePage() {
     keywords: [],
     authors: [],
     content: '',
+    url: '',
     uploadType: 'text',
   });
 
@@ -51,6 +53,16 @@ export default function UploadArticlePage() {
       newErrors.file = 'PDF file is required for PDF upload';
     }
     
+    if (formData.uploadType === 'url' && !formData.url?.trim()) {
+      newErrors.url = 'URL is required for URL upload';
+    } else if (formData.uploadType === 'url' && formData.url?.trim()) {
+      try {
+        new URL(formData.url);
+      } catch {
+        newErrors.url = 'Please enter a valid URL';
+      }
+    }
+    
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
@@ -71,6 +83,10 @@ export default function UploadArticlePage() {
         
         if (formData.uploadType === 'pdf' && selectedFile) {
           submitData.append('file', selectedFile);
+        }
+        
+        if (formData.uploadType === 'url' && formData.url) {
+          submitData.append('url', formData.url);
         }
         
         const response = await fetch('/api/manuscripts/upload', {
@@ -179,7 +195,7 @@ export default function UploadArticlePage() {
                     type="radio"
                     value="text"
                     checked={formData.uploadType === 'text'}
-                    onChange={(e) => handleChange('uploadType', e.target.value as 'text' | 'pdf')}
+                    onChange={(e) => handleChange('uploadType', e.target.value as 'text' | 'pdf' | 'url')}
                     className="mr-2"
                   />
                   <span className="text-sm">Plain Text</span>
@@ -189,10 +205,20 @@ export default function UploadArticlePage() {
                     type="radio"
                     value="pdf"
                     checked={formData.uploadType === 'pdf'}
-                    onChange={(e) => handleChange('uploadType', e.target.value as 'text' | 'pdf')}
+                    onChange={(e) => handleChange('uploadType', e.target.value as 'text' | 'pdf' | 'url')}
                     className="mr-2"
                   />
                   <span className="text-sm">PDF File</span>
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="url"
+                    checked={formData.uploadType === 'url'}
+                    onChange={(e) => handleChange('uploadType', e.target.value as 'text' | 'pdf' | 'url')}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">From URL</span>
                 </label>
               </div>
             </div>
@@ -370,6 +396,36 @@ export default function UploadArticlePage() {
                 </div>
                 {errors.file && (
                   <p className="text-red-500 text-sm mt-1">{errors.file}</p>
+                )}
+              </div>
+            )}
+
+            {/* URL Input */}
+            {formData.uploadType === 'url' && (
+              <div>
+                <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
+                  Article URL *
+                </label>
+                <div className="relative">
+                  <input
+                    type="url"
+                    id="url"
+                    value={formData.url || ''}
+                    onChange={(e) => handleChange('url', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-12"
+                    placeholder="https://example.com/article-title"
+                  />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Enter the URL of an article to automatically fetch and parse its content
+                </p>
+                {errors.url && (
+                  <p className="text-red-500 text-sm mt-1">{errors.url}</p>
                 )}
               </div>
             )}
