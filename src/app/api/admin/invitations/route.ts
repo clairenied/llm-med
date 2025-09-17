@@ -76,14 +76,18 @@ export async function POST(request: NextRequest) {
     });
 
     // Send invitation email
-    let emailResult = { success: false, error: 'Email service not configured' };
+    let emailResult: { success: boolean; error?: string } = { success: false, error: 'Email service not configured' };
     try {
-      emailResult = await sendInvitationEmail({
+      const result = await sendInvitationEmail({
         email: invitation.email,
         role: invitation.role,
         invitationId: invitation.id,
         inviterName: session.user.name || session.user.email || 'Admin'
       });
+      emailResult = { 
+        success: result.success, 
+        error: result.success ? undefined : result.error 
+      };
     } catch (emailError) {
       console.warn('Failed to send invitation email:', emailError);
       emailResult = { 
