@@ -309,12 +309,10 @@ export default function ManuscriptList() {
                 <div className="flex justify-between items-center text-xs text-gray-500">
                   <div className="flex space-x-4">
                     <span>Created: {formatDate(manuscript.createdAt)}</span>
-                    {manuscript.versions.length > 0 ? (
+                    {manuscript.versions.length > 0 && (
                       <span>
                         Latest version: {formatDate(manuscript.versions[manuscript.versions.length - 1].createdAt)}
                       </span>
-                    ) : (
-                      <span className="text-gray-500">No versions yet</span>
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
