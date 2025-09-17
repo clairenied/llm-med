@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { sendInvitationEmail } from '@/lib/email';
 
 export async function GET() {
   try {
@@ -75,36 +74,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send invitation email
-    let emailResult: { success: boolean; error?: string } = { success: false, error: 'Email service not configured' };
-    try {
-      const result = await sendInvitationEmail({
-        email: invitation.email,
-        role: invitation.role,
-        invitationId: invitation.id,
-        inviterName: session.user.name || session.user.email || 'Admin'
-      });
-      emailResult = { 
-        success: result.success, 
-        error: result.success ? undefined : result.error 
-      };
-    } catch (emailError) {
-      console.warn('Failed to send invitation email:', emailError);
-      emailResult = { 
-        success: false, 
-        error: emailError instanceof Error ? emailError.message : 'Email sending failed' 
-      };
-    }
-
-    if (!emailResult.success) {
-      console.warn('Email not sent:', emailResult.error);
-      // Don't fail the API call if email fails, but log it
-    }
-
     return NextResponse.json({ 
       invitation,
-      emailSent: emailResult.success,
-      emailError: emailResult.success ? undefined : emailResult.error
+      message: 'Invitation created successfully. Share the signup link manually.'
     });
   } catch (error) {
     console.error('Error creating invitation:', error);

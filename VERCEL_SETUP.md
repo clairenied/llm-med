@@ -20,10 +20,6 @@ NEXTAUTH_SECRET=your-secure-production-secret-key
 
 # Admin Creation (Required)
 ADMIN_CREATION_TOKEN=your-secure-admin-token
-
-# Email Configuration (Optional - for invitation emails)
-RESEND_API_KEY=your-resend-api-key
-EMAIL_FROM=LLM-Med <noreply@yourdomain.com>
 ```
 
 ## 🎯 **Step-by-Step Setup:**
@@ -41,9 +37,6 @@ EMAIL_FROM=LLM-Med <noreply@yourdomain.com>
 - `ADMIN_CREATION_TOKEN`: Secure token for creating admin users
 - Use a strong, unique value
 
-### 4. **Email (Optional)**
-- If you want invitation emails, set up Resend API
-- Otherwise, leave `RESEND_API_KEY` empty - app works without email
 
 ## 🚀 **Deployment Steps:**
 
@@ -54,7 +47,7 @@ EMAIL_FROM=LLM-Med <noreply@yourdomain.com>
 2. **Add Each Variable**
    - Click "Add New"
    - Set Environment: "Production" (and "Preview" if needed)
-   - Add all required variables above
+   - Add the 3 required variables above
 
 3. **Redeploy**
    - Go to Deployments tab
@@ -78,13 +71,6 @@ npx prisma db push
 
 Or set up migrations in your production database.
 
-## 📧 **Email Setup (Optional):**
-
-If you want invitation emails:
-1. Sign up at [resend.com](https://resend.com)
-2. Get API key
-3. Add to Vercel environment variables
-4. Verify your domain (for production emails)
 
 ## 🆘 **Troubleshooting:**
 
@@ -93,14 +79,14 @@ If you want invitation emails:
 - **Auth issues**: Check `NEXTAUTH_URL` and `NEXTAUTH_SECRET`
 - **500 errors**: Check server logs in Vercel dashboard
 
-## 🎯 **Without Email Service:**
+## 🎯 **Manual Invitation Sharing:**
 
-The app works perfectly without email configuration:
+The app uses manual invitation sharing:
 - Invitations are created in database
 - Signup links shown in admin interface
-- Manual sharing of invitation links
-- No email sending required
+- Copy and share links manually (Slack, text, etc.)
+- No email service required
 
 ---
 
-**The build error is fixed - your deployment should succeed once environment variables are set!** 🚀
+**The build error is fixed - your deployment should succeed once the 3 environment variables are set!** 🚀

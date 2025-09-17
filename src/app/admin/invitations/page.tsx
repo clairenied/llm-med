@@ -85,9 +85,10 @@ export default function AdminInvitationsPage() {
 
       const data = await response.json();
       
-      // Show warning if email wasn't sent
-      if (!data.emailSent && data.emailError) {
-        setError(`Invitation created but email not sent: ${data.emailError}. The user can still sign up using the invitation link.`);
+      // Show success message
+      if (data.message) {
+        // Could show a success toast here if desired
+        console.log(data.message);
       }
 
       // Reset form and refresh list

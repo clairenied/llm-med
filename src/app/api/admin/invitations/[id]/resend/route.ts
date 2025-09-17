@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { sendInvitationEmail } from '@/lib/email';
 
 export async function POST(
   request: NextRequest,
@@ -44,25 +43,9 @@ export async function POST(
       });
     }
 
-    // Send invitation email
-    const emailResult = await sendInvitationEmail({
-      email: updatedInvitation.email,
-      role: updatedInvitation.role,
-      invitationId: updatedInvitation.id,
-      inviterName: session.user.name || session.user.email || 'Admin'
-    });
-
-    if (!emailResult.success) {
-      console.warn('Failed to resend invitation email:', emailResult.error);
-      return NextResponse.json({ 
-        error: 'Failed to send email: ' + emailResult.error 
-      }, { status: 500 });
-    }
-
     return NextResponse.json({ 
-      message: 'Invitation email resent successfully',
-      invitation: updatedInvitation,
-      emailSent: true
+      message: 'Invitation refreshed successfully. Share the signup link manually.',
+      invitation: updatedInvitation
     });
 
   } catch (error) {
