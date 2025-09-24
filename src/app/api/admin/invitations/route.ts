@@ -18,7 +18,12 @@ export async function GET() {
 
     return NextResponse.json({ invitations });
   } catch (error) {
-    console.error('Error fetching invitations:', error);
+    console.error('Error fetching invitations:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -79,7 +84,12 @@ export async function POST(request: NextRequest) {
       message: 'Invitation created successfully. Share the signup link manually.'
     });
   } catch (error) {
-    console.error('Error creating invitation:', error);
+    console.error('Error creating invitation:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
