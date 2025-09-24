@@ -29,7 +29,7 @@ export default function AdminUserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteFormData, setInviteFormData] = useState({
     email: '',
@@ -428,7 +428,7 @@ export default function AdminUserManagementPage() {
               </h3>
               <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-md">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  ⚠️ <strong>Warning:</strong> This will immediately change the user's password. They will need to use the new password to sign in.
+                  ⚠️ <strong>Warning:</strong> This will immediately change the user&apos;s password. They will need to use the new password to sign in.
                 </p>
               </div>
               <div className="space-y-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -46,9 +46,9 @@ export default function DeleteArticlesPage() {
       return;
     }
     fetchManuscripts();
-  }, [session, status, router, filter]);
+  }, [session, status, router, filter, fetchManuscripts]);
 
-  const fetchManuscripts = async () => {
+  const fetchManuscripts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/manuscripts?page=1&limit=1000`);
@@ -71,7 +71,7 @@ export default function DeleteArticlesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
   const handleSelectAll = () => {
     if (selectedManuscripts.size === manuscripts.length) {
