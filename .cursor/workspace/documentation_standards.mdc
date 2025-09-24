@@ -1,0 +1,139 @@
+# Documentation Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Prevent random markdown file creation and maintain organized documentation
+
+## Documentation Rules
+
+### Prohibited Actions
+- **NO random .md files in root directory**
+- **NO duplicate documentation**
+- **NO outdated/redundant guides**
+- **NO documentation without clear purpose**
+
+### Approved Documentation Locations
+
+#### Root Directory (Limited)
+```
+README.md              # Main project overview ONLY
+LOCAL_DEVELOPMENT.md   # Development setup ONLY
+```
+
+#### Organized Documentation
+```
+docs/                  # All other documentation
+├── DEPLOYMENT.md      # Deployment guides
+├── API.md            # API documentation  
+├── CONTRIBUTING.md   # Contribution guidelines
+└── TROUBLESHOOTING.md # Common issues
+```
+
+#### Code-Related Rules
+```
+.cursor/workspace/     # Code quality rules ONLY
+├── *.mdc             # Cursor rules for code standards
+```
+
+### Documentation Creation Process
+
+#### Before Creating Any .md File
+1. **Check if documentation already exists**
+2. **Determine if it belongs in root or docs/**
+3. **Verify it serves a unique purpose**
+4. **Ensure it won't become outdated quickly**
+
+#### Root Directory Rules
+- **Maximum 2 files**: README.md, LOCAL_DEVELOPMENT.md
+- **README.md**: Project overview, quick start, tech stack
+- **LOCAL_DEVELOPMENT.md**: Development setup only
+
+#### Docs Directory Rules
+- **Deployment guides**: docs/DEPLOYMENT.md
+- **API documentation**: docs/API.md  
+- **Troubleshooting**: docs/TROUBLESHOOTING.md
+- **Contributing**: docs/CONTRIBUTING.md
+
+### Content Standards
+
+#### Token-Efficient Documentation
+- **Concise headings** (avoid redundant words)
+- **Bullet points** over paragraphs
+- **Code blocks** for examples
+- **Clear structure** with consistent formatting
+
+#### Avoid These Patterns
+```markdown
+❌ # Complete Comprehensive Guide to Setting Up Vercel
+✅ # Vercel Setup
+
+❌ This document will explain how to...
+✅ # Purpose: Deploy to Vercel
+
+❌ Long paragraphs explaining obvious concepts
+✅ • Bullet points with clear actions
+```
+
+### Maintenance Rules
+
+#### Regular Cleanup
+- **Remove outdated guides** immediately
+- **Consolidate duplicate information**
+- **Update links and references**
+- **Archive obsolete documentation**
+
+#### Version Control
+- **Delete files** instead of commenting out
+- **Update existing docs** instead of creating new ones
+- **Use Git history** for old versions
+- **Keep docs current** with code changes
+
+### Enforcement
+
+#### Code Review Requirements
+- **Reject PRs** with random .md files in root
+- **Require justification** for new documentation
+- **Verify docs/ organization** for new guides
+- **Check for duplicate content**
+
+#### Automated Checks
+```bash
+# Check for too many root .md files
+find . -maxdepth 1 -name "*.md" | wc -l
+# Should be ≤ 2
+
+# Verify docs organization
+ls docs/ | grep -E "\.(md)$"
+```
+
+### Migration Strategy
+
+#### Existing Files Cleanup
+1. **Move deployment docs** to docs/DEPLOYMENT.md
+2. **Remove redundant guides**
+3. **Consolidate similar content**
+4. **Update all references**
+
+#### Future Documentation
+- **Always check docs/ first**
+- **Use existing files when possible**
+- **Create new files only when necessary**
+- **Follow naming conventions**
+
+## Current Approved Structure
+
+```
+/                      # Root (2 files max)
+├── README.md         # Project overview
+├── LOCAL_DEVELOPMENT.md # Dev setup
+└── docs/             # All other docs
+    ├── DEPLOYMENT.md # Deployment guide
+    └── (future docs)
+```
+
+## Enforcement
+- All new .md files must be justified in PR description
+- Root directory limited to README.md and LOCAL_DEVELOPMENT.md
+- All other documentation goes in docs/ directory
+- Consolidate instead of creating duplicate guides

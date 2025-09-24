@@ -14,7 +14,6 @@ export default function Navigation() {
     
     const items = [
       { href: '/', label: 'Manuscripts', icon: '📄' },
-      { href: '/import', label: 'Import Data', icon: '📥' },
     ];
 
     // Add admin routes for admin users
@@ -60,32 +59,32 @@ export default function Navigation() {
             ) : session ? (
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">{session.user.name || session.user.email}</span>
+                  <span className="font-medium">{session.user.email}</span>
                   <span className="ml-2 px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
                     {session.user.role}
                   </span>
                 </div>
+                <Link
+                  href="/profile"
+                  className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                >
+                  Profile
+                </Link>
                 <button
                   onClick={() => signOut()}
-                  className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                 >
                   Sign Out
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center">
                 <button
                   onClick={() => signIn()}
-                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
                 >
                   Sign In
                 </button>
-                <Link
-                  href="/auth/signup"
-                  className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                >
-                  Sign Up
-                </Link>
               </div>
             )}
           </div>

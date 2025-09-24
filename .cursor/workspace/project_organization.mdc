@@ -1,0 +1,365 @@
+---
+alwaysApply: true
+---
+
+# Project Organization Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Maintain clean, organized project structure with minimal root directory clutter
+
+## Root Directory Rules
+
+### Maximum Files Allowed
+```
+/                           # Root (essential files only)
+├── README.md              # Project overview
+├── LOCAL_DEVELOPMENT.md   # Development setup
+├── package.json           # Dependencies
+├── package-lock.json      # Lock file
+├── tsconfig.json          # TypeScript config
+├── next.config.ts         # Next.js config
+├── next-env.d.ts          # Next.js types
+├── middleware.ts          # Next.js middleware
+├── docker-compose.yaml    # Database setup
+├── Dockerfile             # Container config
+├── vercel.json           # Deployment config
+└── env.example           # Environment template
+```
+
+### Organized Directories
+```
+├── src/                   # Application source code
+├── prisma/               # Database schema & migrations
+├── public/               # Static assets
+├── database-ops/         # Database & deployment operations
+├── config/               # Configuration files
+├── dev-tools/            # Development utilities
+├── docs/                 # Documentation
+└── .cursor/              # Cursor AI rules
+```
+
+## File Organization Rules
+
+### Configuration Files
+- **Location**: `config/` directory
+- **Files**: `eslint.config.mjs`, `postcss.config.mjs`
+- **Update references** in package.json and next.config.ts
+
+### Development Tools
+- **Location**: `tools/` directory  
+- **Files**: `dev-start.sh`, `check-authors.js`, `create-custom-admin.js`
+- **Purpose**: Development utilities and helper scripts
+
+### Documentation
+- **Root**: Only README.md and LOCAL_DEVELOPMENT.md
+- **Extended**: All other docs in `docs/` directory
+- **No random .md files** in root
+
+### Scripts
+- **Location**: `scripts/` directory (already organized)
+- **Purpose**: Database operations, deployment, data management
+- **Access**: Via npm run commands
+
+## Prohibited in Root
+
+### Never Allow These
+- ❌ Backup files (*.backup, *.backup2)
+- ❌ Build artifacts (*.tsbuildinfo)
+- ❌ Random config files without organization
+- ❌ Temporary files (*.tmp, *.temp)
+- ❌ Multiple deployment configs
+- ❌ Duplicate documentation files
+
+### Clean Up Immediately
+- Remove backup files on sight
+- Delete build artifacts (covered by .gitignore)
+- Consolidate duplicate configs
+- Move misplaced files to proper directories
+
+## Directory Structure Standards
+
+### Source Code (`src/`)
+```
+src/
+├── app/              # Next.js App Router
+├── components/       # React components
+├── lib/             # Utilities & configurations
+└── types/           # TypeScript definitions
+```
+
+### Database (`prisma/`)
+```
+prisma/
+├── schema.prisma    # Database schema
+├── seed.ts         # Sample data
+└── migrations/     # Database migrations
+```
+
+### Database Operations (`database-ops/`)
+```
+database-ops/
+├── cleanup-*.ts          # Database cleanup operations
+├── deploy-*.sh          # Production deployment
+├── create-*.ts          # Database record creation
+├── run-bulk-scraper.ts  # Data import operations
+└── migrate-*.ts         # Database migrations
+```
+
+### Development Tools (`dev-tools/`)
+```
+dev-tools/
+├── dev-start.sh         # Development environment setup
+├── debug-*.js          # Debugging and inspection tools
+└── *.sh                # Development helper scripts
+```
+
+## Maintenance Rules
+
+### Weekly Cleanup
+- Check root directory for new clutter
+- Move misplaced files to proper locations
+- Remove unnecessary backup files
+- Update .gitignore if needed
+
+### File Movement Process
+1. **Identify misplaced files** in root
+2. **Determine proper location** (config/, tools/, docs/)
+3. **Move files** to organized directories
+4. **Update references** in package.json, configs
+5. **Test** that everything still works
+
+### Configuration Updates
+- Update package.json scripts when moving config files
+- Update next.config.ts for new paths
+- Ensure build process still works
+- Test development and production builds
+
+## Enforcement
+
+### Code Review Requirements
+- **Reject PRs** that add clutter to root
+- **Require organization** of any new files
+- **Verify proper directory** placement
+- **Check for broken references** after moves
+
+### Automated Checks
+```bash
+# Count files in root (should be ≤ 12)
+find . -maxdepth 1 -type f | wc -l
+
+# Check for backup files
+find . -name "*.backup*" -o -name "*-backup.*"
+
+# Verify organized structure
+ls config/ tools/ docs/ scripts/
+```
+
+## Current Clean Structure
+
+```
+/                    # 12 essential files only
+├── config/          # Configuration files
+├── dev-tools/       # Development utilities  
+├── docs/            # Extended documentation
+├── database-ops/    # Database & deployment operations
+├── src/             # Application source
+├── prisma/          # Database schema
+├── public/          # Static assets
+└── .cursor/         # AI rules & standards
+```
+
+## Benefits
+
+- **Clean root directory** - Easy to navigate
+- **Organized structure** - Files in logical locations
+- **Reduced clutter** - No random files
+- **Better maintainability** - Clear file purposes
+- **Improved developer experience** - Easy to find files
+
+## Enforcement
+- All new files must be placed in appropriate directories
+- Root directory limited to essential project files only
+- Regular cleanup of any accumulated clutter
+- Configuration files organized in config/ directory# Project Organization Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Maintain clean, organized project structure with minimal root directory clutter
+
+## Root Directory Rules
+
+### Maximum Files Allowed
+```
+/                           # Root (essential files only)
+├── README.md              # Project overview
+├── LOCAL_DEVELOPMENT.md   # Development setup
+├── package.json           # Dependencies
+├── package-lock.json      # Lock file
+├── tsconfig.json          # TypeScript config
+├── next.config.ts         # Next.js config
+├── next-env.d.ts          # Next.js types
+├── middleware.ts          # Next.js middleware
+├── docker-compose.yaml    # Database setup
+├── Dockerfile             # Container config
+├── vercel.json           # Deployment config
+└── env.example           # Environment template
+```
+
+### Organized Directories
+```
+├── src/                   # Application source code
+├── prisma/               # Database schema & migrations
+├── public/               # Static assets
+├── database-ops/         # Database & deployment operations
+├── config/               # Configuration files
+├── dev-tools/            # Development utilities
+├── docs/                 # Documentation
+└── .cursor/              # Cursor AI rules
+```
+
+## File Organization Rules
+
+### Configuration Files
+- **Location**: `config/` directory
+- **Files**: `eslint.config.mjs`, `postcss.config.mjs`
+- **Update references** in package.json and next.config.ts
+
+### Development Tools
+- **Location**: `tools/` directory  
+- **Files**: `dev-start.sh`, `check-authors.js`, `create-custom-admin.js`
+- **Purpose**: Development utilities and helper scripts
+
+### Documentation
+- **Root**: Only README.md and LOCAL_DEVELOPMENT.md
+- **Extended**: All other docs in `docs/` directory
+- **No random .md files** in root
+
+### Scripts
+- **Location**: `scripts/` directory (already organized)
+- **Purpose**: Database operations, deployment, data management
+- **Access**: Via npm run commands
+
+## Prohibited in Root
+
+### Never Allow These
+- ❌ Backup files (*.backup, *.backup2)
+- ❌ Build artifacts (*.tsbuildinfo)
+- ❌ Random config files without organization
+- ❌ Temporary files (*.tmp, *.temp)
+- ❌ Multiple deployment configs
+- ❌ Duplicate documentation files
+
+### Clean Up Immediately
+- Remove backup files on sight
+- Delete build artifacts (covered by .gitignore)
+- Consolidate duplicate configs
+- Move misplaced files to proper directories
+
+## Directory Structure Standards
+
+### Source Code (`src/`)
+```
+src/
+├── app/              # Next.js App Router
+├── components/       # React components
+├── lib/             # Utilities & configurations
+└── types/           # TypeScript definitions
+```
+
+### Database (`prisma/`)
+```
+prisma/
+├── schema.prisma    # Database schema
+├── seed.ts         # Sample data
+└── migrations/     # Database migrations
+```
+
+### Database Operations (`database-ops/`)
+```
+database-ops/
+├── cleanup-*.ts          # Database cleanup operations
+├── deploy-*.sh          # Production deployment
+├── create-*.ts          # Database record creation
+├── run-bulk-scraper.ts  # Data import operations
+└── migrate-*.ts         # Database migrations
+```
+
+### Development Tools (`dev-tools/`)
+```
+dev-tools/
+├── dev-start.sh         # Development environment setup
+├── debug-*.js          # Debugging and inspection tools
+└── *.sh                # Development helper scripts
+```
+
+## Maintenance Rules
+
+### Weekly Cleanup
+- Check root directory for new clutter
+- Move misplaced files to proper locations
+- Remove unnecessary backup files
+- Update .gitignore if needed
+
+### File Movement Process
+1. **Identify misplaced files** in root
+2. **Determine proper location** (config/, tools/, docs/)
+3. **Move files** to organized directories
+4. **Update references** in package.json, configs
+5. **Test** that everything still works
+
+### Configuration Updates
+- Update package.json scripts when moving config files
+- Update next.config.ts for new paths
+- Ensure build process still works
+- Test development and production builds
+
+## Enforcement
+
+### Code Review Requirements
+- **Reject PRs** that add clutter to root
+- **Require organization** of any new files
+- **Verify proper directory** placement
+- **Check for broken references** after moves
+
+### Automated Checks
+```bash
+# Count files in root (should be ≤ 12)
+find . -maxdepth 1 -type f | wc -l
+
+# Check for backup files
+find . -name "*.backup*" -o -name "*-backup.*"
+
+# Verify organized structure
+ls config/ tools/ docs/ scripts/
+```
+
+## Current Clean Structure
+
+```
+/                    # 12 essential files only
+├── config/          # Configuration files
+├── dev-tools/       # Development utilities  
+├── docs/            # Extended documentation
+├── database-ops/    # Database & deployment operations
+├── src/             # Application source
+├── prisma/          # Database schema
+├── public/          # Static assets
+└── .cursor/         # AI rules & standards
+```
+
+## Benefits
+
+- **Clean root directory** - Easy to navigate
+- **Organized structure** - Files in logical locations
+- **Reduced clutter** - No random files
+- **Better maintainability** - Clear file purposes
+- **Improved developer experience** - Easy to find files
+
+## Enforcement
+- All new files must be placed in appropriate directories
+- Root directory limited to essential project files only
+- Regular cleanup of any accumulated clutter
+- Configuration files organized in config/ directory

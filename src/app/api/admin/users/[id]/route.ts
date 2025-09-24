@@ -20,6 +20,14 @@ export async function PATCH(
     }
 
     const { id } = await params;
+    
+    // Prevent admin from changing their own role (could lock themselves out)
+    if (id === session.user.id) {
+      return NextResponse.json(
+        { error: 'Cannot change your own role' },
+        { status: 400 }
+      );
+    }
     const user = await prisma.user.update({
       where: { id },
       data: { role },

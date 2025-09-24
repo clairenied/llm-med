@@ -63,7 +63,14 @@ export default function ManuscriptInfo({ manuscript }: ManuscriptInfoProps) {
                   <div className="text-gray-600 text-xs">{author.affiliation}</div>
                 )}
                 {author.email && (
-                  <div className="text-blue-600 text-xs">{author.email}</div>
+                  <div className="text-blue-600 text-xs">
+                    <a 
+                      href={`mailto:${author.email}`}
+                      className="hover:text-blue-800 cursor-pointer underline"
+                    >
+                      {author.email}
+                    </a>
+                  </div>
                 )}
               </div>
             ))

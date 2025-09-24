@@ -1,5 +1,7 @@
 # Development Setup
 
+**WORKSPACE RULE - ALWAYS APPLY**
+
 ## Stack
 Next.js + React + PostgreSQL + Prisma ORM
 Manuscript review tracking system

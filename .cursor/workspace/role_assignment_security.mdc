@@ -1,5 +1,7 @@
 # Role Assignment Security
 
+**WORKSPACE RULE - ALWAYS APPLY**
+
 ## Purpose
 Enforce secure role assignment patterns to prevent privilege escalation
 

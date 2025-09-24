@@ -1,5 +1,7 @@
 # Code Efficiency Rules
 
+**WORKSPACE RULE - ALWAYS APPLY**
+
 ## Purpose
 Minimize tokens, ensure clean builds, and maintain code quality
 

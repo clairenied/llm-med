@@ -1,0 +1,34 @@
+# Tailwind CSS Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Maintain consistent styling approach using Tailwind utility classes
+
+## Guidelines
+- Use Tailwind utility classes exclusively for styling
+- No custom CSS files except globals.css for base styles
+- Prefer utility classes over inline styles
+- Use responsive prefixes (sm:, md:, lg:) for breakpoints
+- Leverage Tailwind's color palette and spacing scale
+- Use semantic class combinations for common patterns
+
+## Common Patterns
+```tsx
+// Cards
+className="bg-white rounded-lg shadow-lg p-6"
+
+// Buttons
+className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+
+// Forms
+className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500"
+
+// Layout
+className="max-w-7xl mx-auto p-6"
+```
+
+## Avoid
+- Custom CSS modules
+- Inline styles
+- Non-Tailwind class names

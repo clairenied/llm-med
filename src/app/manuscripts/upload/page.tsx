@@ -275,7 +275,7 @@ export default function UploadArticlePage() {
                 <button
                   type="button"
                   onClick={addAuthor}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                 >
                   Add
                 </button>
@@ -290,7 +290,7 @@ export default function UploadArticlePage() {
                     <button
                       type="button"
                       onClick={() => removeAuthor(author)}
-                      className="ml-2 text-blue-600 hover:text-blue-800"
+                      className="ml-2 text-blue-600 hover:text-blue-800 cursor-pointer"
                     >
                       ×
                     </button>
@@ -319,7 +319,7 @@ export default function UploadArticlePage() {
                 <button
                   type="button"
                   onClick={addKeyword}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer"
                 >
                   Add
                 </button>
@@ -334,7 +334,7 @@ export default function UploadArticlePage() {
                     <button
                       type="button"
                       onClick={() => removeKeyword(keyword)}
-                      className="ml-2 text-gray-600 hover:text-gray-800"
+                      className="ml-2 text-gray-600 hover:text-gray-800 cursor-pointer"
                     >
                       ×
                     </button>
@@ -441,7 +441,7 @@ export default function UploadArticlePage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isLoading ? 'Uploading...' : 'Upload Article'}
               </button>

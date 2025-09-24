@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         role: true,
         createdAt: true,
       }
-    })
+    });
 
     // User registered successfully - no email needed
 

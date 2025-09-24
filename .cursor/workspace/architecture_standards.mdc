@@ -1,0 +1,114 @@
+# Architecture Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Maintain consistent folder structure and architectural patterns
+
+## Folder Structure Standards
+
+### Next.js App Router Structure
+```
+src/app/
+├── admin/           # Admin-only pages
+├── api/             # API routes
+├── auth/            # Authentication pages  
+├── manuscripts/     # Core feature pages
+└── (other features)/
+```
+
+### Component Organization
+```
+src/components/
+├── [FeatureName].tsx    # Main feature components
+├── [FeatureName]Form.tsx # Form components
+├── [FeatureName]List.tsx # List components
+└── [Shared].tsx         # Shared utilities
+```
+
+### API Route Patterns
+```
+src/app/api/
+├── admin/          # Admin-only endpoints
+├── auth/           # Authentication
+├── [resource]/     # CRUD endpoints
+│   ├── route.ts    # GET, POST
+│   └── [id]/
+│       └── route.ts # GET, PUT, DELETE
+```
+
+## Database Architecture
+
+### Prisma Schema Organization
+- Core models first (User, Manuscript)
+- Related models grouped together
+- Enums at bottom
+- Consistent naming (PascalCase models, camelCase fields)
+
+### Migration Standards
+- Descriptive migration names
+- Test migrations locally first
+- Document breaking changes
+
+## Security Architecture
+
+### Authentication Flow
+- NextAuth.js for session management
+- Role-based access control
+- Invitation-only registration
+
+### API Security
+- Session validation on protected routes
+- Role checking for admin endpoints
+- Input validation with Zod
+
+## Performance Standards
+
+### Database Optimization
+- Indexes on frequently queried fields
+- Cascade deletions for data integrity
+- Pagination for large datasets
+
+### Frontend Optimization
+- Server components by default
+- Client components only when needed
+- Proper loading states
+
+## File Naming Conventions
+
+### Pages
+- `page.tsx` for route pages
+- `layout.tsx` for layouts
+- `loading.tsx` for loading states
+- `error.tsx` for error boundaries
+
+### Components
+- PascalCase for component files
+- Descriptive names (ManuscriptForm vs Form)
+- Group related components in folders
+
+### API Routes
+- `route.ts` for API endpoints
+- RESTful naming conventions
+- Consistent HTTP methods
+
+## Code Organization Rules
+
+### Import Order
+1. React/Next.js imports
+2. Third-party libraries
+3. Internal utilities
+4. Components
+5. Types/interfaces
+
+### Component Structure
+1. Interfaces/types at top
+2. Main component function
+3. Helper functions at bottom
+4. Export at bottom
+
+## Enforcement
+- Follow existing patterns when adding features
+- Maintain consistent naming across similar files
+- Group related functionality together
+- Keep components focused and single-purpose

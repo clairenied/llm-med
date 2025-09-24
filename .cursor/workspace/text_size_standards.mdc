@@ -1,0 +1,217 @@
+# Text Size Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Ensure consistent, readable text sizing across the application using Tailwind's text utility classes.
+
+## Minimum Text Size Rule
+
+### **Required Standard**
+- **All text must be `text-base` (16px) or larger**
+- **No `text-xs` (12px) or `text-sm` (14px)** for body content
+- **Exception**: Labels, captions, and metadata can use `text-sm` minimum
+
+### **Approved Text Sizes**
+
+#### **Primary Content**
+```tsx
+// ✅ REQUIRED - Use these for main content
+text-base    // 16px - Minimum for body text
+text-lg      // 18px - Emphasized content
+text-xl      // 20px - Section headers
+text-2xl     // 24px - Page titles
+text-3xl     // 30px - Main headings
+```
+
+#### **Secondary Content** 
+```tsx
+// ✅ ALLOWED - Use sparingly for metadata only
+text-sm      // 14px - Labels, captions, helper text
+```
+
+#### **Forbidden Sizes**
+```tsx
+// ❌ NEVER USE - Too small for accessibility
+text-xs      // 12px - Prohibited
+text-[11px]  // Custom small sizes - Prohibited
+```
+
+## Implementation Guidelines
+
+### **Component Text Sizing**
+
+#### **Form Elements**
+```tsx
+// ✅ Input labels
+<label className="text-base font-medium text-gray-700">
+  Email Address
+</label>
+
+// ✅ Input fields
+<input className="text-base px-3 py-2 border rounded-md" />
+
+// ✅ Helper text (exception - can use text-sm)
+<p className="text-sm text-gray-500 mt-1">
+  We'll never share your email
+</p>
+```
+
+#### **Navigation & Buttons**
+```tsx
+// ✅ Navigation links
+<a className="text-base font-medium text-gray-900">
+  Manuscripts
+</a>
+
+// ✅ Button text
+<button className="text-base font-medium px-4 py-2 bg-blue-600 text-white">
+  Save Changes
+</button>
+```
+
+#### **Content Areas**
+```tsx
+// ✅ Body paragraphs
+<p className="text-base text-gray-700 leading-relaxed">
+  Main content text goes here...
+</p>
+
+// ✅ List items
+<li className="text-base text-gray-700">
+  List item content
+</li>
+```
+
+#### **Headers & Titles**
+```tsx
+// ✅ Page titles
+<h1 className="text-3xl font-bold text-gray-900">
+  Page Title
+</h1>
+
+// ✅ Section headers
+<h2 className="text-xl font-semibold text-gray-900">
+  Section Title
+</h2>
+
+// ✅ Card titles
+<h3 className="text-lg font-medium text-gray-900">
+  Card Title
+</h3>
+```
+
+### **Acceptable Exceptions**
+
+#### **Metadata & Labels**
+```tsx
+// ✅ Status badges (can use text-sm)
+<span className="text-sm px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+  Published
+</span>
+
+// ✅ Timestamps (can use text-sm)
+<span className="text-sm text-gray-500">
+  Created 2 hours ago
+</span>
+
+// ✅ Field labels (can use text-sm)
+<label className="text-sm font-medium text-gray-600">
+  Optional Field
+</label>
+```
+
+#### **Dense Data Tables**
+```tsx
+// ✅ Table headers (minimum text-sm)
+<th className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+  Column Header
+</th>
+
+// ✅ Table cells (prefer text-base, text-sm acceptable)
+<td className="text-base text-gray-900">
+  Cell Content
+</td>
+```
+
+## Accessibility Considerations
+
+### **WCAG Compliance**
+- **16px minimum** meets WCAG AA standards
+- **Larger text** improves readability for all users
+- **Consistent sizing** reduces cognitive load
+
+### **Responsive Scaling**
+```tsx
+// ✅ Scale text appropriately on mobile
+<h1 className="text-2xl md:text-3xl font-bold">
+  Responsive Title
+</h1>
+
+<p className="text-base md:text-lg">
+  Responsive body text
+</p>
+```
+
+## Code Review Checklist
+
+### **Before Committing**
+- [ ] All body text uses `text-base` or larger
+- [ ] No `text-xs` classes in the codebase
+- [ ] `text-sm` only used for metadata/labels
+- [ ] Headings use appropriate hierarchy (`text-xl`, `text-2xl`, `text-3xl`)
+- [ ] Form elements have readable text sizes
+
+### **Common Violations to Fix**
+```tsx
+// ❌ Fix these patterns
+<p className="text-sm">Main content</p>          // Use text-base
+<button className="text-xs">Click me</button>    // Use text-base
+<div className="text-[12px]">Content</div>       // Use text-base
+<span className="text-sm">Important info</span>  // Use text-base (unless metadata)
+```
+
+## Migration Strategy
+
+### **Existing Code Cleanup**
+1. **Search for violations**: `grep -r "text-xs\|text-sm" src/`
+2. **Evaluate each usage**: Is this metadata or main content?
+3. **Upgrade to text-base**: For all main content
+4. **Keep text-sm**: Only for true metadata/labels
+
+### **Component Updates**
+```tsx
+// Before (❌)
+<div className="text-sm text-gray-600">
+  This is important user content that should be readable
+</div>
+
+// After (✅)
+<div className="text-base text-gray-600">
+  This is important user content that should be readable
+</div>
+```
+
+## Enforcement
+
+### **ESLint Rule** (if available)
+```json
+{
+  "rules": {
+    "tailwind/no-small-text": "error"
+  }
+}
+```
+
+### **Manual Review Process**
+- **Every PR** must verify text sizing
+- **Search for** `text-xs` and flag for removal
+- **Justify** any `text-sm` usage in PR description
+
+---
+
+## Current Status
+
+✅ **Rule established** - All new code must follow text-base minimum
+🔄 **Migration needed** - Audit existing codebase for violations
+📋 **Review required** - Check all components for compliance

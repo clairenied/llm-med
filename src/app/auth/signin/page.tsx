@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { signIn, getSession, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 function SignInForm() {
   const [email, setEmail] = useState('');
@@ -117,13 +118,21 @@ function SignInForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              <Link
+                href="/auth/forgot-password"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              >
+                Forgot your password?
+              </Link>
+            </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Need an account? Contact an administrator for an invitation.
             </p>

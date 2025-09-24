@@ -1,0 +1,164 @@
+# Dead Code Cleanup Rules
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Maintain a clean, efficient codebase by systematically removing unused code and preventing accumulation of dead code.
+
+## Proactive Cleanup Guidelines
+
+### **Before Making Changes**
+- **Search for usage** before modifying/removing any code
+- **Check imports** - unused imports indicate dead code
+- **Verify component usage** across the entire codebase
+- **Look for orphaned files** that aren't referenced anywhere
+
+### **During Development**
+- **Remove unused imports** immediately after code changes
+- **Delete commented-out code** unless it serves a specific purpose
+- **Clean up unused variables** and functions
+- **Remove empty files** and directories
+
+### **Code Patterns to Eliminate**
+
+1. **Unused Components**
+   ```tsx
+   // ❌ Component defined but never imported/used
+   export default function UnusedComponent() { ... }
+   ```
+
+2. **Unused Imports**
+   ```tsx
+   // ❌ Import that's never referenced
+   import { UnusedFunction } from './utils';
+   ```
+
+3. **Dead Schema Fields**
+   ```prisma
+   // ❌ Database fields that aren't used in application code
+   pubmedUrl String?  // Not used anywhere
+   ```
+
+4. **Orphaned Interface Properties**
+   ```tsx
+   // ❌ Interface properties that aren't used
+   interface Props {
+     usedProp: string;
+     unusedProp?: string; // Remove this
+   }
+   ```
+
+### **Systematic Cleanup Process**
+
+1. **Component Audit**
+   ```bash
+   # Find components that aren't imported
+   find src/components -name "*.tsx" | xargs basename -s .tsx | while read comp; do
+     grep -r "import.*$comp" src/ || echo "Unused: $comp"
+   done
+   ```
+
+2. **Import Analysis**
+   - Use IDE "Find Usages" for each import
+   - Remove imports with zero references
+   - Clean up after refactoring
+
+3. **Schema Field Validation**
+   - Search codebase for each database field
+   - Remove fields that exist only in generated Prisma types
+   - Update interfaces to match actual usage
+
+### **Automated Checks**
+
+#### **ESLint Rules to Enable**
+```json
+{
+  "rules": {
+    "no-unused-vars": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "no-unreachable": "error",
+    "no-dead-code": "error"
+  }
+}
+```
+
+#### **Pre-commit Hooks**
+- Run `eslint --fix` to auto-remove unused imports
+- Check for orphaned files
+- Validate all components are used
+
+### **Token Minimization Strategy**
+
+#### **Immediate Actions**
+- **Remove unused code** before adding new features
+- **Consolidate duplicate logic** into reusable functions
+- **Delete empty files** and directories
+- **Clean up commented code** blocks
+
+#### **Ongoing Maintenance**
+- **Weekly cleanup** of unused imports
+- **Monthly component audit** for orphaned files
+- **Quarterly schema review** for unused fields
+- **Regular refactoring** to reduce duplication
+
+### **Safe Removal Checklist**
+
+Before removing any code:
+- [ ] Search entire codebase for references
+- [ ] Check for dynamic imports or string-based references
+- [ ] Verify not used in tests or scripts
+- [ ] Confirm not part of public API
+- [ ] Test that removal doesn't break functionality
+
+### **Documentation Requirements**
+
+When removing significant code:
+- **Update ARCHITECTURE.md** if structural changes
+- **Remove from README** if feature removal
+- **Update API documentation** if endpoints removed
+- **Clean up related comments** and documentation
+
+## Anti-Patterns to Avoid
+
+### **Don't Remove**
+- **Error handling code** that appears unused
+- **Fallback implementations** for edge cases
+- **Development utilities** used in debugging
+- **Future-proofing code** with clear documentation
+
+### **Don't Keep**
+- **Commented-out code** without explanation
+- **Unused dependencies** in package.json
+- **Empty catch blocks** without purpose
+- **Unreachable code** after returns
+
+## Enforcement
+
+### **Code Review Requirements**
+- **Verify cleanup** in every PR
+- **Check for new unused code** introduced
+- **Ensure imports match usage**
+- **Validate component references**
+
+### **Automated Tooling**
+- **ESLint** for unused variable detection
+- **TypeScript** for unused import warnings
+- **Custom scripts** for component usage analysis
+- **CI/CD checks** for dead code detection
+
+---
+
+## Recent Cleanup Actions
+
+✅ **Removed unused components:**
+- `AppHeader.tsx` - No imports found
+- `ActionButtons.tsx` - No imports found
+
+✅ **Cleaned up unused schema references:**
+- Removed `pubmedUrl` from DataImport interface
+- Removed `isSharedExternally` from ReviewForm
+- Updated placeholder text to match actual fields
+
+✅ **Eliminated orphaned code:**
+- Removed empty API directories
+- Cleaned up unused schema fields in components

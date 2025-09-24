@@ -1,0 +1,121 @@
+# Data Cleanup Standards
+
+**WORKSPACE RULE - ALWAYS APPLY**
+
+## Purpose
+Maintain clean production data and systematic cleanup procedures
+
+## Cleanup Principles
+
+### Safe Production Operations
+- Always backup before cleanup
+- Use transactions for multi-step operations
+- Confirm operations with environment checks
+- Log all cleanup activities
+
+### Data Preservation Rules
+- Never delete real user data
+- Preserve scraped/imported articles
+- Keep audit trails for deletions
+- Maintain referential integrity
+
+## Cleanup Procedures
+
+### Fake Data Identification
+```typescript
+// Identify test/fake data patterns
+const fakePatterns = [
+  'Test Manuscript',
+  'Sample Article',
+  'Demo User',
+  'fake@example.com'
+];
+```
+
+### Safe Deletion Process
+1. Identify fake data with clear patterns
+2. Verify no real data matches patterns
+3. Use transactions for consistency
+4. Log deletion counts
+5. Verify cleanup success
+
+### Production Cleanup Script Structure
+```typescript
+// Always include environment checks
+if (process.env.NODE_ENV !== 'production') {
+  throw new Error('Production cleanup only');
+}
+
+// Require explicit confirmation
+if (!process.env.CONFIRM_CLEANUP) {
+  throw new Error('Set CONFIRM_CLEANUP=true');
+}
+
+// Use transactions
+await prisma.$transaction(async (tx) => {
+  // Cleanup operations
+});
+```
+
+## Database Maintenance
+
+### Regular Cleanup Tasks
+- Remove orphaned records
+- Clean up expired sessions
+- Archive old data
+- Optimize database performance
+
+### Cleanup Scripts Location
+- Store in `scripts/` directory
+- Prefix with `cleanup-`
+- Include safety checks
+- Document usage in comments
+
+## Data Integrity Rules
+
+### Cascade Deletions
+- Configure in Prisma schema
+- Test cascade behavior
+- Document deletion impacts
+- Monitor for orphaned data
+
+### Referential Integrity
+- Maintain foreign key constraints
+- Clean up related records
+- Verify data consistency
+- Handle deletion errors gracefully
+
+## Monitoring & Logging
+
+### Cleanup Logging
+```typescript
+console.log(`🗑️ Starting cleanup: ${operation}`);
+console.log(`📊 Found ${count} records to clean`);
+console.log(`✅ Cleanup completed: ${deletedCount} removed`);
+```
+
+### Error Handling
+- Catch and log all errors
+- Rollback on failures
+- Provide clear error messages
+- Include recovery instructions
+
+## Environment Safety
+
+### Production Safeguards
+- Environment variable checks
+- Explicit confirmation flags
+- Dry-run capabilities
+- Backup verification
+
+### Development Testing
+- Test cleanup scripts locally
+- Use separate test database
+- Verify cleanup logic
+- Document expected results
+
+## Enforcement
+- All cleanup operations must include safety checks
+- Production scripts require explicit confirmation
+- Log all cleanup activities with counts
+- Test cleanup procedures in development first

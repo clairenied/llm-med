@@ -7,7 +7,6 @@ interface ImportedManuscript {
   abstract?: string;
   keywords: string[];
   authors: string[];
-  pubmedUrl?: string;
   status: 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED';
   selected: boolean;
 }
@@ -29,7 +28,6 @@ export default function DataImport() {
         abstract: item.abstract || '',
         keywords: Array.isArray(item.keywords) ? item.keywords : [],
         authors: Array.isArray(item.authors) ? item.authors : [],
-        pubmedUrl: item.pubmedUrl || '',
         status: item.status || 'DRAFT' as const,
         selected: true,
       }));
@@ -45,8 +43,7 @@ export default function DataImport() {
           abstract: parts[1] || '',
           keywords: parts[2] ? parts[2].split(',').map(k => k.trim()) : [],
           authors: parts[3] ? parts[3].split(',').map(a => a.trim()) : [],
-          pubmedUrl: parts[4] || '',
-          status: (parts[5] as 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED') || 'DRAFT' as const,
+          status: (parts[4] as 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED') || 'DRAFT' as const,
           selected: true,
         };
       });
@@ -104,7 +101,6 @@ export default function DataImport() {
             abstract: manuscript.abstract,
             keywords: manuscript.keywords,
             authorIds,
-            pubmedUrl: manuscript.pubmedUrl,
           }),
         });
       }
@@ -146,20 +142,20 @@ export default function DataImport() {
               placeholder={`Paste your data here. Supports:
 
 JSON format:
-[{"title": "Paper Title", "abstract": "Abstract text", "keywords": ["keyword1", "keyword2"], "authors": ["Author 1", "Author 2"], "pubmedUrl": "https://..."}]
+[{"title": "Paper Title", "abstract": "Abstract text", "keywords": ["keyword1", "keyword2"], "authors": ["Author 1", "Author 2"]}]
 
 Tab-separated format:
-Title	Abstract	Keywords	Authors	PubMed URL	Status
-Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	PUBLISHED`}
+Title	Abstract	Keywords	Authors	Status
+Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	PUBLISHED`}
             />
             <div className="flex justify-between items-center mt-2">
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-500">
                 Supports JSON or tab-separated values. Each manuscript should include title, abstract, keywords, and authors.
               </p>
               <button
                 onClick={parseImportData}
                 disabled={!importData.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
               >
                 Parse Data
               </button>
@@ -176,20 +172,20 @@ Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	PUBLISHED`}
                 <div className="flex space-x-2">
                   <button
                     onClick={selectAll}
-                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer"
                   >
                     Select All
                   </button>
                   <button
                     onClick={selectNone}
-                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 cursor-pointer"
                   >
                     Select None
                   </button>
                   <button
                     onClick={importSelected}
                     disabled={!parsedData.some(item => item.selected) || importing}
-                    className="px-4 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className="px-4 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {importing ? 'Importing...' : `Import Selected (${parsedData.filter(item => item.selected).length})`}
                   </button>
@@ -229,14 +225,14 @@ Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	PUBLISHED`}
                         {manuscript.keywords.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
                             {manuscript.keywords.map((keyword, i) => (
-                              <span key={i} className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                              <span key={i} className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded">
                                 {keyword}
                               </span>
                             ))}
                           </div>
                         )}
                         
-                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <span className={`px-2 py-1 rounded ${
                             manuscript.status === 'PUBLISHED' ? 'bg-green-100 text-green-800' :
                             manuscript.status === 'ACCEPTED' ? 'bg-blue-100 text-blue-800' :
@@ -244,7 +240,6 @@ Paper 1	Abstract 1	keyword1,keyword2	Author 1,Author 2	https://...	PUBLISHED`}
                           }`}>
                             {manuscript.status}
                           </span>
-                          {manuscript.pubmedUrl && <span>PubMed</span>}
                         </div>
                       </div>
                     </div>

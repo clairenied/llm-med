@@ -1,0 +1,12 @@
+# Remove .env from protection
+# (This file tells Cursor what NOT to ignore)
+
+# We want to allow editing of .env files
+# So we don't list them here
+
+# Still ignore these:
+node_modules/
+.next/
+dist/
+build/
+*.log

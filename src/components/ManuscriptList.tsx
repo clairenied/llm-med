@@ -258,18 +258,9 @@ export default function ManuscriptList() {
                     {manuscript.title}
                   </Link>
                   <div className="flex items-center space-x-2 ml-4">
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(manuscript.status)}`}>
+                    <span className={`px-2 py-1 text-sm font-medium rounded-full ${getStatusColor(manuscript.status)}`}>
                       {manuscript.status.replace('_', ' ')}
                     </span>
-                    {manuscript.versions.length > 0 ? (
-                      <span className="text-xs text-gray-500">
-                        {manuscript.versions.length} version{manuscript.versions.length !== 1 ? 's' : ''}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
-                        No versions
-                      </span>
-                    )}
                   </div>
                 </div>
 
@@ -297,7 +288,7 @@ export default function ManuscriptList() {
                       {manuscript.keywords.map((keyword, index) => (
                         <span 
                           key={index}
-                          className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded"
+                          className="px-2 py-1 text-sm bg-gray-100 text-gray-700 rounded"
                         >
                           {keyword}
                         </span>
@@ -306,7 +297,7 @@ export default function ManuscriptList() {
                   </div>
                 )}
 
-                <div className="flex justify-between items-center text-xs text-gray-500">
+                <div className="flex justify-between items-center text-sm text-gray-500">
                   <div className="flex space-x-4">
                     <span>Created: {formatDate(manuscript.createdAt)}</span>
                     {manuscript.versions.length > 0 && (
@@ -318,7 +309,7 @@ export default function ManuscriptList() {
                   <div className="flex items-center space-x-2">
                     <Link
                       href={`/manuscripts/${manuscript.id}/edit`}
-                      className="text-blue-600 hover:text-blue-800 text-xs"
+                      className="text-blue-600 hover:text-blue-800 text-sm"
                     >
                       Edit
                     </Link>

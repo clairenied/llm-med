@@ -23,7 +23,6 @@ interface ReviewFormData {
   content: string;
   documentUrl?: string;
   documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
-  isSharedExternally: boolean;
 }
 
 export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFormProps) {
@@ -35,7 +34,6 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
     content: initialData?.content || '',
     documentUrl: initialData?.documentUrl || '',
     documentType: initialData?.documentType || 'FREE_TEXT',
-    isSharedExternally: initialData?.isSharedExternally || false,
   });
 
   useEffect(() => {
@@ -186,23 +184,6 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
             </div>
           )}
 
-          {/* Sharing Options */}
-          <div>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.isSharedExternally}
-                onChange={(e) => setFormData(prev => ({ ...prev, isSharedExternally: e.target.checked }))}
-                className="mr-2"
-              />
-              <span className="text-sm font-medium text-gray-700">
-                Share this review externally (visible to authors and public)
-              </span>
-            </label>
-            <p className="text-xs text-gray-500 mt-1">
-              If unchecked, this review will only be visible internally
-            </p>
-          </div>
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-4 pt-6 border-t">
