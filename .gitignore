@@ -148,3 +148,12 @@ vite.config.ts.timestamp-*
 
 # Postgres
 postgres_data/*
+
+# Temporary files
+*.tmp
+*.temp
+*debug*
+*test*.js
+*test*.ts
+!*test*.spec.*
+!*test*.test.*
