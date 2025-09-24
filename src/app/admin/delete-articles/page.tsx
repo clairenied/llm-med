@@ -35,19 +35,6 @@ export default function DeleteArticlesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/signin');
-      return;
-    }
-    if (session.user.role !== 'ADMIN') {
-      router.push('/auth/unauthorized');
-      return;
-    }
-    fetchManuscripts();
-  }, [session, status, router, filter, fetchManuscripts]);
-
   const fetchManuscripts = useCallback(async () => {
     try {
       setLoading(true);
@@ -72,6 +59,19 @@ export default function DeleteArticlesPage() {
       setLoading(false);
     }
   }, [filter]);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/auth/signin');
+      return;
+    }
+    if (session.user.role !== 'ADMIN') {
+      router.push('/auth/unauthorized');
+      return;
+    }
+    fetchManuscripts();
+  }, [session, status, router, filter, fetchManuscripts]);
 
   const handleSelectAll = () => {
     if (selectedManuscripts.size === manuscripts.length) {
