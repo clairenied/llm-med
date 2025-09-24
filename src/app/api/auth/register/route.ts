@@ -12,15 +12,21 @@ const registerSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("Registration attempt started")
     const body = await request.json()
+    console.log("Request body parsed successfully")
+    
     const { name, email, password, invitationId } = registerSchema.parse(body)
+    console.log("Schema validation passed for email:", email)
 
     // Check if user already exists
+    console.log("Checking for existing user...")
     const existingUser = await prisma.user.findUnique({
       where: { email }
     })
 
     if (existingUser) {
+      console.log("User already exists:", email)
       return NextResponse.json(
         { error: "User with this email already exists" },
         { status: 400 }
@@ -28,18 +34,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate invitation (now required)
+    console.log("Validating invitation:", invitationId)
     const invitation = await prisma.invitation.findUnique({
       where: { id: invitationId }
     });
 
     if (!invitation) {
+      console.log("Invitation not found:", invitationId)
       return NextResponse.json(
         { error: "Invalid invitation" },
         { status: 400 }
       );
     }
 
+    console.log("Invitation found, validating details...")
     if (invitation.email !== email) {
+      console.log("Email mismatch - invitation:", invitation.email, "provided:", email)
       return NextResponse.json(
         { error: "Email does not match invitation" },
         { status: 400 }
@@ -47,6 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (invitation.expiresAt < new Date()) {
+      console.log("Invitation expired:", invitation.expiresAt)
       return NextResponse.json(
         { error: "Invitation has expired" },
         { status: 400 }
@@ -54,6 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (invitation.usedAt) {
+      console.log("Invitation already used:", invitation.usedAt)
       return NextResponse.json(
         { error: "Invitation has already been used" },
         { status: 400 }
@@ -61,17 +73,21 @@ export async function POST(request: NextRequest) {
     }
 
     const userRole = invitation.role as 'AUTHOR' | 'REVIEWER' | 'ADMIN';
+    console.log("Invitation valid, proceeding with user creation. Role:", userRole)
 
     // Mark invitation as used
+    console.log("Marking invitation as used...")
     await prisma.invitation.update({
       where: { id: invitationId },
       data: { usedAt: new Date() }
     });
 
     // Hash password
+    console.log("Hashing password...")
     const hashedPassword = await hashPassword(password)
 
     // Create user with appropriate role
+    console.log("Creating user...")
     const user = await prisma.user.create({
       data: {
         name,
@@ -89,6 +105,7 @@ export async function POST(request: NextRequest) {
     });
 
     // User registered successfully - no email needed
+    console.log("User created successfully:", user.email)
 
     return NextResponse.json(
       { message: "User created successfully", user },
@@ -96,13 +113,21 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error("Registration validation error:", error.issues)
       return NextResponse.json(
         { error: "Invalid input", details: error.issues },
         { status: 400 }
       )
     }
 
-    console.error("Registration error:", error)
+    // Enhanced error logging for production debugging
+    console.error("Registration error details:", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV
+    })
+    
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
