@@ -22,6 +22,8 @@ model Author {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   manuscripts  Manuscript[]
+  // https://en.wikipedia.org/wiki/ORCID
+  orcId        String?      @unique
 }
 
 model Manuscript {
@@ -148,7 +150,7 @@ model User {
   resetTokenExpiry DateTime? // Token expiration
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   accounts Account[]
   sessions Session[]
 }
@@ -210,5 +212,3 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
 }
-
-

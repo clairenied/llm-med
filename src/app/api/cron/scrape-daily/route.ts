@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ProgrammaticBulkScraper } from '../../../../../database-ops/run-bulk-scraper';
+import { ProgrammaticBulkScraper } from '../../../../../scraper/run-bulk-scraper';
 
 export async function GET(request: Request) {
   try {

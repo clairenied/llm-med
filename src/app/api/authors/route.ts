@@ -1,40 +1,24 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// Route segment config for Vercel
-export const maxDuration = 30;
-
-export async function GET() {
-  try {
-    const authors = await prisma.author.findMany({
-      include: {
-        manuscripts: true,
-      },
-      orderBy: {
-        name: 'asc',
-      },
-    });
-
-    return NextResponse.json(authors);
-  } catch (error) {
-    console.error('Error fetching authors:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch authors' },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, affiliation } = body;
+    const { name, email, affiliation, orcId } = body;
+
+    if (!name) {
+      return NextResponse.json(
+        { error: 'Name is required' },
+        { status: 400 }
+      );
+    }
 
     const author = await prisma.author.create({
       data: {
         name,
-        email,
-        affiliation,
+        email: email || null,
+        affiliation: affiliation || null,
+        orcId: orcId || null,
       },
     });
 

@@ -6,7 +6,8 @@ Academic manuscript review tracking system with transparent peer review process,
 
 ```bash
 # Clone and install
-git clone <repository-url>
+git clone git@github.com:clairenied/llm-med.git
+# Or `gh repo clone clairenied/llm-med`
 cd llm-med
 npm install
 
@@ -14,6 +15,7 @@ npm install
 docker compose up -d
 
 # Setup database
+cp .env.example .env
 npm run db:push
 npm run db:seed
 

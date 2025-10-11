@@ -11,9 +11,10 @@ export default function Navigation() {
   // Only show navigation items if user is authenticated
   const getNavItems = () => {
     if (!session) return [];
-    
+
     const items = [
       { href: '/', label: 'Manuscripts', icon: '📄' },
+      { href: '/authors', label: 'Authors', icon: '👤' },
     ];
 
     // Add admin routes for admin users
