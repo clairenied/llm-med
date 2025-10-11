@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useSession } from 'next-auth/react';
-import ManuscriptList from '@/components/ManuscriptList';
-import SignInForm from '@/components/SignInForm';
+import { useSession } from "next-auth/react";
+import ManuscriptList from "@/components/ManuscriptList";
+import SignInForm from "@/components/SignInForm";
 
 export default function Home() {
   const { data: session, status } = useSession();
-  
-  if (status === 'loading') {
+
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -17,7 +17,7 @@ export default function Home() {
       </div>
     );
   }
-  
+
   if (!session) {
     return <SignInForm />;
   }

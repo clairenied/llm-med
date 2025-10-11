@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import AuthorForm from '@/components/AuthorForm';
+import { useRouter } from "next/navigation";
+import AuthorForm from "@/components/AuthorForm";
 
 interface AuthorFormData {
   name: string;
@@ -15,9 +15,9 @@ export default function NewAuthorPage() {
 
   const handleSubmit = async (data: AuthorFormData) => {
     try {
-      const response = await fetch('/api/authors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/authors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.name,
           email: data.email || null,
@@ -31,17 +31,17 @@ export default function NewAuthorPage() {
         router.push(`/authors/${author.id}`);
       } else {
         const errorData = await response.json();
-        console.error('Failed to create author:', errorData);
-        alert(errorData.error || 'Failed to create author');
+        console.error("Failed to create author:", errorData);
+        alert(errorData.error || "Failed to create author");
       }
     } catch (error) {
-      console.error('Error creating author:', error);
-      alert('An error occurred while creating the author');
+      console.error("Error creating author:", error);
+      alert("An error occurred while creating the author");
     }
   };
 
   const handleCancel = () => {
-    router.push('/authors');
+    router.push("/authors");
   };
 
   return (

@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -28,17 +28,17 @@ export async function PUT(
 
     return NextResponse.json(version);
   } catch (error) {
-    console.error('Error updating version:', error);
+    console.error("Error updating version:", error);
     return NextResponse.json(
-      { error: 'Failed to update version' },
-      { status: 500 }
+      { error: "Failed to update version" },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -46,12 +46,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Version deleted successfully' });
+    return NextResponse.json({ message: "Version deleted successfully" });
   } catch (error) {
-    console.error('Error deleting version:', error);
+    console.error("Error deleting version:", error);
     return NextResponse.json(
-      { error: 'Failed to delete version' },
-      { status: 500 }
+      { error: "Failed to delete version" },
+      { status: 500 },
     );
   }
 }

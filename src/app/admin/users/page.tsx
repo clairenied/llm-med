@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface User {
   id: string;
   name: string | null;
   email: string;
-  role: 'ADMIN' | 'REVIEWER' | 'AUTHOR';
+  role: "ADMIN" | "REVIEWER" | "AUTHOR";
   createdAt: string;
   updatedAt: string;
 }
@@ -17,45 +17,49 @@ interface User {
 interface Invitation {
   id: string;
   email: string;
-  role: 'ADMIN' | 'REVIEWER' | 'AUTHOR';
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED';
+  role: "ADMIN" | "REVIEWER" | "AUTHOR";
+  status: "PENDING" | "ACCEPTED" | "EXPIRED";
   createdAt: string;
   expiresAt: string;
   usedAt?: string;
 }
 
 export default function AdminUserManagementPage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'invitations'>('users');
+  const [activeTab, setActiveTab] = useState<"users" | "invitations">("users");
   const [users, setUsers] = useState<User[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteFormData, setInviteFormData] = useState({
-    email: '',
-    role: 'AUTHOR' as 'ADMIN' | 'REVIEWER' | 'AUTHOR'
+    email: "",
+    role: "AUTHOR" as "ADMIN" | "REVIEWER" | "AUTHOR",
   });
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
-  const [editingInvitation, setEditingInvitation] = useState<string | null>(null);
+  const [editingInvitation, setEditingInvitation] = useState<string | null>(
+    null,
+  );
   const [editFormData, setEditFormData] = useState({
-    email: '',
-    role: 'AUTHOR' as 'ADMIN' | 'REVIEWER' | 'AUTHOR'
+    email: "",
+    role: "AUTHOR" as "ADMIN" | "REVIEWER" | "AUTHOR",
   });
-  const [showPasswordReset, setShowPasswordReset] = useState<string | null>(null);
-  const [newPassword, setNewPassword] = useState('');
+  const [showPasswordReset, setShowPasswordReset] = useState<string | null>(
+    null,
+  );
+  const [newPassword, setNewPassword] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === "loading") return;
     if (!session) {
-      router.push('/auth/signin');
+      router.push("/auth/signin");
       return;
     }
-    if (session.user.role !== 'ADMIN') {
-      router.push('/auth/unauthorized');
+    if (session.user.role !== "ADMIN") {
+      router.push("/auth/unauthorized");
       return;
     }
     fetchData();
@@ -66,7 +70,7 @@ export default function AdminUserManagementPage() {
     try {
       await Promise.all([fetchUsers(), fetchInvitations()]);
     } catch (error) {
-      setError('Failed to load data');
+      setError("Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -74,94 +78,100 @@ export default function AdminUserManagementPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch("/api/admin/users");
       if (!response.ok) {
-        throw new Error('Failed to fetch users');
+        throw new Error("Failed to fetch users");
       }
       const data = await response.json();
       setUsers(data.users);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     }
   };
 
   const fetchInvitations = async () => {
     try {
-      const response = await fetch('/api/admin/invitations');
+      const response = await fetch("/api/admin/invitations");
       if (!response.ok) {
-        throw new Error('Failed to fetch invitations');
+        throw new Error("Failed to fetch invitations");
       }
       const data = await response.json();
       setInvitations(data.invitations);
     } catch (error) {
-      console.error('Error fetching invitations:', error);
+      console.error("Error fetching invitations:", error);
     }
   };
 
   const updateUserRole = async (userId: string, newRole: string) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ role: newRole }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update user role');
+        throw new Error("Failed to update user role");
       }
 
       fetchUsers();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to update user role');
+      setError(
+        error instanceof Error ? error.message : "Failed to update user role",
+      );
     }
   };
 
   const deleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) {
+    if (!confirm("Are you sure you want to delete this user?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete user');
+        throw new Error("Failed to delete user");
       }
 
       fetchUsers();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to delete user');
+      setError(
+        error instanceof Error ? error.message : "Failed to delete user",
+      );
     }
   };
 
   const sendInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('/api/admin/invitations', {
-        method: 'POST',
+      const response = await fetch("/api/admin/invitations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(inviteFormData),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to send invitation');
+        throw new Error(data.error || "Failed to send invitation");
       }
 
-      setInviteFormData({ email: '', role: 'AUTHOR' });
+      setInviteFormData({ email: "", role: "AUTHOR" });
       setShowInviteForm(false);
       fetchInvitations();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send invitation');
+      setError(
+        error instanceof Error ? error.message : "Failed to send invitation",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -169,49 +179,56 @@ export default function AdminUserManagementPage() {
 
   const resendInvitation = async (invitationId: string) => {
     setResending(invitationId);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch(`/api/admin/invitations/${invitationId}/resend`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/admin/invitations/${invitationId}/resend`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to resend invitation');
+        throw new Error(data.error || "Failed to resend invitation");
       }
 
       fetchInvitations();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to resend invitation');
+      setError(
+        error instanceof Error ? error.message : "Failed to resend invitation",
+      );
     } finally {
       setResending(null);
     }
   };
 
   const deleteInvitation = async (invitationId: string) => {
-    if (!confirm('Are you sure you want to delete this invitation?')) {
+    if (!confirm("Are you sure you want to delete this invitation?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/admin/invitations/${invitationId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete invitation');
+        throw new Error("Failed to delete invitation");
       }
 
       fetchInvitations();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to delete invitation');
+      setError(
+        error instanceof Error ? error.message : "Failed to delete invitation",
+      );
     }
   };
 
@@ -219,73 +236,76 @@ export default function AdminUserManagementPage() {
     setEditingInvitation(invitation.id);
     setEditFormData({
       email: invitation.email,
-      role: invitation.role
+      role: invitation.role,
     });
   };
 
   const cancelEdit = () => {
     setEditingInvitation(null);
-    setEditFormData({ email: '', role: 'AUTHOR' });
+    setEditFormData({ email: "", role: "AUTHOR" });
   };
 
   const updateInvitation = async (invitationId: string) => {
     try {
       const response = await fetch(`/api/admin/invitations/${invitationId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(editFormData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update invitation');
+        throw new Error(errorData.error || "Failed to update invitation");
       }
 
       setEditingInvitation(null);
-      setEditFormData({ email: '', role: 'AUTHOR' });
+      setEditFormData({ email: "", role: "AUTHOR" });
       await fetchInvitations();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(error instanceof Error ? error.message : "An error occurred");
     }
   };
 
   const resetPassword = async (userId: string) => {
     if (!newPassword || newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setResettingPassword(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/admin/users/${userId}/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ newPassword }),
         },
-        body: JSON.stringify({ newPassword }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to reset password');
+        throw new Error(errorData.error || "Failed to reset password");
       }
 
       const result = await response.json();
       alert(`Password reset successfully for ${result.user.email}`);
       setShowPasswordReset(null);
-      setNewPassword('');
+      setNewPassword("");
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setResettingPassword(false);
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (status === "loading" || loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-600 dark:text-gray-400">Loading...</div>
@@ -293,7 +313,7 @@ export default function AdminUserManagementPage() {
     );
   }
 
-  if (!session || session.user.role !== 'ADMIN') {
+  if (!session || session.user.role !== "ADMIN") {
     return null;
   }
 
@@ -322,7 +342,7 @@ export default function AdminUserManagementPage() {
                 onClick={() => setShowInviteForm(!showInviteForm)}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer"
               >
-                {showInviteForm ? 'Cancel' : 'Create Invitation'}
+                {showInviteForm ? "Cancel" : "Create Invitation"}
               </button>
             </div>
           </div>
@@ -337,24 +357,31 @@ export default function AdminUserManagementPage() {
           <div className="mb-6">
             <nav className="flex space-x-8">
               <button
-                onClick={() => setActiveTab('users')}
+                onClick={() => setActiveTab("users")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                  activeTab === 'users'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  activeTab === "users"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
               >
                 Active Users ({users.length})
               </button>
               <button
-                onClick={() => setActiveTab('invitations')}
+                onClick={() => setActiveTab("invitations")}
                 className={`py-2 px-1 border-b-2 font-medium text-sm cursor-pointer ${
-                  activeTab === 'invitations'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  activeTab === "invitations"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
               >
-                Pending Invitations ({invitations.filter(inv => !inv.usedAt && new Date(inv.expiresAt) >= new Date()).length})
+                Pending Invitations (
+                {
+                  invitations.filter(
+                    (inv) =>
+                      !inv.usedAt && new Date(inv.expiresAt) >= new Date(),
+                  ).length
+                }
+                )
               </button>
             </nav>
           </div>
@@ -367,12 +394,17 @@ export default function AdminUserManagementPage() {
               </h3>
               <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-md">
                 <p className="text-sm text-blue-800 dark:text-blue-200">
-                  💡 <strong>No email will be sent.</strong> After creating the invitation, copy the signup link and share it manually via email, Slack, or any messaging app.
+                  💡 <strong>No email will be sent.</strong> After creating the
+                  invitation, copy the signup link and share it manually via
+                  email, Slack, or any messaging app.
                 </p>
               </div>
               <form onSubmit={sendInvitation} className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Email Address
                   </label>
                   <input
@@ -380,19 +412,32 @@ export default function AdminUserManagementPage() {
                     id="email"
                     required
                     value={inviteFormData.email}
-                    onChange={(e) => setInviteFormData({ ...inviteFormData, email: e.target.value })}
+                    onChange={(e) =>
+                      setInviteFormData({
+                        ...inviteFormData,
+                        email: e.target.value,
+                      })
+                    }
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                     placeholder="user@example.com"
                   />
                 </div>
                 <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="role"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     Role
                   </label>
                   <select
                     id="role"
                     value={inviteFormData.role}
-                    onChange={(e) => setInviteFormData({ ...inviteFormData, role: e.target.value as 'AUTHOR' | 'REVIEWER' | 'ADMIN' })}
+                    onChange={(e) =>
+                      setInviteFormData({
+                        ...inviteFormData,
+                        role: e.target.value as "AUTHOR" | "REVIEWER" | "ADMIN",
+                      })
+                    }
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
                   >
                     <option value="AUTHOR">Author</option>
@@ -406,7 +451,7 @@ export default function AdminUserManagementPage() {
                     disabled={submitting}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {submitting ? 'Creating...' : 'Create Invitation'}
+                    {submitting ? "Creating..." : "Create Invitation"}
                   </button>
                   <button
                     type="button"
@@ -428,12 +473,17 @@ export default function AdminUserManagementPage() {
               </h3>
               <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-md">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  ⚠️ <strong>Warning:</strong> This will immediately change the user&apos;s password. They will need to use the new password to sign in.
+                  ⚠️ <strong>Warning:</strong> This will immediately change the
+                  user&apos;s password. They will need to use the new password
+                  to sign in.
                 </p>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label
+                    htmlFor="newPassword"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
                     New Password (minimum 6 characters)
                   </label>
                   <input
@@ -452,14 +502,14 @@ export default function AdminUserManagementPage() {
                     disabled={resettingPassword || newPassword.length < 6}
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {resettingPassword ? 'Resetting...' : 'Reset Password'}
+                    {resettingPassword ? "Resetting..." : "Reset Password"}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       setShowPasswordReset(null);
-                      setNewPassword('');
-                      setError('');
+                      setNewPassword("");
+                      setError("");
                     }}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer"
                   >
@@ -473,14 +523,16 @@ export default function AdminUserManagementPage() {
           {/* Content based on active tab */}
           <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
             <div className="px-4 py-5 sm:p-6">
-              {activeTab === 'users' ? (
+              {activeTab === "users" ? (
                 <>
                   <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mb-4">
                     Active Users ({users.length})
                   </h3>
-                  
+
                   {users.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400">No users found.</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No users found.
+                    </p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -506,10 +558,10 @@ export default function AdminUserManagementPage() {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div>
                                   <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {user.name || 'No name'}
+                                    {user.name || "No name"}
                                   </div>
                                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                                    <a 
+                                    <a
                                       href={`mailto:${user.email}`}
                                       className="hover:text-blue-600 cursor-pointer underline"
                                     >
@@ -531,7 +583,9 @@ export default function AdminUserManagementPage() {
                                 ) : (
                                   <select
                                     value={user.role}
-                                    onChange={(e) => updateUserRole(user.id, e.target.value)}
+                                    onChange={(e) =>
+                                      updateUserRole(user.id, e.target.value)
+                                    }
                                     className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white cursor-pointer"
                                   >
                                     <option value="AUTHOR">Author</option>
@@ -551,7 +605,9 @@ export default function AdminUserManagementPage() {
                                 ) : (
                                   <div className="flex space-x-2">
                                     <button
-                                      onClick={() => setShowPasswordReset(user.id)}
+                                      onClick={() =>
+                                        setShowPasswordReset(user.id)
+                                      }
                                       className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
                                     >
                                       Reset Password
@@ -585,31 +641,53 @@ export default function AdminUserManagementPage() {
                         <div className="text-2xl font-bold text-gray-900 dark:text-white">
                           {invitations.length}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Total Invitations</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Total Invitations
+                        </div>
                       </div>
                       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                         <div className="text-2xl font-bold text-yellow-600">
-                          {invitations.filter(inv => !inv.usedAt && new Date(inv.expiresAt) >= new Date()).length}
+                          {
+                            invitations.filter(
+                              (inv) =>
+                                !inv.usedAt &&
+                                new Date(inv.expiresAt) >= new Date(),
+                            ).length
+                          }
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Pending</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Pending
+                        </div>
                       </div>
                       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                         <div className="text-2xl font-bold text-green-600">
-                          {invitations.filter(inv => inv.usedAt).length}
+                          {invitations.filter((inv) => inv.usedAt).length}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Accepted</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Accepted
+                        </div>
                       </div>
                       <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-700">
                         <div className="text-2xl font-bold text-red-600">
-                          {invitations.filter(inv => !inv.usedAt && new Date(inv.expiresAt) < new Date()).length}
+                          {
+                            invitations.filter(
+                              (inv) =>
+                                !inv.usedAt &&
+                                new Date(inv.expiresAt) < new Date(),
+                            ).length
+                          }
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">Expired</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          Expired
+                        </div>
                       </div>
                     </div>
                   )}
-                  
+
                   {invitations.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400">No invitations found.</p>
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No invitations found.
+                    </p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -643,11 +721,16 @@ export default function AdminUserManagementPage() {
                                   <input
                                     type="email"
                                     value={editFormData.email}
-                                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                                    onChange={(e) =>
+                                      setEditFormData({
+                                        ...editFormData,
+                                        email: e.target.value,
+                                      })
+                                    }
                                     className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                                   />
                                 ) : (
-                                  <a 
+                                  <a
                                     href={`mailto:${invitation.email}`}
                                     className="hover:text-blue-600 cursor-pointer underline"
                                   >
@@ -659,7 +742,15 @@ export default function AdminUserManagementPage() {
                                 {editingInvitation === invitation.id ? (
                                   <select
                                     value={editFormData.role}
-                                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as 'ADMIN' | 'REVIEWER' | 'AUTHOR' })}
+                                    onChange={(e) =>
+                                      setEditFormData({
+                                        ...editFormData,
+                                        role: e.target.value as
+                                          | "ADMIN"
+                                          | "REVIEWER"
+                                          | "AUTHOR",
+                                      })
+                                    }
                                     className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                                   >
                                     <option value="AUTHOR">AUTHOR</option>
@@ -673,35 +764,41 @@ export default function AdminUserManagementPage() {
                                 )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  invitation.usedAt
-                                    ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
-                                    : new Date(invitation.expiresAt) < new Date()
-                                    ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                                    : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
-                                }`}>
-                                  {invitation.usedAt 
-                                    ? 'USED' 
-                                    : new Date(invitation.expiresAt) < new Date() 
-                                    ? 'EXPIRED' 
-                                    : 'PENDING'
-                                  }
+                                <span
+                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    invitation.usedAt
+                                      ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+                                      : new Date(invitation.expiresAt) <
+                                          new Date()
+                                        ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+                                        : "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
+                                  }`}
+                                >
+                                  {invitation.usedAt
+                                    ? "USED"
+                                    : new Date(invitation.expiresAt) <
+                                        new Date()
+                                      ? "EXPIRED"
+                                      : "PENDING"}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {!invitation.usedAt && new Date(invitation.expiresAt) >= new Date() ? (
+                                {!invitation.usedAt &&
+                                new Date(invitation.expiresAt) >= new Date() ? (
                                   <div className="flex items-center space-x-2">
                                     <input
                                       type="text"
-                                      value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3010'}/auth/signup?invitation=${invitation.id}`}
+                                      value={`${typeof window !== "undefined" ? window.location.origin : "http://localhost:3010"}/auth/signup?invitation=${invitation.id}`}
                                       readOnly
                                       className="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded px-2 py-1 w-64 font-mono"
                                     />
                                     <button
                                       onClick={() => {
-                                        const link = `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3010'}/auth/signup?invitation=${invitation.id}`;
+                                        const link = `${typeof window !== "undefined" ? window.location.origin : "http://localhost:3010"}/auth/signup?invitation=${invitation.id}`;
                                         navigator.clipboard.writeText(link);
-                                        alert('Invitation link copied! Share it via email, Slack, or any messaging app.');
+                                        alert(
+                                          "Invitation link copied! Share it via email, Slack, or any messaging app.",
+                                        );
                                       }}
                                       className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 cursor-pointer"
                                       title="Copy signup link"
@@ -710,18 +807,24 @@ export default function AdminUserManagementPage() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <span className="text-gray-400 text-xs">N/A</span>
+                                  <span className="text-gray-400 text-xs">
+                                    N/A
+                                  </span>
                                 )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                {new Date(invitation.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  invitation.createdAt,
+                                ).toLocaleDateString()}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div className="flex space-x-2">
                                   {editingInvitation === invitation.id ? (
                                     <>
                                       <button
-                                        onClick={() => updateInvitation(invitation.id)}
+                                        onClick={() =>
+                                          updateInvitation(invitation.id)
+                                        }
                                         className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 cursor-pointer"
                                       >
                                         Save
@@ -738,22 +841,32 @@ export default function AdminUserManagementPage() {
                                       {!invitation.usedAt && (
                                         <>
                                           <button
-                                            onClick={() => startEditInvitation(invitation)}
+                                            onClick={() =>
+                                              startEditInvitation(invitation)
+                                            }
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
                                           >
                                             Edit
                                           </button>
                                           <button
-                                            onClick={() => resendInvitation(invitation.id)}
-                                            disabled={resending === invitation.id}
+                                            onClick={() =>
+                                              resendInvitation(invitation.id)
+                                            }
+                                            disabled={
+                                              resending === invitation.id
+                                            }
                                             className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                           >
-                                            {resending === invitation.id ? 'Resending...' : 'Resend'}
+                                            {resending === invitation.id
+                                              ? "Resending..."
+                                              : "Resend"}
                                           </button>
                                         </>
                                       )}
                                       <button
-                                        onClick={() => deleteInvitation(invitation.id)}
+                                        onClick={() =>
+                                          deleteInvitation(invitation.id)
+                                        }
                                         className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 cursor-pointer"
                                       >
                                         Delete

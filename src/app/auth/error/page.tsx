@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function AuthErrorContent() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const error = searchParams.get("error");
 
   const getErrorMessage = (error: string | null) => {
     switch (error) {
-      case 'Configuration':
-        return 'There is a problem with the server configuration.';
-      case 'AccessDenied':
-        return 'Access denied. You do not have permission to sign in.';
-      case 'Verification':
-        return 'The verification token has expired or has already been used.';
-      case 'Default':
+      case "Configuration":
+        return "There is a problem with the server configuration.";
+      case "AccessDenied":
+        return "Access denied. You do not have permission to sign in.";
+      case "Verification":
+        return "The verification token has expired or has already been used.";
+      case "Default":
       default:
-        return 'An error occurred during authentication.';
+        return "An error occurred during authentication.";
     }
   };
 
@@ -45,7 +45,13 @@ function AuthErrorContent() {
 
 export default function AuthErrorPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <AuthErrorContent />
     </Suspense>
   );

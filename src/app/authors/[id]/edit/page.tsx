@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AuthorForm from '@/components/AuthorForm';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AuthorForm from "@/components/AuthorForm";
 
 interface Author {
   id: string;
@@ -47,12 +47,12 @@ export default function EditAuthorPage({ params }: PageProps) {
       try {
         const response = await fetch(`/api/authors/${authorId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch author');
+          throw new Error("Failed to fetch author");
         }
         const authorData = await response.json();
         setAuthor(authorData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
@@ -66,8 +66,8 @@ export default function EditAuthorPage({ params }: PageProps) {
 
     try {
       const response = await fetch(`/api/authors/${author.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.name,
           email: data.email || null,
@@ -79,10 +79,10 @@ export default function EditAuthorPage({ params }: PageProps) {
       if (response.ok) {
         router.push(`/authors/${author.id}`);
       } else {
-        console.error('Failed to update author');
+        console.error("Failed to update author");
       }
     } catch (error) {
-      console.error('Error updating author:', error);
+      console.error("Error updating author:", error);
     }
   };
 
@@ -90,7 +90,7 @@ export default function EditAuthorPage({ params }: PageProps) {
     if (author) {
       router.push(`/authors/${author.id}`);
     } else {
-      router.push('/authors');
+      router.push("/authors");
     }
   };
 
@@ -107,9 +107,9 @@ export default function EditAuthorPage({ params }: PageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
-          <p className="text-gray-600 mb-4">{error || 'Author not found'}</p>
+          <p className="text-gray-600 mb-4">{error || "Author not found"}</p>
           <button
-            onClick={() => router.push('/authors')}
+            onClick={() => router.push("/authors")}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Back to Authors
@@ -126,9 +126,9 @@ export default function EditAuthorPage({ params }: PageProps) {
         onCancel={handleCancel}
         initialData={{
           name: author.name,
-          email: author.email || '',
-          affiliation: author.affiliation || '',
-          orcId: author.orcId || '',
+          email: author.email || "",
+          affiliation: author.affiliation || "",
+          orcId: author.orcId || "",
         }}
       />
     </div>

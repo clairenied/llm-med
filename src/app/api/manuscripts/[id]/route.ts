@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -20,7 +20,7 @@ export async function GET(
             },
           },
           orderBy: {
-            versionNumber: 'asc',
+            versionNumber: "asc",
           },
         },
       },
@@ -28,24 +28,24 @@ export async function GET(
 
     if (!manuscript) {
       return NextResponse.json(
-        { error: 'Manuscript not found' },
-        { status: 404 }
+        { error: "Manuscript not found" },
+        { status: 404 },
       );
     }
 
     return NextResponse.json(manuscript);
   } catch (error) {
-    console.error('Error fetching manuscript:', error);
+    console.error("Error fetching manuscript:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch manuscript' },
-      { status: 500 }
+      { error: "Failed to fetch manuscript" },
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -76,17 +76,17 @@ export async function PUT(
 
     return NextResponse.json(manuscript);
   } catch (error) {
-    console.error('Error updating manuscript:', error);
+    console.error("Error updating manuscript:", error);
     return NextResponse.json(
-      { error: 'Failed to update manuscript' },
-      { status: 500 }
+      { error: "Failed to update manuscript" },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -94,12 +94,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Manuscript deleted successfully' });
+    return NextResponse.json({ message: "Manuscript deleted successfully" });
   } catch (error) {
-    console.error('Error deleting manuscript:', error);
+    console.error("Error deleting manuscript:", error);
     return NextResponse.json(
-      { error: 'Failed to delete manuscript' },
-      { status: 500 }
+      { error: "Failed to delete manuscript" },
+      { status: 500 },
     );
   }
 }

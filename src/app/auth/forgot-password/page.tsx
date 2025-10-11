@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [, setResetUrl] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [, setResetUrl] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
       });
@@ -28,19 +28,22 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send reset instructions');
+        throw new Error(data.error || "Failed to send reset instructions");
       }
 
-      setMessage(data.message || 'Password reset instructions have been sent to your email address.');
-      
+      setMessage(
+        data.message ||
+          "Password reset instructions have been sent to your email address.",
+      );
+
       // If email service is not configured, show the reset URL for development
       if (data.resetUrl && data.note) {
         setResetUrl(data.resetUrl);
       }
-      
-      setEmail('');
+
+      setEmail("");
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +59,8 @@ export default function ForgotPasswordPage() {
               Forgot Password
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Enter your email address and we&apos;ll send you instructions to reset your password.
+              Enter your email address and we&apos;ll send you instructions to
+              reset your password.
             </p>
           </div>
 
@@ -74,7 +78,10 @@ export default function ForgotPasswordPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Email Address
               </label>
               <input
@@ -93,13 +100,13 @@ export default function ForgotPasswordPage() {
               disabled={isLoading}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              {isLoading ? 'Sending...' : 'Send Reset Instructions'}
+              {isLoading ? "Sending..." : "Send Reset Instructions"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{' '}
+              Remember your password?{" "}
               <Link
                 href="/auth/signin"
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
@@ -108,7 +115,6 @@ export default function ForgotPasswordPage() {
               </Link>
             </p>
           </div>
-
         </div>
       </div>
     </div>

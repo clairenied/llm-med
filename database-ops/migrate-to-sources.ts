@@ -1,48 +1,49 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Creating initial source entries...');
+  console.log("Creating initial source entries...");
 
   // Create common academic sources
   const sources = [
     {
-      name: 'F1000Research',
-      baseUrl: 'https://f1000research.com',
-      description: 'Open research publishing platform with transparent peer review',
-      isActive: true
+      name: "F1000Research",
+      baseUrl: "https://f1000research.com",
+      description:
+        "Open research publishing platform with transparent peer review",
+      isActive: true,
     },
     {
-      name: 'PubMed',
-      baseUrl: 'https://pubmed.ncbi.nlm.nih.gov',
-      description: 'Database of biomedical and life science literature',
-      isActive: true
+      name: "PubMed",
+      baseUrl: "https://pubmed.ncbi.nlm.nih.gov",
+      description: "Database of biomedical and life science literature",
+      isActive: true,
     },
     {
-      name: 'arXiv',
-      baseUrl: 'https://arxiv.org',
-      description: 'Repository of electronic preprints for scientific papers',
-      isActive: true
+      name: "arXiv",
+      baseUrl: "https://arxiv.org",
+      description: "Repository of electronic preprints for scientific papers",
+      isActive: true,
     },
     {
-      name: 'bioRxiv',
-      baseUrl: 'https://www.biorxiv.org',
-      description: 'Preprint server for biology research',
-      isActive: true
+      name: "bioRxiv",
+      baseUrl: "https://www.biorxiv.org",
+      description: "Preprint server for biology research",
+      isActive: true,
     },
     {
-      name: 'medRxiv',
-      baseUrl: 'https://www.medrxiv.org',
-      description: 'Preprint server for health sciences',
-      isActive: true
-    }
+      name: "medRxiv",
+      baseUrl: "https://www.medrxiv.org",
+      description: "Preprint server for health sciences",
+      isActive: true,
+    },
   ];
 
   for (const sourceData of sources) {
     try {
       const existingSource = await prisma.source.findUnique({
-        where: { name: sourceData.name }
+        where: { name: sourceData.name },
       });
 
       if (existingSource) {
@@ -51,7 +52,7 @@ async function main() {
       }
 
       const source = await prisma.source.create({
-        data: sourceData
+        data: sourceData,
       });
 
       console.log(`✅ Created source: ${source.name}`);
@@ -60,12 +61,12 @@ async function main() {
     }
   }
 
-  console.log('\n✅ Source migration completed!');
+  console.log("\n✅ Source migration completed!");
 }
 
 main()
   .catch((e) => {
-    console.error('Migration failed:', e);
+    console.error("Migration failed:", e);
     process.exit(1);
   })
   .finally(async () => {

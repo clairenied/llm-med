@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -8,16 +8,16 @@ export async function GET() {
         reviews: true,
       },
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
 
     return NextResponse.json(reviewers);
   } catch (error) {
-    console.error('Error fetching reviewers:', error);
+    console.error("Error fetching reviewers:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch reviewers' },
-      { status: 500 }
+      { error: "Failed to fetch reviewers" },
+      { status: 500 },
     );
   }
 }
@@ -38,11 +38,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(reviewer, { status: 201 });
   } catch (error) {
-    console.error('Error creating reviewer:', error);
+    console.error("Error creating reviewer:", error);
     return NextResponse.json(
-      { error: 'Failed to create reviewer' },
-      { status: 500 }
+      { error: "Failed to create reviewer" },
+      { status: 500 },
     );
   }
 }
-

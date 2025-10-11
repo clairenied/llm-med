@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -18,30 +18,27 @@ export async function GET(
     });
 
     if (!author) {
-      return NextResponse.json(
-        { error: 'Author not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Author not found" }, { status: 404 });
     }
 
     return NextResponse.json(author);
   } catch (error) {
-    console.error('Error fetching author:', error);
+    console.error("Error fetching author:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch author' },
-      { status: 500 }
+      { error: "Failed to fetch author" },
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -49,10 +46,7 @@ export async function PUT(
     const { name, email, affiliation, orcId } = body;
 
     if (!name) {
-      return NextResponse.json(
-        { error: 'Name is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
     const author = await prisma.author.update({
@@ -67,22 +61,22 @@ export async function PUT(
 
     return NextResponse.json(author);
   } catch (error) {
-    console.error('Error updating author:', error);
+    console.error("Error updating author:", error);
     return NextResponse.json(
-      { error: 'Failed to update author' },
-      { status: 500 }
+      { error: "Failed to update author" },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -90,12 +84,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Author deleted successfully' });
+    return NextResponse.json({ message: "Author deleted successfully" });
   } catch (error) {
-    console.error('Error deleting author:', error);
+    console.error("Error deleting author:", error);
     return NextResponse.json(
-      { error: 'Failed to delete author' },
-      { status: 500 }
+      { error: "Failed to delete author" },
+      { status: 500 },
     );
   }
 }

@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { auth } from '@/lib/auth';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 export async function DELETE() {
   try {
     const session = await auth();
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    console.log('🗑️  Starting bulk deletion of scraped articles...');
+    console.log("🗑️  Starting bulk deletion of scraped articles...");
 
     // Find all manuscripts that have F1000Research sources (scraped articles)
     const scrapedManuscripts = await prisma.manuscript.findMany({
@@ -18,24 +18,26 @@ export async function DELETE() {
         sources: {
           some: {
             source: {
-              name: 'F1000Research'
-            }
-          }
-        }
+              name: "F1000Research",
+            },
+          },
+        },
       },
       include: {
         sources: true,
         versions: true,
-        authors: true
-      }
+        authors: true,
+      },
     });
 
-    console.log(`📊 Found ${scrapedManuscripts.length} scraped manuscripts to delete`);
+    console.log(
+      `📊 Found ${scrapedManuscripts.length} scraped manuscripts to delete`,
+    );
 
     if (scrapedManuscripts.length === 0) {
-      return NextResponse.json({ 
-        message: 'No scraped articles found to delete',
-        deletedCount: 0 
+      return NextResponse.json({
+        message: "No scraped articles found to delete",
+        deletedCount: 0,
       });
     }
 
@@ -43,44 +45,45 @@ export async function DELETE() {
     const deleteResult = await prisma.manuscript.deleteMany({
       where: {
         id: {
-          in: scrapedManuscripts.map(m => m.id)
-        }
-      }
+          in: scrapedManuscripts.map((m) => m.id),
+        },
+      },
     });
 
     // Clean up orphaned authors (authors not connected to any manuscripts)
     const orphanedAuthors = await prisma.author.findMany({
       where: {
         manuscripts: {
-          none: {}
-        }
-      }
+          none: {},
+        },
+      },
     });
 
     if (orphanedAuthors.length > 0) {
       await prisma.author.deleteMany({
         where: {
           id: {
-            in: orphanedAuthors.map(a => a.id)
-          }
-        }
+            in: orphanedAuthors.map((a) => a.id),
+          },
+        },
       });
       console.log(`🧹 Cleaned up ${orphanedAuthors.length} orphaned authors`);
     }
 
-    console.log(`✅ Successfully deleted ${deleteResult.count} scraped manuscripts`);
+    console.log(
+      `✅ Successfully deleted ${deleteResult.count} scraped manuscripts`,
+    );
 
     return NextResponse.json({
       message: `Successfully deleted ${deleteResult.count} scraped articles`,
       deletedCount: deleteResult.count,
-      orphanedAuthorsDeleted: orphanedAuthors.length
+      orphanedAuthorsDeleted: orphanedAuthors.length,
     });
-
   } catch (error) {
-    console.error('Error deleting scraped articles:', error);
+    console.error("Error deleting scraped articles:", error);
     return NextResponse.json(
-      { error: 'Failed to delete scraped articles' },
-      { status: 500 }
+      { error: "Failed to delete scraped articles" },
+      { status: 500 },
     );
   }
 }

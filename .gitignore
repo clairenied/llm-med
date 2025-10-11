@@ -142,6 +142,7 @@ vite.config.ts.timestamp-*
 
 # Prisma
 /src/generated/prisma
+src/lib/prisma/
 
 # Vercel
 .vercel

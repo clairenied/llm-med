@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface Reviewer {
   id: string;
@@ -19,33 +19,37 @@ interface ReviewFormProps {
 
 interface ReviewFormData {
   reviewerId: string;
-  reviewType: 'INTERNAL' | 'EXTERNAL';
+  reviewType: "INTERNAL" | "EXTERNAL";
   content: string;
   documentUrl?: string;
-  documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
+  documentType?: "WORD" | "PDF" | "TEXT" | "FREE_TEXT";
 }
 
-export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFormProps) {
+export default function ReviewForm({
+  onSubmit,
+  onCancel,
+  initialData,
+}: ReviewFormProps) {
   const [reviewers, setReviewers] = useState<Reviewer[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<ReviewFormData>({
-    reviewerId: initialData?.reviewerId || '',
-    reviewType: initialData?.reviewType || 'INTERNAL',
-    content: initialData?.content || '',
-    documentUrl: initialData?.documentUrl || '',
-    documentType: initialData?.documentType || 'FREE_TEXT',
+    reviewerId: initialData?.reviewerId || "",
+    reviewType: initialData?.reviewType || "INTERNAL",
+    content: initialData?.content || "",
+    documentUrl: initialData?.documentUrl || "",
+    documentType: initialData?.documentType || "FREE_TEXT",
   });
 
   useEffect(() => {
     async function fetchReviewers() {
       try {
-        const response = await fetch('/api/reviewers');
+        const response = await fetch("/api/reviewers");
         if (response.ok) {
           const data = await response.json();
           setReviewers(data);
         }
       } catch (error) {
-        console.error('Error fetching reviewers:', error);
+        console.error("Error fetching reviewers:", error);
       } finally {
         setLoading(false);
       }
@@ -77,21 +81,26 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-6 bg-gray-50 rounded-t-lg border-b">
           <h1 className="text-2xl font-semibold text-gray-900">
-            {initialData ? 'Edit Review' : 'Add New Review'}
+            {initialData ? "Edit Review" : "Add New Review"}
           </h1>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Reviewer Selection */}
           <div>
-            <label htmlFor="reviewerId" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="reviewerId"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Reviewer *
             </label>
             <select
               id="reviewerId"
               required
               value={formData.reviewerId}
-              onChange={(e) => setFormData(prev => ({ ...prev, reviewerId: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, reviewerId: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select a reviewer</option>
@@ -114,8 +123,13 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
                 <input
                   type="radio"
                   value="INTERNAL"
-                  checked={formData.reviewType === 'INTERNAL'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, reviewType: e.target.value as 'INTERNAL' | 'EXTERNAL' }))}
+                  checked={formData.reviewType === "INTERNAL"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      reviewType: e.target.value as "INTERNAL" | "EXTERNAL",
+                    }))
+                  }
                   className="mr-2"
                 />
                 <span className="text-sm">Internal (Reviewer to Author)</span>
@@ -124,8 +138,13 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
                 <input
                   type="radio"
                   value="EXTERNAL"
-                  checked={formData.reviewType === 'EXTERNAL'}
-                  onChange={(e) => setFormData(prev => ({ ...prev, reviewType: e.target.value as 'INTERNAL' | 'EXTERNAL' }))}
+                  checked={formData.reviewType === "EXTERNAL"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      reviewType: e.target.value as "INTERNAL" | "EXTERNAL",
+                    }))
+                  }
                   className="mr-2"
                 />
                 <span className="text-sm">External (Reviewer to Editor)</span>
@@ -135,7 +154,10 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
 
           {/* Review Content */}
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="content"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Review Content *
             </label>
             <textarea
@@ -143,7 +165,9 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
               required
               rows={8}
               value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, content: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter the review content here..."
             />
@@ -151,13 +175,25 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
 
           {/* Document Type */}
           <div>
-            <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="documentType"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Document Type
             </label>
             <select
               id="documentType"
               value={formData.documentType}
-              onChange={(e) => setFormData(prev => ({ ...prev, documentType: e.target.value as 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT' }))}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  documentType: e.target.value as
+                    | "WORD"
+                    | "PDF"
+                    | "TEXT"
+                    | "FREE_TEXT",
+                }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="FREE_TEXT">Free Text</option>
@@ -168,22 +204,29 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
           </div>
 
           {/* Document URL */}
-          {formData.documentType !== 'FREE_TEXT' && (
+          {formData.documentType !== "FREE_TEXT" && (
             <div>
-              <label htmlFor="documentUrl" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="documentUrl"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Document URL
               </label>
               <input
                 type="url"
                 id="documentUrl"
                 value={formData.documentUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, documentUrl: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    documentUrl: e.target.value,
+                  }))
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="https://example.com/document.pdf"
               />
             </div>
           )}
-
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-4 pt-6 border-t">
@@ -198,7 +241,7 @@ export default function ReviewForm({ onSubmit, onCancel, initialData }: ReviewFo
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              {initialData ? 'Update Review' : 'Submit Review'}
+              {initialData ? "Update Review" : "Submit Review"}
             </button>
           </div>
         </form>

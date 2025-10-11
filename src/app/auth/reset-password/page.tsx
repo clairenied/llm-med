@@ -1,48 +1,48 @@
-'use client';
+"use client";
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 function ResetPasswordForm() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams.get("token");
 
   // Validate token on component mount
   useEffect(() => {
     if (!token) {
-      setError('Invalid or missing reset token');
+      setError("Invalid or missing reset token");
       setTokenValid(false);
       return;
     }
 
     // Validate token with API
-    fetch('/api/auth/validate-reset-token', {
-      method: 'POST',
+    fetch("/api/auth/validate-reset-token", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ token }),
     })
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (data.valid) {
           setTokenValid(true);
         } else {
-          setError(data.error || 'Invalid or expired reset token');
+          setError(data.error || "Invalid or expired reset token");
           setTokenValid(false);
         }
       })
       .catch(() => {
-        setError('Failed to validate reset token');
+        setError("Failed to validate reset token");
         setTokenValid(false);
       });
   }, [token]);
@@ -50,25 +50,25 @@ function ResetPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/auth/reset-password', {
-        method: 'POST',
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ token, password }),
       });
@@ -76,15 +76,15 @@ function ResetPasswordForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset password');
+        throw new Error(data.error || "Failed to reset password");
       }
 
       setSuccess(true);
       setTimeout(() => {
-        router.push('/auth/signin');
+        router.push("/auth/signin");
       }, 3000);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'An error occurred');
+      setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -95,7 +95,9 @@ function ResetPasswordForm() {
       <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Validating reset token...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Validating reset token...
+          </p>
         </div>
       </div>
     );
@@ -111,7 +113,7 @@ function ResetPasswordForm() {
               Invalid Reset Link
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {error || 'This password reset link is invalid or has expired.'}
+              {error || "This password reset link is invalid or has expired."}
             </p>
             <Link
               href="/auth/forgot-password"
@@ -135,7 +137,8 @@ function ResetPasswordForm() {
               Password Reset Successful
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Your password has been successfully reset. You will be redirected to the sign-in page in a few seconds.
+              Your password has been successfully reset. You will be redirected
+              to the sign-in page in a few seconds.
             </p>
             <Link
               href="/auth/signin"
@@ -171,7 +174,10 @@ function ResetPasswordForm() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 New Password
               </label>
               <input
@@ -187,7 +193,10 @@ function ResetPasswordForm() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Confirm New Password
               </label>
               <input
@@ -207,13 +216,13 @@ function ResetPasswordForm() {
               disabled={isLoading}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              {isLoading ? 'Resetting Password...' : 'Reset Password'}
+              {isLoading ? "Resetting Password..." : "Reset Password"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{' '}
+              Remember your password?{" "}
               <Link
                 href="/auth/signin"
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
@@ -230,14 +239,16 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+    <Suspense
+      fallback={
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <ResetPasswordForm />
     </Suspense>
   );

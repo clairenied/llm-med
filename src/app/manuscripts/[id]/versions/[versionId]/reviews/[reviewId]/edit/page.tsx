@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 interface Review {
   id: string;
@@ -12,29 +12,29 @@ interface Review {
     code: string;
     name: string;
   };
-  reviewType: 'INTERNAL' | 'EXTERNAL';
+  reviewType: "INTERNAL" | "EXTERNAL";
   content: string;
   documentUrl?: string;
-  documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
+  documentType?: "WORD" | "PDF" | "TEXT" | "FREE_TEXT";
 }
 
 interface ReviewFormData {
-  reviewType: 'INTERNAL' | 'EXTERNAL';
+  reviewType: "INTERNAL" | "EXTERNAL";
   content: string;
   documentUrl?: string;
-  documentType?: 'WORD' | 'PDF' | 'TEXT' | 'FREE_TEXT';
+  documentType?: "WORD" | "PDF" | "TEXT" | "FREE_TEXT";
 }
 
 const reviewTypes = [
-  { value: 'INTERNAL', label: 'Internal Review' },
-  { value: 'EXTERNAL', label: 'External Review' },
+  { value: "INTERNAL", label: "Internal Review" },
+  { value: "EXTERNAL", label: "External Review" },
 ] as const;
 
 const documentTypes = [
-  { value: 'PDF', label: 'PDF Document' },
-  { value: 'WORD', label: 'Word Document' },
-  { value: 'TEXT', label: 'Text File' },
-  { value: 'FREE_TEXT', label: 'Free Text' },
+  { value: "PDF", label: "PDF Document" },
+  { value: "WORD", label: "Word Document" },
+  { value: "TEXT", label: "Text File" },
+  { value: "FREE_TEXT", label: "Free Text" },
 ] as const;
 
 export default function EditReviewPage() {
@@ -47,10 +47,10 @@ export default function EditReviewPage() {
 
   const [review, setReview] = useState<Review | null>(null);
   const [formData, setFormData] = useState<ReviewFormData>({
-    reviewType: 'EXTERNAL',
-    content: '',
-    documentUrl: '',
-    documentType: 'PDF',
+    reviewType: "EXTERNAL",
+    content: "",
+    documentUrl: "",
+    documentType: "PDF",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -61,32 +61,33 @@ export default function EditReviewPage() {
     try {
       const response = await fetch(`/api/manuscripts/${manuscriptId}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch manuscript');
+        throw new Error("Failed to fetch manuscript");
       }
       const manuscript = await response.json();
-      
+
       let foundReview: Review | null = null;
       for (const version of manuscript.versions) {
         if (version.id === versionId) {
-          foundReview = version.reviews.find((r: Review) => r.id === reviewId) || null;
+          foundReview =
+            version.reviews.find((r: Review) => r.id === reviewId) || null;
           break;
         }
       }
-      
+
       if (!foundReview) {
-        throw new Error('Review not found');
+        throw new Error("Review not found");
       }
 
       setReview(foundReview);
       setFormData({
         reviewType: foundReview.reviewType,
         content: foundReview.content,
-        documentUrl: foundReview.documentUrl || '',
-        documentType: foundReview.documentType || 'PDF',
+        documentUrl: foundReview.documentUrl || "",
+        documentType: foundReview.documentType || "PDF",
       });
     } catch (error) {
-      console.error('Error fetching review:', error);
-      setErrors({ fetch: 'Failed to load review data' });
+      console.error("Error fetching review:", error);
+      setErrors({ fetch: "Failed to load review data" });
     } finally {
       setIsLoadingReview(false);
     }
@@ -98,49 +99,52 @@ export default function EditReviewPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newErrors: Record<string, string> = {};
     if (!session?.user?.id) {
-      newErrors.session = 'You must be logged in to edit a review';
+      newErrors.session = "You must be logged in to edit a review";
     }
     if (!formData.content.trim()) {
-      newErrors.content = 'Review content is required';
+      newErrors.content = "Review content is required";
     }
-    
+
     setErrors(newErrors);
-    
+
     if (Object.keys(newErrors).length === 0) {
       try {
         setIsLoading(true);
-        
+
         const response = await fetch(`/api/reviews/${reviewId}`, {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(formData),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to update review');
+          throw new Error("Failed to update review");
         }
 
         // Redirect back to manuscript page
         router.push(`/manuscripts/${manuscriptId}`);
       } catch (error) {
-        console.error('Error updating review:', error);
-        setErrors({ submit: 'Failed to update review. Please try again.' });
+        console.error("Error updating review:", error);
+        setErrors({ submit: "Failed to update review. Please try again." });
       } finally {
         setIsLoading(false);
       }
     }
   };
 
-  const handleChange = (field: keyof ReviewFormData, value: string | undefined) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleChange = (
+    field: keyof ReviewFormData,
+    value: string | undefined,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -166,7 +170,10 @@ export default function EditReviewPage() {
         <div className="max-w-3xl mx-auto px-4">
           <div className="bg-red-50 border border-red-200 rounded-md p-4">
             <p className="text-red-800">{errors.fetch}</p>
-            <Link href={`/manuscripts/${manuscriptId}`} className="text-red-600 hover:text-red-800 underline">
+            <Link
+              href={`/manuscripts/${manuscriptId}`}
+              className="text-red-600 hover:text-red-800 underline"
+            >
               Go back to manuscript
             </Link>
           </div>
@@ -181,9 +188,16 @@ export default function EditReviewPage() {
         {/* Breadcrumb */}
         <nav className="mb-6">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Link href="/manuscripts" className="hover:text-blue-600">Manuscripts</Link>
+            <Link href="/manuscripts" className="hover:text-blue-600">
+              Manuscripts
+            </Link>
             <span>/</span>
-            <Link href={`/manuscripts/${manuscriptId}`} className="hover:text-blue-600">Manuscript</Link>
+            <Link
+              href={`/manuscripts/${manuscriptId}`}
+              className="hover:text-blue-600"
+            >
+              Manuscript
+            </Link>
             <span>/</span>
             <span className="text-gray-900">Edit Review</span>
           </div>
@@ -192,7 +206,9 @@ export default function EditReviewPage() {
         {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Edit Review</h1>
-          <p className="mt-2 text-gray-600">Update your review for this manuscript version.</p>
+          <p className="mt-2 text-gray-600">
+            Update your review for this manuscript version.
+          </p>
         </div>
 
         {/* Form */}
@@ -222,13 +238,21 @@ export default function EditReviewPage() {
 
             {/* Review Type */}
             <div>
-              <label htmlFor="reviewType" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="reviewType"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Review Type *
               </label>
               <select
                 id="reviewType"
                 value={formData.reviewType}
-                onChange={(e) => handleChange('reviewType', e.target.value as ReviewFormData['reviewType'])}
+                onChange={(e) =>
+                  handleChange(
+                    "reviewType",
+                    e.target.value as ReviewFormData["reviewType"],
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {reviewTypes.map((type) => (
@@ -241,16 +265,19 @@ export default function EditReviewPage() {
 
             {/* Review Content */}
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="content"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Review Content *
               </label>
               <textarea
                 id="content"
                 rows={8}
                 value={formData.content}
-                onChange={(e) => handleChange('content', e.target.value)}
+                onChange={(e) => handleChange("content", e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.content ? 'border-red-500' : 'border-gray-300'
+                  errors.content ? "border-red-500" : "border-gray-300"
                 }`}
                 placeholder="Enter your detailed review comments..."
               />
@@ -261,14 +288,17 @@ export default function EditReviewPage() {
 
             {/* Document URL */}
             <div>
-              <label htmlFor="documentUrl" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="documentUrl"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Review Document URL
               </label>
               <input
                 type="url"
                 id="documentUrl"
                 value={formData.documentUrl}
-                onChange={(e) => handleChange('documentUrl', e.target.value)}
+                onChange={(e) => handleChange("documentUrl", e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="https://example.com/review-document.pdf"
               />
@@ -277,13 +307,21 @@ export default function EditReviewPage() {
             {/* Document Type */}
             {formData.documentUrl && (
               <div>
-                <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-2">
+                <label
+                  htmlFor="documentType"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
                   Document Type
                 </label>
                 <select
                   id="documentType"
                   value={formData.documentType}
-                  onChange={(e) => handleChange('documentType', e.target.value as ReviewFormData['documentType'])}
+                  onChange={(e) =>
+                    handleChange(
+                      "documentType",
+                      e.target.value as ReviewFormData["documentType"],
+                    )
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   {documentTypes.map((type) => (
@@ -308,7 +346,7 @@ export default function EditReviewPage() {
                 disabled={isLoading}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Updating...' : 'Update Review'}
+                {isLoading ? "Updating..." : "Update Review"}
               </button>
             </div>
           </form>

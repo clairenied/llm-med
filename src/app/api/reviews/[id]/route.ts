@@ -1,19 +1,14 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
     const body = await request.json();
-    const { 
-      reviewType, 
-      content, 
-      documentUrl, 
-      documentType
-    } = body;
+    const { reviewType, content, documentUrl, documentType } = body;
 
     const review = await prisma.review.update({
       where: { id },
@@ -30,17 +25,17 @@ export async function PUT(
 
     return NextResponse.json(review);
   } catch (error) {
-    console.error('Error updating review:', error);
+    console.error("Error updating review:", error);
     return NextResponse.json(
-      { error: 'Failed to update review' },
-      { status: 500 }
+      { error: "Failed to update review" },
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
@@ -48,12 +43,12 @@ export async function DELETE(
       where: { id },
     });
 
-    return NextResponse.json({ message: 'Review deleted successfully' });
+    return NextResponse.json({ message: "Review deleted successfully" });
   } catch (error) {
-    console.error('Error deleting review:', error);
+    console.error("Error deleting review:", error);
     return NextResponse.json(
-      { error: 'Failed to delete review' },
-      { status: 500 }
+      { error: "Failed to delete review" },
+      { status: 500 },
     );
   }
 }

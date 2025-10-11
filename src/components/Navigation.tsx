@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -13,13 +13,13 @@ export default function Navigation() {
     if (!session) return [];
 
     const items = [
-      { href: '/', label: 'Manuscripts', icon: '📄' },
-      { href: '/authors', label: 'Authors', icon: '👤' },
+      { href: "/", label: "Manuscripts", icon: "📄" },
+      { href: "/authors", label: "Authors", icon: "👤" },
     ];
 
     // Add admin routes for admin users
-    if (session.user?.role === 'ADMIN') {
-      items.push({ href: '/admin', label: 'Admin', icon: '⚙️' });
+    if (session.user?.role === "ADMIN") {
+      items.push({ href: "/admin", label: "Admin", icon: "⚙️" });
     }
 
     return items;
@@ -32,7 +32,10 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
-            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer">
+            <Link
+              href="/"
+              className="text-xl font-bold text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer"
+            >
               📚 LLM-Med Review Tracker
             </Link>
             {navItems.length > 0 && (
@@ -43,8 +46,8 @@ export default function Navigation() {
                     href={item.href}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       pathname === item.href
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                        : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                   >
                     <span>{item.icon}</span>
@@ -55,8 +58,10 @@ export default function Navigation() {
             )}
           </div>
           <div className="flex items-center space-x-4">
-            {status === 'loading' ? (
-              <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
+            {status === "loading" ? (
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Loading...
+              </div>
             ) : session ? (
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-700 dark:text-gray-300">

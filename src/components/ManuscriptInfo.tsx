@@ -10,7 +10,13 @@ interface Manuscript {
   title: string;
   abstract?: string;
   keywords: string[];
-  status: 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED';
+  status:
+    | "DRAFT"
+    | "UNDER_REVIEW"
+    | "REVISED"
+    | "ACCEPTED"
+    | "REJECTED"
+    | "PUBLISHED";
   authors: Author[];
   createdAt: string;
 }
@@ -20,31 +26,35 @@ interface ManuscriptInfoProps {
 }
 
 const statusColors = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  UNDER_REVIEW: 'bg-yellow-100 text-yellow-800',
-  REVISED: 'bg-blue-100 text-blue-800',
-  ACCEPTED: 'bg-green-100 text-green-800',
-  REJECTED: 'bg-red-100 text-red-800',
-  PUBLISHED: 'bg-purple-100 text-purple-800',
+  DRAFT: "bg-gray-100 text-gray-800",
+  UNDER_REVIEW: "bg-yellow-100 text-yellow-800",
+  REVISED: "bg-blue-100 text-blue-800",
+  ACCEPTED: "bg-green-100 text-green-800",
+  REJECTED: "bg-red-100 text-red-800",
+  PUBLISHED: "bg-purple-100 text-purple-800",
 };
 
 export default function ManuscriptInfo({ manuscript }: ManuscriptInfoProps) {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold mb-3 leading-tight text-gray-900">{manuscript.title}</h2>
-        
+        <h2 className="text-xl font-bold mb-3 leading-tight text-gray-900">
+          {manuscript.title}
+        </h2>
+
         <div className="flex items-center space-x-2 mb-4">
-          <span className={`px-3 py-1 text-sm font-medium rounded-full ${statusColors[manuscript.status]}`}>
-            {manuscript.status.replace('_', ' ')}
+          <span
+            className={`px-3 py-1 text-sm font-medium rounded-full ${statusColors[manuscript.status]}`}
+          >
+            {manuscript.status.replace("_", " ")}
           </span>
           <span className="text-sm text-gray-500">
             {formatDate(manuscript.createdAt)}
@@ -60,11 +70,13 @@ export default function ManuscriptInfo({ manuscript }: ManuscriptInfoProps) {
               <div key={author.id} className="text-sm">
                 <div className="font-medium text-gray-900">{author.name}</div>
                 {author.affiliation && (
-                  <div className="text-gray-600 text-xs">{author.affiliation}</div>
+                  <div className="text-gray-600 text-xs">
+                    {author.affiliation}
+                  </div>
                 )}
                 {author.email && (
                   <div className="text-blue-600 text-xs">
-                    <a 
+                    <a
                       href={`mailto:${author.email}`}
                       className="hover:text-blue-800 cursor-pointer underline"
                     >
@@ -79,8 +91,6 @@ export default function ManuscriptInfo({ manuscript }: ManuscriptInfoProps) {
           )}
         </div>
       </div>
-
-
     </div>
   );
 }

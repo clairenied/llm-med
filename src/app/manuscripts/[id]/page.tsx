@@ -1,6 +1,6 @@
-import ManuscriptRecord from '@/components/ManuscriptRecord';
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import ManuscriptRecord from "@/components/ManuscriptRecord";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 interface PageProps {
   params: Promise<{
@@ -10,9 +10,9 @@ interface PageProps {
 
 export default async function ManuscriptPage({ params }: PageProps) {
   const session = await auth();
-  
+
   if (!session) {
-    redirect('/auth/signin');
+    redirect("/auth/signin");
   }
 
   const { id } = await params;

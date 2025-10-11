@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import Link from 'next/link';
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import Link from "next/link";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   useEffect(() => {
-    if (status === 'loading') return;
-    
+    if (status === "loading") return;
+
     if (!session) {
-      router.push('/auth/signin');
+      router.push("/auth/signin");
       return;
     }
 
-    if (session.user.role !== 'ADMIN') {
-      router.push('/auth/unauthorized');
+    if (session.user.role !== "ADMIN") {
+      router.push("/auth/unauthorized");
       return;
     }
   }, [session, status, router]);
 
-  if (status === 'loading') {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-600 dark:text-gray-400">Loading...</div>
@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!session || session.user.role !== 'ADMIN') {
+  if (!session || session.user.role !== "ADMIN") {
     return null;
   }
 
@@ -107,11 +107,19 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   onClick={() => {
-                    if (confirm('This will scrape new articles from F1000Research. Continue?')) {
-                      fetch('/api/admin/scrape', { method: 'POST' })
-                        .then(res => res.json())
-                        .then(data => alert(data.message || 'Scraping completed'))
-                        .catch(err => alert('Scraping failed: ' + err.message));
+                    if (
+                      confirm(
+                        "This will scrape new articles from F1000Research. Continue?",
+                      )
+                    ) {
+                      fetch("/api/admin/scrape", { method: "POST" })
+                        .then((res) => res.json())
+                        .then((data) =>
+                          alert(data.message || "Scraping completed"),
+                        )
+                        .catch((err) =>
+                          alert("Scraping failed: " + err.message),
+                        );
                     }
                   }}
                   className="flex items-center justify-center px-4 py-2 border border-transparent text-sm font-bold rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors cursor-pointer"

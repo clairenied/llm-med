@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import ManuscriptForm from '@/components/ManuscriptForm';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import ManuscriptForm from "@/components/ManuscriptForm";
 
 interface Author {
   id: string;
@@ -16,7 +16,13 @@ interface Manuscript {
   title: string;
   abstract?: string;
   keywords: string[];
-  status: 'DRAFT' | 'UNDER_REVIEW' | 'REVISED' | 'ACCEPTED' | 'REJECTED' | 'PUBLISHED';
+  status:
+    | "DRAFT"
+    | "UNDER_REVIEW"
+    | "REVISED"
+    | "ACCEPTED"
+    | "REJECTED"
+    | "PUBLISHED";
   authors: Author[];
   createdAt: string;
 }
@@ -46,12 +52,12 @@ export default function EditManuscriptPage({ params }: PageProps) {
         const { id } = await params;
         const response = await fetch(`/api/manuscripts/${id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch manuscript');
+          throw new Error("Failed to fetch manuscript");
         }
         const manuscriptData = await response.json();
         setManuscript(manuscriptData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
         setLoading(false);
       }
@@ -65,8 +71,8 @@ export default function EditManuscriptPage({ params }: PageProps) {
 
     try {
       const response = await fetch(`/api/manuscripts/${manuscript.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: data.title,
           abstract: data.abstract,
@@ -77,10 +83,10 @@ export default function EditManuscriptPage({ params }: PageProps) {
       if (response.ok) {
         router.push(`/manuscripts/${manuscript.id}`);
       } else {
-        console.error('Failed to update manuscript');
+        console.error("Failed to update manuscript");
       }
     } catch (error) {
-      console.error('Error updating manuscript:', error);
+      console.error("Error updating manuscript:", error);
     }
   };
 
@@ -88,7 +94,7 @@ export default function EditManuscriptPage({ params }: PageProps) {
     if (manuscript) {
       router.push(`/manuscripts/${manuscript.id}`);
     } else {
-      router.push('/');
+      router.push("/");
     }
   };
 
@@ -105,9 +111,11 @@ export default function EditManuscriptPage({ params }: PageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
-          <p className="text-gray-600 mb-4">{error || 'Manuscript not found'}</p>
+          <p className="text-gray-600 mb-4">
+            {error || "Manuscript not found"}
+          </p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push("/")}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
           >
             Back to Manuscripts
@@ -119,14 +127,14 @@ export default function EditManuscriptPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ManuscriptForm 
+      <ManuscriptForm
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         initialData={{
           title: manuscript.title,
-          abstract: manuscript.abstract || '',
+          abstract: manuscript.abstract || "",
           keywords: manuscript.keywords,
-          authorNames: manuscript.authors.map(a => a.name),
+          authorNames: manuscript.authors.map((a) => a.name),
         }}
       />
     </div>

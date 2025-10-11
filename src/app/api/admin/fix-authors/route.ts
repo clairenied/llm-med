@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import * as cheerio from 'cheerio';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import * as cheerio from "cheerio";
 
 async function extractAuthorsFromUrl(url: string): Promise<string[]> {
   try {
@@ -10,19 +10,19 @@ async function extractAuthorsFromUrl(url: string): Promise<string[]> {
       console.warn(`Failed to fetch: ${url}`);
       return [];
     }
-    
+
     const html = await response.text();
     const $ = cheerio.load(html);
-    
+
     const authors: string[] = [];
     $('meta[name="citation_author"]').each((_, element) => {
-      const author = $(element).attr('content');
+      const author = $(element).attr("content");
       if (author && author.trim()) {
         authors.push(author.trim());
       }
     });
-    
-    console.log(`Found ${authors.length} authors: ${authors.join(', ')}`);
+
+    console.log(`Found ${authors.length} authors: ${authors.join(", ")}`);
     return authors;
   } catch (error) {
     console.error(`Error fetching authors from ${url}:`, error);
@@ -32,103 +32,112 @@ async function extractAuthorsFromUrl(url: string): Promise<string[]> {
 
 async function createAuthorIfNotExists(name: string) {
   const existingAuthor = await prisma.author.findFirst({
-    where: { name }
+    where: { name },
   });
-  
+
   if (existingAuthor) {
     return existingAuthor;
   }
-  
+
   return await prisma.author.create({
-    data: { name }
+    data: { name },
   });
 }
 
 export async function POST(request: Request) {
   try {
     const { adminToken } = await request.json();
-    
+
     // Simple admin check - in production you'd want proper authentication
     if (adminToken !== process.env.ADMIN_CREATION_TOKEN) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    console.log('🔍 Finding manuscripts without authors...');
-    
+    console.log("🔍 Finding manuscripts without authors...");
+
     const manuscriptsWithoutAuthors = await prisma.manuscript.findMany({
       where: {
         authors: {
-          none: {}
-        }
+          none: {},
+        },
       },
       include: {
         sources: true,
-        authors: true
+        authors: true,
       },
-      take: 10 // Process in smaller batches to avoid timeouts
+      take: 10, // Process in smaller batches to avoid timeouts
     });
-    
-    console.log(`Found ${manuscriptsWithoutAuthors.length} manuscripts without authors`);
+
+    console.log(
+      `Found ${manuscriptsWithoutAuthors.length} manuscripts without authors`,
+    );
     const results = [];
-    
+
     for (const manuscript of manuscriptsWithoutAuthors) {
       console.log(`\n📄 Processing: ${manuscript.title}`);
-      
+
       // Get the first source URL to extract authors from
       const sourceUrl = manuscript.sources[0]?.url;
       if (!sourceUrl) {
-        console.log('   ⚠️  No source URL found, skipping');
-        results.push({ title: manuscript.title, status: 'skipped', reason: 'No source URL' });
+        console.log("   ⚠️  No source URL found, skipping");
+        results.push({
+          title: manuscript.title,
+          status: "skipped",
+          reason: "No source URL",
+        });
         continue;
       }
-      
+
       const authorNames = await extractAuthorsFromUrl(sourceUrl);
       if (authorNames.length === 0) {
-        console.log('   ⚠️  No authors found, skipping');
-        results.push({ title: manuscript.title, status: 'skipped', reason: 'No authors found' });
+        console.log("   ⚠️  No authors found, skipping");
+        results.push({
+          title: manuscript.title,
+          status: "skipped",
+          reason: "No authors found",
+        });
         continue;
       }
-      
+
       // Create authors and connect them to the manuscript
       const authorIds: string[] = [];
       for (const authorName of authorNames) {
         const author = await createAuthorIfNotExists(authorName);
         authorIds.push(author.id);
       }
-      
+
       // Update the manuscript to connect the authors
       await prisma.manuscript.update({
         where: { id: manuscript.id },
         data: {
           authors: {
-            connect: authorIds.map(id => ({ id }))
-          }
-        }
+            connect: authorIds.map((id) => ({ id })),
+          },
+        },
       });
-      
+
       console.log(`   ✅ Added ${authorNames.length} authors to manuscript`);
-      results.push({ 
-        title: manuscript.title, 
-        status: 'success', 
+      results.push({
+        title: manuscript.title,
+        status: "success",
         authorsAdded: authorNames.length,
-        authors: authorNames
+        authors: authorNames,
       });
-      
+
       // Add a small delay to be respectful to the server
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-    
+
     return NextResponse.json({
-      message: 'Authors fixing completed',
+      message: "Authors fixing completed",
       processed: results.length,
-      results
+      results,
     });
-    
   } catch (error) {
-    console.error('Error fixing authors:', error);
+    console.error("Error fixing authors:", error);
     return NextResponse.json(
-      { error: 'Failed to fix authors' },
-      { status: 500 }
+      { error: "Failed to fix authors" },
+      { status: 500 },
     );
   }
 }

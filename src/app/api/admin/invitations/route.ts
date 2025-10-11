@@ -1,32 +1,32 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
     const session = await auth();
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const invitations = await prisma.invitation.findMany({
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
 
     return NextResponse.json({ invitations });
   } catch (error) {
-    console.error('Error fetching invitations:', {
+    console.error("Error fetching invitations:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
     });
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -34,19 +34,22 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+
+    if (!session || session.user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { email, role } = await request.json();
-    
+
     if (!email || !role) {
-      return NextResponse.json({ error: 'Email and role are required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Email and role are required" },
+        { status: 400 },
+      );
     }
 
-    if (!['ADMIN', 'REVIEWER', 'AUTHOR'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+    if (!["ADMIN", "REVIEWER", "AUTHOR"].includes(role)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
     // Check if user already exists
@@ -55,7 +58,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
+      return NextResponse.json(
+        { error: "User with this email already exists" },
+        { status: 400 },
+      );
     }
 
     // Check if invitation already exists
@@ -64,7 +70,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingInvitation) {
-      return NextResponse.json({ error: 'Invitation already sent to this email' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invitation already sent to this email" },
+        { status: 400 },
+      );
     }
 
     // Create invitation (expires in 7 days)
@@ -79,20 +88,21 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       invitation,
-      message: 'Invitation created successfully. Share the signup link manually.'
+      message:
+        "Invitation created successfully. Share the signup link manually.",
     });
   } catch (error) {
-    console.error('Error creating invitation:', {
+    console.error("Error creating invitation:", {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV
+      environment: process.env.NODE_ENV,
     });
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
