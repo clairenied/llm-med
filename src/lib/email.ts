@@ -3,7 +3,7 @@ let resend: any = null;
 
 async function getResendClient() {
   if (!resend && process.env.RESEND_API_KEY) {
-    const { Resend } = await import('resend');
+    const { Resend } = await import("resend");
     resend = new Resend(process.env.RESEND_API_KEY);
   }
   return resend;
@@ -17,46 +17,54 @@ export interface PasswordResetEmailData {
 
 // Environment-based email routing for development vs production
 const getEmailConfig = (userEmail: string) => {
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
+  const isDevelopment = process.env.NODE_ENV === "development";
+
   if (isDevelopment) {
     // TEMPORARY: Send to real emails in development for testing
     return {
-      from: 'LLM-Med <noreply@mail.llm-med.art>',
+      from: "LLM-Med <noreply@mail.llm-med.art>",
       to: userEmail, // Send to actual user email
-      isDevelopment: true
+      isDevelopment: true,
     };
   }
-  
+
   // Production configuration
   return {
-    from: process.env.FROM_EMAIL || 'LLM-Med <noreply@mail.llm-med.art>',
+    from: process.env.FROM_EMAIL || "LLM-Med <noreply@mail.llm-med.art>",
     to: userEmail,
-    isDevelopment: false
+    isDevelopment: false,
   };
 };
 
-export async function sendPasswordResetEmail({ to, name, resetUrl }: PasswordResetEmailData) {
+export async function sendPasswordResetEmail({
+  to,
+  name,
+  resetUrl,
+}: PasswordResetEmailData) {
   // If no API key is configured, return error
   if (!process.env.RESEND_API_KEY) {
-    console.error('⚠️  RESEND_API_KEY not configured. Password reset email cannot be sent.');
-    throw new Error('Email service not configured');
+    console.error(
+      "⚠️  RESEND_API_KEY not configured. Password reset email cannot be sent.",
+    );
+    throw new Error("Email service not configured");
   }
 
   try {
     const resendClient = await getResendClient();
     if (!resendClient) {
-      throw new Error('Failed to initialize email client');
+      throw new Error("Failed to initialize email client");
     }
 
     // Get environment-appropriate email configuration
     const emailConfig = getEmailConfig(to);
-    console.log(`📧 ${emailConfig.isDevelopment ? 'DEV' : 'PROD'} mode: ${emailConfig.from} → ${emailConfig.to}`);
-    
+    console.log(
+      `📧 ${emailConfig.isDevelopment ? "DEV" : "PROD"} mode: ${emailConfig.from} → ${emailConfig.to}`,
+    );
+
     const { data, error } = await resendClient.emails.send({
       from: emailConfig.from,
       to: [emailConfig.to],
-      subject: 'Reset Your Password - LLM-Med Review Tracker',
+      subject: "Reset Your Password - LLM-Med Review Tracker",
       html: `
         <!DOCTYPE html>
         <html>
@@ -71,7 +79,7 @@ export async function sendPasswordResetEmail({ to, name, resetUrl }: PasswordRes
             </div>
             
             <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
-              <h2 style="color: #495057; margin-top: 0;">Hello ${name || 'there'},</h2>
+              <h2 style="color: #495057; margin-top: 0;">Hello ${name || "there"},</h2>
               
               <p style="font-size: 16px; margin-bottom: 25px;">
                 You requested a password reset for your LLM-Med Review Tracker account. Click the button below to reset your password:
@@ -107,24 +115,24 @@ export async function sendPasswordResetEmail({ to, name, resetUrl }: PasswordRes
     });
 
     if (error) {
-      console.error('Failed to send password reset email:', error);
-      throw new Error('Failed to send password reset email');
+      console.error("Failed to send password reset email:", error);
+      throw new Error("Failed to send password reset email");
     }
 
-    const logMessage = emailConfig.isDevelopment 
+    const logMessage = emailConfig.isDevelopment
       ? `✅ DEV: Password reset email sent to test address: ${emailConfig.to}`
       : `✅ PROD: Password reset email sent successfully: ${data?.id}`;
-    
+
     console.log(logMessage);
-    
+
     return {
       success: true,
-      message: 'Password reset instructions have been sent to your email address.',
-      emailId: data?.id
+      message:
+        "Password reset instructions have been sent to your email address.",
+      emailId: data?.id,
     };
-
   } catch (error) {
-    console.error('Email service error:', error);
-    throw new Error('Failed to send password reset email');
+    console.error("Email service error:", error);
+    throw new Error("Failed to send password reset email");
   }
 }

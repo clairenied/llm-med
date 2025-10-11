@@ -17,6 +17,7 @@ This scraper extracts published research articles from F1000Research and automat
 ### Current Status
 
 This is a working production scraper that:
+
 - Runs on a nightly cron schedule (2 AM daily via Vercel cron)
 - Can be triggered manually via admin API
 - Can be run locally via CLI for bulk imports
@@ -55,6 +56,7 @@ curl -X POST http://localhost:3010/api/admin/scrape \
 ### Automated (Cron)
 
 The scraper runs automatically every night at 2 AM via Vercel cron:
+
 - Endpoint: `/api/cron/scrape-daily`
 - Schedule: `0 2 * * *` (configured in `vercel.json`)
 - Settings: 5 pages, 1500ms delay, batch size 3
@@ -63,13 +65,13 @@ The scraper runs automatically every night at 2 AM via Vercel cron:
 
 ### Command Line Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--url` | F1000Research medical articles | Base URL to scrape |
-| `--pages` | 10 | Maximum pages to scrape |
-| `--delay` | 2000 | Delay between requests (ms) |
-| `--retries` | 3 | Maximum retries per request |
-| `--batch` | 5 | Batch size for database operations |
+| Option      | Default                        | Description                        |
+| ----------- | ------------------------------ | ---------------------------------- |
+| `--url`     | F1000Research medical articles | Base URL to scrape                 |
+| `--pages`   | 10                             | Maximum pages to scrape            |
+| `--delay`   | 2000                           | Delay between requests (ms)        |
+| `--retries` | 3                              | Maximum retries per request        |
+| `--batch`   | 5                              | Batch size for database operations |
 
 ### Default Configuration
 
@@ -107,6 +109,7 @@ scraper/
 The core scraper class that handles the entire scraping workflow:
 
 **Key Methods:**
+
 - `run()` - Main entry point, orchestrates full scrape
 - `scrapePage(page)` - Fetches and parses a single page
 - `parseArticlesFromHtml(html)` - Extracts articles from HTML
@@ -114,6 +117,7 @@ The core scraper class that handles the entire scraping workflow:
 - `processBatch(articles)` - Saves articles to database
 
 **Features:**
+
 - Exponential backoff retry logic
 - Rate limiting with configurable delays
 - Batch processing for database efficiency
@@ -147,12 +151,14 @@ The scraper uses multiple strategies to avoid duplicates:
 ### Metadata Extraction
 
 **From Browse Pages:**
+
 - Article title
 - Article URL
 - Basic abstract (if visible)
 - Author names (from various HTML structures)
 
 **From Individual Article Pages:**
+
 - Authors from `<meta name="citation_author">` tags
 - Abstract from `<meta name="citation_abstract">` or `.abstract-content`
 - Keywords from `<meta name="citation_keywords">` tags
@@ -164,7 +170,7 @@ The scraper uses multiple strategies to avoid duplicates:
 Allows admins to trigger manual scraping jobs:
 
 ```typescript
-import { ProgrammaticBulkScraper } from '../../../../../scraper/run-bulk-scraper';
+import { ProgrammaticBulkScraper } from "../../../../../scraper/run-bulk-scraper";
 
 // POST /api/admin/scrape
 // Body: { pages?, delay?, batchSize?, url? }
@@ -173,6 +179,7 @@ import { ProgrammaticBulkScraper } from '../../../../../scraper/run-bulk-scraper
 **Security:** Requires authenticated admin session
 
 **Limits:**
+
 - Max 20 pages per request
 - Min 1000ms delay
 
@@ -181,7 +188,7 @@ import { ProgrammaticBulkScraper } from '../../../../../scraper/run-bulk-scraper
 Automated nightly scraping:
 
 ```typescript
-import { ProgrammaticBulkScraper } from '../../../../../scraper/run-bulk-scraper';
+import { ProgrammaticBulkScraper } from "../../../../../scraper/run-bulk-scraper";
 
 // GET /api/cron/scrape-daily
 // Triggered by Vercel cron at 2 AM daily
@@ -209,6 +216,7 @@ import { ProgrammaticBulkScraper } from '../../../../../scraper/run-bulk-scraper
 The scraper creates three types of records:
 
 **Manuscript**
+
 ```typescript
 {
   title: string
@@ -219,25 +227,28 @@ The scraper creates three types of records:
 ```
 
 **Author** (linked to Manuscript)
+
 ```typescript
 {
-  name: string
-  email: null
-  affiliation: null
+  name: string;
+  email: null;
+  affiliation: null;
 }
 ```
 
 **Source** (links Manuscript to F1000Research)
+
 ```typescript
 {
-  sourceId: 'F1000Research'
-  url: string  // Original article URL
+  sourceId: "F1000Research";
+  url: string; // Original article URL
 }
 ```
 
 ### Source Record
 
 The scraper creates/uses a single `Source` record:
+
 ```typescript
 {
   name: 'F1000Research',
@@ -309,18 +320,22 @@ npm run fix:scraped-status
 ### Common Issues
 
 **Problem: Timeout errors**
+
 - Solution: Reduce `maxPages` or increase `delayMs`
 - For cron jobs: Use smaller batches (5 pages max)
 
 **Problem: Duplicates not detected**
+
 - Check: Different article URLs or title variations
 - Solution: Run `npm run fix:scraped-status` to normalize
 
 **Problem: Missing metadata (authors, abstract)**
+
 - Check: HTML structure may have changed on F1000Research
 - Solution: Update selectors in `parseArticlesFromHtml()` and `enhanceArticleMetadata()`
 
 **Problem: HTTP 429 (Rate Limited)**
+
 - Solution: Increase `delayMs` (try 3000-5000ms)
 - Solution: Reduce `maxPages` per run
 
@@ -333,6 +348,7 @@ tsx scraper/run-bulk-scraper.ts --pages 1 --delay 5000
 ```
 
 This will show:
+
 - Each HTTP request URL
 - Retry attempts
 - Duplicate detection logic

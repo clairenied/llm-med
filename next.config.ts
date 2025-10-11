@@ -2,9 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
-    dirs: ['src'],
+    dirs: ["src"],
   },
-  serverExternalPackages: ['@prisma/client']
+  serverExternalPackages: ["@prisma/client"],
 };
 
 export default nextConfig;

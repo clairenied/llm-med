@@ -12,12 +12,34 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    ignores: ["src/lib/prisma/**/*", "src/generated/prisma/**/*"],
+    ignores: [
+      // Build outputs
+      ".next/**/*",
+      "out/**/*",
+      "build/**/*",
+      "dist/**/*",
+
+      // Dependencies
+      "node_modules/**/*",
+
+      // Generated code
+      "src/lib/prisma/**/*",
+      "src/generated/prisma/**/*",
+
+      // Legacy JS files (not migrated to TS yet)
+      "database-ops/create-custom-admin.js",
+      "dev-tools/**/*.js",
+
+      // Cache and temp files
+      ".cache/**/*",
+      ".temp/**/*",
+      "*.log",
+    ],
   },
   {
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn", 
+      "@typescript-eslint/no-unused-vars": "warn",
       "react-hooks/exhaustive-deps": "warn",
     },
   },

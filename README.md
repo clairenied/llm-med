@@ -104,6 +104,7 @@ npm run lint          # Run ESLint
 ## 📊 Database Schema
 
 Core models: Manuscript → ManuscriptVersion → Review
+
 - **Manuscript**: Title, abstract, keywords, status
 - **Author**: Author information and affiliations
 - **ManuscriptVersion**: Version tracking with documents
@@ -130,6 +131,7 @@ POST   /api/admin/scrape       # Scrape articles (admin)
 See `docs/DEPLOYMENT.md` for complete deployment guide.
 
 ### Environment Variables
+
 ```bash
 DATABASE_URL="postgresql://..."
 NEXTAUTH_SECRET="your-secret"

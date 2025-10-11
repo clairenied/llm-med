@@ -1,0 +1,25 @@
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Generated code
+src/lib/prisma/
+src/generated/prisma/
+
+# Cache and temp files
+.cache/
+.temp/
+*.log
+
+# Config files that have specific formatting
+pnpm-lock.yaml
+yarn.lock
+
+# Documentation that should maintain original formatting
+CHANGELOG.md

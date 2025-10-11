@@ -5,6 +5,7 @@ Since the system doesn't have email integration, here are the current and potent
 ## 🎯 Current Method (Manual Link Sharing)
 
 ### How It Works:
+
 1. **Admin creates invitation** in User Management portal
 2. **System generates unique signup link** with invitation ID
 3. **Admin copies link** using "Copy" button
@@ -12,12 +13,14 @@ Since the system doesn't have email integration, here are the current and potent
 5. **User clicks link** and completes signup with pre-filled invitation details
 
 ### Advantages:
+
 - ✅ **No email service required** - Works immediately
 - ✅ **Flexible sharing** - Use any communication method
 - ✅ **Secure** - Unique tokens with expiration
 - ✅ **Trackable** - See invitation status in admin panel
 
 ### Current Sharing Options:
+
 - 📧 **Email** (manual copy/paste)
 - 💬 **Slack/Teams** (paste link in message)
 - 📱 **Text message** (SMS with link)
@@ -26,20 +29,26 @@ Since the system doesn't have email integration, here are the current and potent
 ## 🚀 Potential Enhancements
 
 ### 1. QR Code Generation
+
 Generate QR codes for easy mobile sharing:
+
 ```
 [QR Code] → https://yoursite.com/auth/signup?invitation=abc123
 ```
 
 ### 2. Bulk Invitations
+
 Create multiple invitations at once:
+
 ```
 emails: user1@example.com, user2@example.com, user3@example.com
 → Generate 3 separate invitation links
 ```
 
 ### 3. Custom Messages
+
 Pre-formatted invitation messages:
+
 ```
 "You're invited to join our Manuscript Review System!
 Click here to sign up: [LINK]
@@ -47,7 +56,9 @@ This invitation expires in 7 days."
 ```
 
 ### 4. Integration Buttons
+
 Quick sharing buttons:
+
 - **Copy to Clipboard** ✅ (Already implemented)
 - **Open Email Client** (mailto: link)
 - **Share to Slack** (if Slack integration exists)
@@ -55,6 +66,7 @@ Quick sharing buttons:
 ## 📋 Best Practices
 
 ### For Admins:
+
 1. **Create invitation** with correct role (Admin/Reviewer/Author)
 2. **Copy the signup link** immediately
 3. **Share via secure channel** (work email, company Slack)
@@ -62,6 +74,7 @@ Quick sharing buttons:
 5. **Monitor invitation status** in the admin panel
 
 ### Security Considerations:
+
 - ✅ **Invitations expire** in 7 days
 - ✅ **One-time use** - Cannot be reused after signup
 - ✅ **Role-specific** - User gets assigned role from invitation
@@ -70,6 +83,7 @@ Quick sharing buttons:
 ## 🔧 Technical Implementation
 
 ### Current Signup Flow:
+
 ```
 1. User visits: /auth/signup?invitation=<ID>
 2. System validates invitation (exists, not expired, not used)
@@ -80,6 +94,7 @@ Quick sharing buttons:
 ```
 
 ### Database Schema:
+
 ```sql
 Invitation {
   id: string (unique)
