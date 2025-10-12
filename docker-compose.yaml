@@ -11,3 +11,11 @@ services:
       - "5433:5432"
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
+
+  inngest:
+    image: inngest/inngest:latest
+    command: "inngest dev -u http://host.docker.internal:3010/api/inngest"
+    ports:
+      - "8288:8288"
+    environment:
+      - INNGEST_LOG_LEVEL=info
