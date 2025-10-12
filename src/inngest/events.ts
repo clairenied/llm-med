@@ -1,9 +1,7 @@
 import { z } from "zod";
-import type { ScrapedArticle } from "./schema";
-import { ScraperConfigSchema } from "./config";
 
 /**
- * Event schemas and types for the Inngest scraper workflow
+ * Event schemas and types for the F1000 API workflow
  * All events are validated with Zod for type safety
  */
 
@@ -43,163 +41,75 @@ export function createEventMetadata(
 // Event Schemas
 // ============================================================================
 
-// scraper.initiated
-export const ScraperInitiatedDataSchema = z.object({
-  config: ScraperConfigSchema,
+// f1000.list.requested
+export const F1000ListRequestedDataSchema = z.object({
+  subject: z.string(),
   metadata: EventMetadataSchema,
 });
 
-export type ScraperInitiatedData = z.infer<typeof ScraperInitiatedDataSchema>;
-
-// page.scan.requested
-export const PageScanRequestedDataSchema = z.object({
-  pageNumber: z.number().int().positive(),
-  url: z.string().url(),
-  config: z.object({
-    maxRetries: z.number().int(),
-    delayMs: z.number().int(),
-  }),
-  metadata: EventMetadataSchema,
-});
-
-export type PageScanRequestedData = z.infer<
-  typeof PageScanRequestedDataSchema
+export type F1000ListRequestedData = z.infer<
+  typeof F1000ListRequestedDataSchema
 >;
 
-// page.scan.completed
-export const PageScanCompletedDataSchema = z.object({
-  pageNumber: z.number().int().positive(),
-  articlesFound: z.number().int().nonnegative(),
+// f1000.article.fetch.requested
+export const F1000ArticleFetchRequestedDataSchema = z.object({
+  doi: z.string(),
   metadata: EventMetadataSchema,
 });
 
-export type PageScanCompletedData = z.infer<
-  typeof PageScanCompletedDataSchema
+export type F1000ArticleFetchRequestedData = z.infer<
+  typeof F1000ArticleFetchRequestedDataSchema
 >;
 
-// page.scan.failed
-export const PageScanFailedDataSchema = z.object({
-  pageNumber: z.number().int().positive(),
-  error: z.string(),
+// f1000.article.saved
+export const F1000ArticleSavedDataSchema = z.object({
+  doi: z.string(),
+  hash: z.string(),
   metadata: EventMetadataSchema,
 });
 
-export type PageScanFailedData = z.infer<typeof PageScanFailedDataSchema>;
+export type F1000ArticleSavedData = z.infer<typeof F1000ArticleSavedDataSchema>;
 
-// article.discovered
-export const ArticleDiscoveredDataSchema = z.object({
-  article: z.custom<Partial<ScrapedArticle>>((data) => {
-    // Basic validation - ensure it's an object with at least a title or url
-    return typeof data === "object" && data !== null;
-  }),
-  pageNumber: z.number().int().positive(),
+// f1000.article.duplicate
+export const F1000ArticleDuplicateDataSchema = z.object({
+  doi: z.string(),
+  hash: z.string(),
   metadata: EventMetadataSchema,
 });
 
-export type ArticleDiscoveredData = z.infer<
-  typeof ArticleDiscoveredDataSchema
+export type F1000ArticleDuplicateData = z.infer<
+  typeof F1000ArticleDuplicateDataSchema
 >;
 
-// article.enhanced
-export const ArticleEnhancedDataSchema = z.object({
-  article: z.custom<Partial<ScrapedArticle>>((data) => {
-    // Basic validation - ensure it's an object with at least a title or url
-    return typeof data === "object" && data !== null;
-  }),
-  pageNumber: z.number().int().positive(),
+// f1000.list.completed
+export const F1000ListCompletedDataSchema = z.object({
+  subject: z.string(),
+  totalDoisFound: z.number().int().nonnegative(),
   metadata: EventMetadataSchema,
 });
 
-export type ArticleEnhancedData = z.infer<typeof ArticleEnhancedDataSchema>;
-
-// article.enhancement.failed
-export const ArticleEnhancementFailedDataSchema = z.object({
-  article: z.custom<Partial<ScrapedArticle>>((data) => {
-    // Basic validation - ensure it's an object with at least a title or url
-    return typeof data === "object" && data !== null;
-  }),
-  error: z.string(),
-  pageNumber: z.number().int().positive(),
-  metadata: EventMetadataSchema,
-});
-
-export type ArticleEnhancementFailedData = z.infer<
-  typeof ArticleEnhancementFailedDataSchema
+export type F1000ListCompletedData = z.infer<
+  typeof F1000ListCompletedDataSchema
 >;
-
-// article.persisted
-export const ArticlePersistedDataSchema = z.object({
-  manuscriptId: z.string(),
-  title: z.string(),
-  url: z.string().url(),
-  metadata: EventMetadataSchema,
-});
-
-export type ArticlePersistedData = z.infer<typeof ArticlePersistedDataSchema>;
-
-// article.skipped.duplicate
-export const ArticleSkippedDuplicateDataSchema = z.object({
-  title: z.string(),
-  url: z.string().url(),
-  reason: z.string(),
-  metadata: EventMetadataSchema,
-});
-
-export type ArticleSkippedDuplicateData = z.infer<
-  typeof ArticleSkippedDuplicateDataSchema
->;
-
-// scraper.completed
-export const ScraperCompletedDataSchema = z.object({
-  stats: z.object({
-    totalPages: z.number().int(),
-    pagesCompleted: z.number().int(),
-    pagesFailed: z.number().int(),
-    articlesDiscovered: z.number().int(),
-    articlesEnhanced: z.number().int(),
-    articlesPersisted: z.number().int(),
-    duplicatesSkipped: z.number().int(),
-    errors: z.number().int(),
-  }),
-  duration: z.number(),
-  metadata: EventMetadataSchema,
-});
-
-export type ScraperCompletedData = z.infer<typeof ScraperCompletedDataSchema>;
 
 // ============================================================================
 // Event Type Definitions (for Inngest)
 // ============================================================================
 
 export type Events = {
-  "scraper.initiated": {
-    data: ScraperInitiatedData;
+  "f1000.list.requested": {
+    data: F1000ListRequestedData;
   };
-  "page.scan.requested": {
-    data: PageScanRequestedData;
+  "f1000.article.fetch.requested": {
+    data: F1000ArticleFetchRequestedData;
   };
-  "page.scan.completed": {
-    data: PageScanCompletedData;
+  "f1000.article.saved": {
+    data: F1000ArticleSavedData;
   };
-  "page.scan.failed": {
-    data: PageScanFailedData;
+  "f1000.article.duplicate": {
+    data: F1000ArticleDuplicateData;
   };
-  "article.discovered": {
-    data: ArticleDiscoveredData;
-  };
-  "article.enhanced": {
-    data: ArticleEnhancedData;
-  };
-  "article.enhancement.failed": {
-    data: ArticleEnhancementFailedData;
-  };
-  "article.persisted": {
-    data: ArticlePersistedData;
-  };
-  "article.skipped.duplicate": {
-    data: ArticleSkippedDuplicateData;
-  };
-  "scraper.completed": {
-    data: ScraperCompletedData;
+  "f1000.list.completed": {
+    data: F1000ListCompletedData;
   };
 };

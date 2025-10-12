@@ -201,6 +201,13 @@ model Invitation {
   usedAt    DateTime?
 }
 
+model f1000Document {
+  doi        String           @id
+  xmlData   String @db.Xml
+  hash       String           @unique
+  createdAt DateTime         @default(now())
+}
+
 enum UserRole {
   ADMIN
   REVIEWER
