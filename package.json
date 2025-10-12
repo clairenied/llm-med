@@ -22,10 +22,8 @@
     "cleanup:fake-data": "tsx database-ops/cleanup-fake-data.ts",
     "cleanup:production": "tsx database-ops/cleanup-production-fake-data.ts",
     "cleanup:duplicates": "tsx database-ops/cleanup-duplicates.ts",
-    "scrape:bulk": "tsx scraper/run-bulk-scraper.ts",
-    "scrape:quick": "tsx scraper/run-bulk-scraper.ts --pages 3 --delay 1500",
-    "scrape:deep": "tsx scraper/run-bulk-scraper.ts --pages 20 --delay 3000",
-    "fix:scraped-status": "tsx scraper/update-scraped-status.ts",
+    "scrape:inngest": "curl -X POST http://localhost:3010/api/admin/scrape-inngest",
+    "scrape:inngest:quick": "curl -X POST http://localhost:3010/api/admin/scrape-inngest -H 'Content-Type: application/json' -d '{\"maxPages\": 3}'",
     "deploy:production": "./database-ops/deploy-production.sh",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:status": "prisma migrate status"
