@@ -1,159 +1,205 @@
-import type { ScrapedArticle } from "../../scraper/schema";
+import { z } from "zod";
+import type { ScrapedArticle } from "./schema";
+import { ScraperConfigSchema } from "./config";
 
 /**
- * Event type definitions for the Inngest scraper workflow
+ * Event schemas and types for the Inngest scraper workflow
+ * All events are validated with Zod for type safety
  */
 
-// Base event metadata included in all events
-export interface EventMetadata {
-  correlationId: string; // Trace entire scraping session
-  timestamp: string; // ISO8601 timestamp
-  source: string; // Function name that emitted the event
-  scrapingSessionId: string;
-}
+// Base event metadata schema
+export const EventMetadataSchema = z.object({
+  sessionId: z.string(),
+  correlationId: z.string(),
+  timestamp: z.string().datetime(),
+  source: z.string(),
+});
 
-// Configuration for the scraping process
-export interface ScrapingConfig {
-  baseUrl: string;
-  maxPages: number;
-  delayMs: number;
-  maxRetries: number;
-  batchSize: number;
-}
+export type EventMetadata = z.infer<typeof EventMetadataSchema>;
 
-// Event: scraper.initiated
-export interface ScraperInitiatedEvent {
-  name: "scraper.initiated";
-  data: {
-    config: ScrapingConfig;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: page.scan.requested
-export interface PageScanRequestedEvent {
-  name: "page.scan.requested";
-  data: {
-    pageNumber: number;
-    url: string;
-    config: Pick<ScrapingConfig, "maxRetries" | "delayMs">;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: article.discovered
-export interface ArticleDiscoveredEvent {
-  name: "article.discovered";
-  data: {
-    article: Partial<ScrapedArticle>;
-    pageNumber: number;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: article.enhanced
-export interface ArticleEnhancedEvent {
-  name: "article.enhanced";
-  data: {
-    article: Partial<ScrapedArticle>;
-    pageNumber: number;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: article.enhancement.failed
-export interface ArticleEnhancementFailedEvent {
-  name: "article.enhancement.failed";
-  data: {
-    article: Partial<ScrapedArticle>;
-    error: string;
-    pageNumber: number;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: article.persisted
-export interface ArticlePersistedEvent {
-  name: "article.persisted";
-  data: {
-    manuscriptId: string;
-    title: string;
-    url: string;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: article.skipped.duplicate
-export interface ArticleSkippedDuplicateEvent {
-  name: "article.skipped.duplicate";
-  data: {
-    title: string;
-    url: string;
-    reason: string;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: page.scan.completed
-export interface PageScanCompletedEvent {
-  name: "page.scan.completed";
-  data: {
-    pageNumber: number;
-    articlesFound: number;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: page.scan.failed
-export interface PageScanFailedEvent {
-  name: "page.scan.failed";
-  data: {
-    pageNumber: number;
-    error: string;
-    metadata: EventMetadata;
-  };
-}
-
-// Event: scraper.completed
-export interface ScraperCompletedEvent {
-  name: "scraper.completed";
-  data: {
-    stats: {
-      totalPages: number;
-      articlesDiscovered: number;
-      articlesEnhanced: number;
-      articlesPersisted: number;
-      duplicatesSkipped: number;
-      errors: number;
-    };
-    duration: number; // Duration in seconds
-    metadata: EventMetadata;
-  };
-}
-
-// Union type of all events
-export type ScraperEvent =
-  | ScraperInitiatedEvent
-  | PageScanRequestedEvent
-  | ArticleDiscoveredEvent
-  | ArticleEnhancedEvent
-  | ArticleEnhancementFailedEvent
-  | ArticlePersistedEvent
-  | ArticleSkippedDuplicateEvent
-  | PageScanCompletedEvent
-  | PageScanFailedEvent
-  | ScraperCompletedEvent;
-
-// Helper function to create event metadata
+/**
+ * Helper to create event metadata
+ *
+ * IMPORTANT: To ensure deterministic behavior in Inngest functions,
+ * the timestamp parameter should be generated ONCE at the start of
+ * the function (outside of any step.run() calls) and reused for all
+ * events emitted within that function execution.
+ */
 export function createEventMetadata(
   source: string,
-  scrapingSessionId: string,
+  sessionId: string,
   correlationId?: string,
+  timestamp?: string,
 ): EventMetadata {
   return {
-    correlationId: correlationId || scrapingSessionId,
-    timestamp: new Date().toISOString(),
+    sessionId,
+    correlationId: correlationId || sessionId,
+    timestamp: timestamp || new Date().toISOString(),
     source,
-    scrapingSessionId,
   };
 }
+
+// ============================================================================
+// Event Schemas
+// ============================================================================
+
+// scraper.initiated
+export const ScraperInitiatedDataSchema = z.object({
+  config: ScraperConfigSchema,
+  metadata: EventMetadataSchema,
+});
+
+export type ScraperInitiatedData = z.infer<typeof ScraperInitiatedDataSchema>;
+
+// page.scan.requested
+export const PageScanRequestedDataSchema = z.object({
+  pageNumber: z.number().int().positive(),
+  url: z.string().url(),
+  config: z.object({
+    maxRetries: z.number().int(),
+    delayMs: z.number().int(),
+  }),
+  metadata: EventMetadataSchema,
+});
+
+export type PageScanRequestedData = z.infer<
+  typeof PageScanRequestedDataSchema
+>;
+
+// page.scan.completed
+export const PageScanCompletedDataSchema = z.object({
+  pageNumber: z.number().int().positive(),
+  articlesFound: z.number().int().nonnegative(),
+  metadata: EventMetadataSchema,
+});
+
+export type PageScanCompletedData = z.infer<
+  typeof PageScanCompletedDataSchema
+>;
+
+// page.scan.failed
+export const PageScanFailedDataSchema = z.object({
+  pageNumber: z.number().int().positive(),
+  error: z.string(),
+  metadata: EventMetadataSchema,
+});
+
+export type PageScanFailedData = z.infer<typeof PageScanFailedDataSchema>;
+
+// article.discovered
+export const ArticleDiscoveredDataSchema = z.object({
+  article: z.custom<Partial<ScrapedArticle>>((data) => {
+    // Basic validation - ensure it's an object with at least a title or url
+    return typeof data === "object" && data !== null;
+  }),
+  pageNumber: z.number().int().positive(),
+  metadata: EventMetadataSchema,
+});
+
+export type ArticleDiscoveredData = z.infer<
+  typeof ArticleDiscoveredDataSchema
+>;
+
+// article.enhanced
+export const ArticleEnhancedDataSchema = z.object({
+  article: z.custom<Partial<ScrapedArticle>>((data) => {
+    // Basic validation - ensure it's an object with at least a title or url
+    return typeof data === "object" && data !== null;
+  }),
+  pageNumber: z.number().int().positive(),
+  metadata: EventMetadataSchema,
+});
+
+export type ArticleEnhancedData = z.infer<typeof ArticleEnhancedDataSchema>;
+
+// article.enhancement.failed
+export const ArticleEnhancementFailedDataSchema = z.object({
+  article: z.custom<Partial<ScrapedArticle>>((data) => {
+    // Basic validation - ensure it's an object with at least a title or url
+    return typeof data === "object" && data !== null;
+  }),
+  error: z.string(),
+  pageNumber: z.number().int().positive(),
+  metadata: EventMetadataSchema,
+});
+
+export type ArticleEnhancementFailedData = z.infer<
+  typeof ArticleEnhancementFailedDataSchema
+>;
+
+// article.persisted
+export const ArticlePersistedDataSchema = z.object({
+  manuscriptId: z.string(),
+  title: z.string(),
+  url: z.string().url(),
+  metadata: EventMetadataSchema,
+});
+
+export type ArticlePersistedData = z.infer<typeof ArticlePersistedDataSchema>;
+
+// article.skipped.duplicate
+export const ArticleSkippedDuplicateDataSchema = z.object({
+  title: z.string(),
+  url: z.string().url(),
+  reason: z.string(),
+  metadata: EventMetadataSchema,
+});
+
+export type ArticleSkippedDuplicateData = z.infer<
+  typeof ArticleSkippedDuplicateDataSchema
+>;
+
+// scraper.completed
+export const ScraperCompletedDataSchema = z.object({
+  stats: z.object({
+    totalPages: z.number().int(),
+    pagesCompleted: z.number().int(),
+    pagesFailed: z.number().int(),
+    articlesDiscovered: z.number().int(),
+    articlesEnhanced: z.number().int(),
+    articlesPersisted: z.number().int(),
+    duplicatesSkipped: z.number().int(),
+    errors: z.number().int(),
+  }),
+  duration: z.number(),
+  metadata: EventMetadataSchema,
+});
+
+export type ScraperCompletedData = z.infer<typeof ScraperCompletedDataSchema>;
+
+// ============================================================================
+// Event Type Definitions (for Inngest)
+// ============================================================================
+
+export type Events = {
+  "scraper.initiated": {
+    data: ScraperInitiatedData;
+  };
+  "page.scan.requested": {
+    data: PageScanRequestedData;
+  };
+  "page.scan.completed": {
+    data: PageScanCompletedData;
+  };
+  "page.scan.failed": {
+    data: PageScanFailedData;
+  };
+  "article.discovered": {
+    data: ArticleDiscoveredData;
+  };
+  "article.enhanced": {
+    data: ArticleEnhancedData;
+  };
+  "article.enhancement.failed": {
+    data: ArticleEnhancementFailedData;
+  };
+  "article.persisted": {
+    data: ArticlePersistedData;
+  };
+  "article.skipped.duplicate": {
+    data: ArticleSkippedDuplicateData;
+  };
+  "scraper.completed": {
+    data: ScraperCompletedData;
+  };
+};

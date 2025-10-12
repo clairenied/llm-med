@@ -121,7 +121,7 @@ model ManuscriptSource {
   source       Source     @relation(fields: [sourceId], references: [id])
   sourceId     String
   externalId   String?    // e.g., F1000 article ID, PubMed ID
-  url          String     // Full URL to the external article
+  url          String     @unique
   doi          String?
   publishedDate DateTime?
   articleType  String?    // e.g., "Research Article", "Review"

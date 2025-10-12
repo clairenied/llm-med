@@ -1,7 +1,22 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { ProgrammaticBulkScraper } from "../../../../../scraper/run-bulk-scraper";
+import { inngest } from "@/inngest/client";
+import { createEventMetadata } from "@/inngest/events";
+import { getScraperConfig, type ScraperConfig } from "@/inngest/config";
 
+/**
+ * Manual trigger endpoint for the Inngest scraper (with admin authentication)
+ *
+ * POST /api/admin/scrape
+ *
+ * Body (optional):
+ * {
+ *   "url": "https://f1000research.com/browse/articles?term=COVID",
+ *   "pages": 5,
+ *   "delay": 2000,
+ *   "batchSize": 5
+ * }
+ */
 export async function POST(request: Request) {
   try {
     // Verify admin authentication
@@ -11,32 +26,51 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { pages = 5, delay = 2000, batchSize = 5, url } = body;
+    // Parse request body for custom configuration
+    let config: ScraperConfig;
 
-    console.log("🚀 Starting manual scraping job...");
+    try {
+      const body = await request.json();
+      const { pages, delay, batchSize, url } = body;
 
-    // Configure scraping based on request parameters
-    const config = {
-      baseUrl:
-        url ||
-        "https://f1000research.com/browse/articles?term=Medical_and_health_sciences",
-      maxPages: Math.min(pages, 20), // Cap at 20 pages to avoid timeouts
-      delayMs: Math.max(delay, 1000), // Minimum 1 second delay
-      maxRetries: 3,
-      batchSize: Math.min(batchSize, 10), // Cap batch size
-    };
+      // Map old parameter names to new config structure
+      config = getScraperConfig({
+        baseUrl: url,
+        maxPages: pages,
+        delayMs: delay,
+        batchSize,
+      });
+    } catch {
+      // If no body or invalid JSON, use defaults
+      config = getScraperConfig();
+    }
 
-    const scraper = new ProgrammaticBulkScraper(config);
-    await scraper.run();
+    console.log("🚀 Starting manual scraping job via Inngest...");
 
-    console.log("✅ Manual scraping job completed successfully");
+    // Generate session ID
+    const scrapingSessionId = `session-${Date.now()}`;
+
+    // Create event metadata
+    const metadata = createEventMetadata("admin-api-trigger", scrapingSessionId);
+
+    // Send scraper.initiated event to Inngest
+    const eventId = await inngest.send({
+      name: "scraper.initiated",
+      data: {
+        config,
+        metadata,
+      },
+    });
+
+    console.log(`✅ Scraping job initiated with session ID: ${scrapingSessionId}`);
 
     return NextResponse.json({
       success: true,
-      message: "Manual scraping completed",
-      timestamp: new Date().toISOString(),
+      message: "Manual scraping job initiated via Inngest",
+      scrapingSessionId,
+      eventId,
       config,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("❌ Manual scraping job failed:", error);

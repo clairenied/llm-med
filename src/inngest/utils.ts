@@ -1,23 +1,11 @@
 import * as cheerio from "cheerio";
-import { PrismaClient } from "@prisma/client";
-import type { ScrapedArticle } from "../../scraper/schema";
+import type { ScrapedArticle } from "./schema";
+import { db, transaction } from "./db";
+import { SCRAPING_HEADERS } from "./config";
 
 /**
  * Shared utilities for the Inngest scraper functions
- * Extracted from the monolithic scraper for reusability
  */
-
-// Standard headers for scraping F1000Research
-export const SCRAPING_HEADERS = {
-  "User-Agent":
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-  Accept:
-    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-  "Accept-Language": "en-US,en;q=0.5",
-  "Accept-Encoding": "gzip, deflate, br",
-  Connection: "keep-alive",
-  "Upgrade-Insecure-Requests": "1",
-};
 
 /**
  * Parse articles from HTML listing page
@@ -25,6 +13,7 @@ export const SCRAPING_HEADERS = {
 export function parseArticlesFromHtml(html: string): Partial<ScrapedArticle>[] {
   const $ = cheerio.load(html);
   const articles: Partial<ScrapedArticle>[] = [];
+  const seenUrls = new Set<string>();
 
   // Look for article links
   $('a[href*="/articles/"]').each((_, element) => {
@@ -36,6 +25,10 @@ export function parseArticlesFromHtml(html: string): Partial<ScrapedArticle>[] {
       const fullUrl = href.startsWith("http")
         ? href
         : `https://f1000research.com${href}`;
+
+      // Skip duplicates within the same page
+      if (seenUrls.has(fullUrl)) return;
+      seenUrls.add(fullUrl);
 
       // Extract additional metadata if available
       const $parent = $link.closest(
@@ -100,11 +93,11 @@ export function parseArticlesFromHtml(html: string): Partial<ScrapedArticle>[] {
 export async function enhanceArticleMetadata(
   article: Partial<ScrapedArticle>,
 ): Promise<Partial<ScrapedArticle>> {
-  try {
-    if (!article.url) {
-      return article;
-    }
+  if (!article.url) {
+    return article;
+  }
 
+  try {
     // Fetch the individual article page to get detailed metadata
     const response = await fetch(article.url, { headers: SCRAPING_HEADERS });
     if (!response.ok) {
@@ -168,6 +161,8 @@ export async function enhanceArticleMetadata(
         sourceName: "F1000Research",
         ...article.sourceMetadata,
         doi: doi || article.sourceMetadata?.doi,
+        // Store as Date object for consistency with schema
+        // The date string from the page is deterministic, so parsing it is safe
         publishedDate: publishedDate
           ? new Date(publishedDate)
           : article.sourceMetadata?.publishedDate,
@@ -175,8 +170,8 @@ export async function enhanceArticleMetadata(
       },
     };
   } catch (error) {
-    console.warn(`Error enhancing metadata for ${article.url}:`, error);
-    return article;
+    console.error(`Error enhancing metadata for ${article.url}:`, error);
+    throw error; // Propagate error for retry logic
   }
 }
 
@@ -184,18 +179,13 @@ export async function enhanceArticleMetadata(
  * Normalize title for duplicate detection
  */
 export function normalizeTitle(title: string): string {
-  return (
-    title
-      .toLowerCase()
-      .trim()
-      // Remove extra whitespace
-      .replace(/\s+/g, " ")
-      // Remove common punctuation variations
-      .replace(/[""'']/g, '"')
-      .replace(/[–—]/g, "-")
-      // Remove trailing punctuation that might vary
-      .replace(/[.!?]+$/, "")
-  );
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[""'']/g, '"')
+    .replace(/[–—]/g, "-")
+    .replace(/[.!?]+$/, "");
 }
 
 /**
@@ -204,18 +194,14 @@ export function normalizeTitle(title: string): string {
 export function normalizeUrl(url: string): string {
   try {
     const urlObj = new URL(url);
-    // Normalize protocol to https
     urlObj.protocol = "https:";
-    // Remove trailing slash
     urlObj.pathname = urlObj.pathname.replace(/\/$/, "");
-    // Remove common tracking parameters
     urlObj.searchParams.delete("utm_source");
     urlObj.searchParams.delete("utm_medium");
     urlObj.searchParams.delete("utm_campaign");
     urlObj.searchParams.delete("ref");
     return urlObj.toString();
   } catch {
-    // If URL parsing fails, just clean up basic issues
     return url
       .replace(/^http:/, "https:")
       .replace(/\/$/, "")
@@ -225,7 +211,6 @@ export function normalizeUrl(url: string): string {
 
 /**
  * Extract article ID from F1000Research URLs
- * e.g., https://f1000research.com/articles/12-345 -> "12-345"
  */
 export function extractArticleId(url: string): string {
   const match = url.match(/\/articles\/([^/?#]+)/);
@@ -234,10 +219,8 @@ export function extractArticleId(url: string): string {
 
 /**
  * Check if an article already exists in the database
- * Uses multiple strategies for duplicate detection
  */
 export async function checkArticleExists(
-  prisma: PrismaClient,
   article: Partial<ScrapedArticle>,
 ): Promise<boolean> {
   if (!article.title || !article.url) {
@@ -248,21 +231,17 @@ export async function checkArticleExists(
   const normalizedUrl = normalizeUrl(article.url);
   const articleId = extractArticleId(article.url);
 
-  const existing = await prisma.manuscript.findFirst({
+  const existing = await db.manuscript.findFirst({
     where: {
       OR: [
-        // Exact title match
         { title: article.title },
-        // Normalized title match (handles minor variations)
         { title: normalizedTitle },
-        // URL-based matching
         {
           sources: {
             some: {
               OR: [
                 { url: article.url },
                 { url: normalizedUrl },
-                // Handle URL variations (http vs https, trailing slashes, etc.)
                 ...(articleId ? [{ url: { contains: articleId } }] : []),
               ],
             },
@@ -277,18 +256,17 @@ export async function checkArticleExists(
 
 /**
  * Save article to database with all relationships
+ * Uses upsert logic to handle potential duplicates gracefully
  */
 export async function saveArticleToDatabase(
-  prisma: PrismaClient,
   article: Partial<ScrapedArticle>,
 ): Promise<string> {
   if (!article.title || !article.url) {
     throw new Error("Article must have title and url");
   }
 
-  // Create manuscript with source in a transaction
-  const manuscript = await prisma.$transaction(async (tx) => {
-    // Create or get F1000Research source
+  const manuscript = await transaction(async (tx) => {
+    // Upsert F1000Research source
     const source = await tx.source.upsert({
       where: {
         name: article.sourceMetadata?.sourceName || "F1000Research",
@@ -301,13 +279,18 @@ export async function saveArticleToDatabase(
       },
     });
 
+    // Ensure url is defined before creating manuscript
+    if (!article.url) {
+      throw new Error("Article URL is required");
+    }
+
     // Create manuscript
     const manuscript = await tx.manuscript.create({
       data: {
         title: article.title,
         abstract: article.abstract || null,
         keywords: article.keywords || [],
-        status: "PUBLISHED", // F1000Research articles are already published
+        status: "PUBLISHED",
         authors:
           article.authors && article.authors.length > 0
             ? {
@@ -326,8 +309,7 @@ export async function saveArticleToDatabase(
             doi: article.sourceMetadata?.doi || null,
             publishedDate: article.sourceMetadata?.publishedDate || null,
             articleType: article.sourceMetadata?.articleType || null,
-            peerReviewStatus:
-              article.sourceMetadata?.peerReviewStatus || null,
+            peerReviewStatus: article.sourceMetadata?.peerReviewStatus || null,
           },
         },
       },

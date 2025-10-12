@@ -1,29 +1,21 @@
-import { inngest } from "./client";
+/**
+ * Inngest Functions Registry
+ *
+ * This file exports all Inngest functions for registration
+ */
 
-// Sample function for testing
-export const helloWorld = inngest.createFunction(
-  { id: "hello-world" },
-  { event: "test/hello.world" },
-  async ({ event, step }) => {
-    await step.sleep("wait-a-moment", "1s");
-    return { message: `Hello ${event.data.email}!` };
-  }
-);
+import { orchestrator } from "./functions/orchestrator";
+import { scanner } from "./functions/scanner";
+import { enhancer } from "./functions/enhancer";
+import { persister } from "./functions/persister";
 
-// Import scraper functions
-import { scraperOrchestrator } from "./functions/scraper-orchestrator";
-import { pageScanner } from "./functions/page-scanner";
-import { articleEnhancer } from "./functions/article-enhancer";
-import { articlePersister } from "./functions/article-persister";
-
-// Re-export individual functions
-export { scraperOrchestrator, pageScanner, articleEnhancer, articlePersister };
+// Export individual functions
+export { orchestrator, scanner, enhancer, persister };
 
 // Export all functions as array for easy registration
 export const allFunctions = [
-  helloWorld,
-  scraperOrchestrator,
-  pageScanner,
-  articleEnhancer,
-  articlePersister,
+  orchestrator,
+  scanner,
+  enhancer,
+  persister,
 ] as const;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { inngest } from "@/inngest/client";
 import { createEventMetadata } from "@/inngest/events";
-import type { ScrapingConfig } from "@/inngest/events";
+import { getScraperConfig, type ScraperConfig } from "@/inngest/config";
 
 /**
  * Manual trigger endpoint for the Inngest scraper
@@ -22,39 +22,22 @@ import type { ScrapingConfig } from "@/inngest/events";
 export async function POST(req: NextRequest) {
   try {
     // Parse request body for custom configuration (optional)
-    let config: ScrapingConfig;
+    let config: ScraperConfig;
 
     try {
       const body = await req.json();
-      config = {
-        baseUrl:
-          body.baseUrl ||
-          "https://f1000research.com/browse/articles?term=Medical_and_health_sciences",
-        maxPages: body.maxPages || 25,
-        delayMs: body.delayMs || 2000,
-        maxRetries: body.maxRetries || 3,
-        batchSize: body.batchSize || 5,
-      };
+      // Use getScraperConfig with overrides from request body
+      config = getScraperConfig(body);
     } catch {
       // If no body or invalid JSON, use defaults
-      config = {
-        baseUrl:
-          "https://f1000research.com/browse/articles?term=Medical_and_health_sciences",
-        maxPages: 25,
-        delayMs: 2000,
-        maxRetries: 3,
-        batchSize: 5,
-      };
+      config = getScraperConfig();
     }
 
     // Generate session ID
     const scrapingSessionId = `session-${Date.now()}`;
 
     // Create event metadata
-    const metadata = createEventMetadata(
-      "api-trigger",
-      scrapingSessionId,
-    );
+    const metadata = createEventMetadata("api-trigger", scrapingSessionId);
 
     // Send scraper.initiated event to Inngest
     const eventId = await inngest.send({
@@ -81,7 +64,9 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         error:
-          error instanceof Error ? error.message : "Failed to initiate scraping job",
+          error instanceof Error
+            ? error.message
+            : "Failed to initiate scraping job",
       },
       { status: 500 },
     );
@@ -92,18 +77,13 @@ export async function POST(req: NextRequest) {
  * GET endpoint to check status (optional)
  */
 export async function GET() {
+  const defaultConfig = getScraperConfig();
+
   return NextResponse.json({
     endpoint: "/api/admin/scrape-inngest",
     method: "POST",
     description: "Manually trigger the Inngest scraper workflow",
-    defaultConfig: {
-      baseUrl:
-        "https://f1000research.com/browse/articles?term=Medical_and_health_sciences",
-      maxPages: 25,
-      delayMs: 2000,
-      maxRetries: 3,
-      batchSize: 5,
-    },
+    defaultConfig,
     usage: {
       curl: `curl -X POST http://localhost:3010/api/admin/scrape-inngest -H "Content-Type: application/json" -d '{"maxPages": 3, "delayMs": 1500}'`,
     },

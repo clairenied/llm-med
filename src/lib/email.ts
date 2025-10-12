@@ -1,5 +1,7 @@
 // Dynamic import to avoid issues when RESEND_API_KEY is not set
-let resend: any = null;
+import type { Resend } from "resend";
+
+let resend: Resend | null = null;
 
 async function getResendClient() {
   if (!resend && process.env.RESEND_API_KEY) {
