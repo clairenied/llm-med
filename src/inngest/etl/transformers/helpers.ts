@@ -81,36 +81,6 @@ export function deduplicateReviews(reviews: ExtractedReview[]): ExtractedReview[
 }
 
 /**
- * Generate reviewer codes (A, B, C, ...) for a list of unique reviewers
- * Uses name + affiliation as key to match deduplicateReviewers logic
- */
-export function generateReviewerCodes(reviewers: ExtractedReviewer[]): Map<string, string> {
-  const codeMap = new Map<string, string>();
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  reviewers.forEach((reviewer, index) => {
-    const normalized = normalizeName(reviewer.surname, reviewer.givenNames).normalized;
-    // Use name + affiliation as key to match deduplication logic
-    const key = `${normalized}|${reviewer.affiliation || ""}`;
-    let code: string;
-
-    if (index < 26) {
-      // A-Z for first 26 reviewers
-      code = alphabet[index];
-    } else {
-      // AA, AB, AC, ... for additional reviewers
-      const firstChar = alphabet[Math.floor(index / 26) - 1];
-      const secondChar = alphabet[index % 26];
-      code = `${firstChar}${secondChar}`;
-    }
-
-    codeMap.set(key, code);
-  });
-
-  return codeMap;
-}
-
-/**
  * Format full name from surname and given names
  */
 export function formatFullName(surname: string, givenNames: string | null): string {

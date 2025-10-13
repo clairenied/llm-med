@@ -5,7 +5,6 @@ interface Review {
   id: string;
   reviewer: {
     id: string;
-    code: string;
     name: string;
   };
   reviewType: "INTERNAL" | "EXTERNAL";
@@ -241,9 +240,9 @@ export default function VersionTracker({
                         <div
                           key={index}
                           className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center text-xs font-medium text-gray-700 border-2 border-white"
-                          title={`Reviewer ${review.reviewer.code}`}
+                          title={review.reviewer.name}
                         >
-                          {review.reviewer.code}
+                          {review.reviewer.name.charAt(0).toUpperCase()}
                         </div>
                       ))}
                       {version.reviews.length > 3 && (

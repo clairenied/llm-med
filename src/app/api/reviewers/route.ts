@@ -25,13 +25,12 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, code, affiliation } = body;
+    const { name, email, affiliation } = body;
 
     const reviewer = await prisma.reviewer.create({
       data: {
         name,
         email,
-        code,
         affiliation,
       },
     });

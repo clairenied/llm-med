@@ -8,7 +8,6 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import type { TransformedManuscriptData } from "../transformers";
 import {
   formatAuthorForUpsert,
-  formatReviewerForUpsert,
 } from "../transformers";
 
 /**
@@ -88,46 +87,31 @@ export async function loadManuscript(
 
   console.log(`[LOADER] Processing ${data.reviews.length} reviews for manuscript`);
 
-  for (const { review, reviewerCode } of data.reviews) {
-    // Look up reviewer by name first (to avoid overwriting by code)
+  for (const review of data.reviews) {
+    // Look up reviewer by name and affiliation (composite unique key)
     const fullName = review.reviewer.givenNames
       ? `${review.reviewer.givenNames} ${review.reviewer.surname}`
       : review.reviewer.surname;
 
     console.log(`[REVIEWER DEBUG] Looking for reviewer: ${fullName}, affiliation: ${review.reviewer.affiliation?.substring(0, 50)}`);
 
-    let reviewer = await prisma.reviewer.findFirst({
+    let reviewer = await prisma.reviewer.findUnique({
       where: {
-        name: fullName,
-        // Also match on affiliation if available for better deduplication
-        ...(review.reviewer.affiliation ? { affiliation: review.reviewer.affiliation } : {}),
+        name_affiliation: {
+          name: fullName,
+          affiliation: review.reviewer.affiliation || "",
+        },
       },
     });
 
-    console.log(`[REVIEWER DEBUG] Found existing? ${reviewer ? `Yes: ${reviewer.name} (${reviewer.code})` : 'No'}`);
+    console.log(`[REVIEWER DEBUG] Found existing? ${reviewer ? `Yes: ${reviewer.name}` : 'No'}`);
 
-    // If reviewer doesn't exist, create with a globally unique code
+    // If reviewer doesn't exist, create it
     if (!reviewer) {
-      // Find the highest existing code to generate next unique code
-      const lastReviewer = await prisma.reviewer.findMany({
-        orderBy: { code: 'desc' },
-        take: 1,
-      });
-
-      let newCode = reviewerCode; // Start with suggested code
-      if (lastReviewer.length > 0) {
-        // Generate next code: A->B->C...Z->AA->AB...
-        const lastCode = lastReviewer[0].code;
-        newCode = generateNextCode(lastCode);
-      } else {
-        newCode = "A"; // First reviewer
-      }
-
       reviewer = await prisma.reviewer.create({
         data: {
           name: fullName,
-          code: newCode,
-          affiliation: review.reviewer.affiliation,
+          affiliation: review.reviewer.affiliation || "",
         },
       });
     }
@@ -155,40 +139,6 @@ export async function loadManuscript(
     authorsCreated: authorIds.length,
     reviewsCreated,
   };
-}
-
-/**
- * Generate the next reviewer code in sequence
- * A -> B -> C -> ... -> Z -> AA -> AB -> ... -> AZ -> BA -> ...
- */
-function generateNextCode(currentCode: string): string {
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  // Convert code to array of character indices
-  const indices: number[] = [];
-  for (let i = 0; i < currentCode.length; i++) {
-    indices.push(alphabet.indexOf(currentCode[i]));
-  }
-
-  // Increment like a base-26 number
-  let carry = 1;
-  for (let i = indices.length - 1; i >= 0 && carry; i--) {
-    indices[i] += carry;
-    if (indices[i] >= 26) {
-      indices[i] = 0;
-      carry = 1;
-    } else {
-      carry = 0;
-    }
-  }
-
-  // If we still have carry, we need to add a new letter at the front
-  if (carry) {
-    indices.unshift(0);
-  }
-
-  // Convert back to string
-  return indices.map(i => alphabet[i]).join('');
 }
 
 /**

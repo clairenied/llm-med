@@ -117,32 +117,3 @@ export function formatAuthorForUpsert(author: ExtractedAuthor): {
   throw new Error("formatAuthorForUpsert should only be called for authors with ORCID");
 }
 
-/**
- * Helper to format reviewer for database upsert
- */
-export function formatReviewerForUpsert(
-  reviewer: ExtractedReviewer,
-  code: string
-): {
-  where: Prisma.ReviewerWhereUniqueInput;
-  create: Prisma.ReviewerCreateInput;
-  update: Prisma.ReviewerUpdateInput;
-} {
-  const fullName = formatFullName(reviewer.surname, reviewer.givenNames);
-
-  return {
-    where: {
-      code,
-    },
-    create: {
-      name: fullName,
-      code,
-      affiliation: reviewer.affiliation,
-    },
-    update: {
-      name: fullName,
-      affiliation: reviewer.affiliation || undefined,
-      // Don't update code since it's the unique key
-    },
-  };
-}

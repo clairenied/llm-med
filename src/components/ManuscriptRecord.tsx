@@ -16,7 +16,6 @@ interface Author {
 interface Reviewer {
   id: string;
   name: string;
-  code: string;
   email?: string;
   affiliation?: string;
 }

@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 interface Reviewer {
   id: string;
   name: string;
-  code: string;
   email?: string;
   affiliation?: string;
 }
@@ -106,7 +105,7 @@ export default function ReviewForm({
               <option value="">Select a reviewer</option>
               {reviewers.map((reviewer) => (
                 <option key={reviewer.id} value={reviewer.id}>
-                  {reviewer.name} (Reviewer {reviewer.code})
+                  {reviewer.name}
                   {reviewer.affiliation && ` - ${reviewer.affiliation}`}
                 </option>
               ))}

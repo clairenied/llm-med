@@ -9,7 +9,6 @@ interface Review {
   id: string;
   reviewer: {
     id: string;
-    code: string;
     name: string;
   };
   reviewType: "INTERNAL" | "EXTERNAL";
@@ -232,7 +231,7 @@ export default function EditReviewPage() {
                 Reviewer
               </label>
               <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700">
-                {review?.reviewer.name} ({review?.reviewer.code})
+                {review?.reviewer.name}
               </div>
             </div>
 

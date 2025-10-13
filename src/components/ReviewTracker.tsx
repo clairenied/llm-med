@@ -4,7 +4,6 @@ import Link from "next/link";
 interface Reviewer {
   id: string;
   name: string;
-  code: string;
   email?: string;
   affiliation?: string;
 }
@@ -159,7 +158,7 @@ export default function ReviewTracker({
                 {/* Reviewer Avatar */}
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-lg font-bold text-gray-700">
-                    {review.reviewer.code}
+                    {review.reviewer.name.charAt(0).toUpperCase()}
                   </div>
                 </div>
 
@@ -173,9 +172,6 @@ export default function ReviewTracker({
                         <h4 className="font-semibold text-gray-900">
                           {review.reviewer.name}
                         </h4>
-                        <span className="text-sm font-medium">
-                          Reviewer {review.reviewer.code}
-                        </span>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
                             review.reviewType === "INTERNAL"
