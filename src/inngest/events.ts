@@ -92,6 +92,50 @@ export type F1000ListCompletedData = z.infer<
   typeof F1000ListCompletedDataSchema
 >;
 
+// f1000.article.transformed
+export const F1000ArticleTransformedDataSchema = z.object({
+  doi: z.string(),
+  manuscriptId: z.string(),
+  authorsCreated: z.number().int().nonnegative(),
+  reviewsCreated: z.number().int().nonnegative(),
+  metadata: EventMetadataSchema,
+});
+
+export type F1000ArticleTransformedData = z.infer<
+  typeof F1000ArticleTransformedDataSchema
+>;
+
+// f1000.article.transform.skipped
+export const F1000ArticleTransformSkippedDataSchema = z.object({
+  doi: z.string(),
+  reason: z.string(),
+  metadata: EventMetadataSchema,
+});
+
+export type F1000ArticleTransformSkippedData = z.infer<
+  typeof F1000ArticleTransformSkippedDataSchema
+>;
+
+// f1000.batch.transform.requested
+export const F1000BatchTransformRequestedDataSchema = z.object({
+  metadata: EventMetadataSchema,
+});
+
+export type F1000BatchTransformRequestedData = z.infer<
+  typeof F1000BatchTransformRequestedDataSchema
+>;
+
+// f1000.batch.transform.completed
+export const F1000BatchTransformCompletedDataSchema = z.object({
+  totalDocuments: z.number().int().nonnegative(),
+  unprocessedDocuments: z.number().int().nonnegative(),
+  metadata: EventMetadataSchema,
+});
+
+export type F1000BatchTransformCompletedData = z.infer<
+  typeof F1000BatchTransformCompletedDataSchema
+>;
+
 // ============================================================================
 // Event Type Definitions (for Inngest)
 // ============================================================================
@@ -111,5 +155,17 @@ export type Events = {
   };
   "f1000.list.completed": {
     data: F1000ListCompletedData;
+  };
+  "f1000.article.transformed": {
+    data: F1000ArticleTransformedData;
+  };
+  "f1000.article.transform.skipped": {
+    data: F1000ArticleTransformSkippedData;
+  };
+  "f1000.batch.transform.requested": {
+    data: F1000BatchTransformRequestedData;
+  };
+  "f1000.batch.transform.completed": {
+    data: F1000BatchTransformCompletedData;
   };
 };

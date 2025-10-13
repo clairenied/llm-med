@@ -75,11 +75,12 @@ model Reviewer {
   id          String   @id @default(cuid())
   name        String
   email       String?
-  code        String   @unique // e.g., "A", "B", "C"
   affiliation String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   reviews     Review[]
+
+  @@unique([name, affiliation])
 }
 
 enum ManuscriptStatus {
