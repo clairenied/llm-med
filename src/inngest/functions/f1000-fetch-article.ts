@@ -24,7 +24,7 @@ export const f1000FetchArticle = inngest.createFunction(
     id: "f1000-fetch-article",
     name: "F1000: Fetch Article",
     concurrency: {
-      limit: 10, // Limit concurrent article fetches
+      limit: 5, // Limit concurrent article fetches
     },
   },
   { event: "f1000.article.fetch.requested" },

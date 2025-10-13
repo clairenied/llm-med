@@ -21,6 +21,7 @@ CREATE TABLE "public"."Author" (
     "affiliation" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "orcId" TEXT,
 
     CONSTRAINT "Author_pkey" PRIMARY KEY ("id")
 );
@@ -61,7 +62,6 @@ CREATE TABLE "public"."Review" (
     "content" TEXT NOT NULL,
     "documentUrl" TEXT,
     "documentType" "public"."DocumentType",
-    "isSharedExternally" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -73,7 +73,6 @@ CREATE TABLE "public"."Reviewer" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT,
-    "code" TEXT NOT NULL,
     "affiliation" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -122,6 +121,8 @@ CREATE TABLE "public"."User" (
     "image" TEXT,
     "password" TEXT,
     "role" "public"."UserRole" NOT NULL DEFAULT 'AUTHOR',
+    "resetToken" TEXT,
+    "resetTokenExpiry" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -172,8 +173,19 @@ CREATE TABLE "public"."Invitation" (
     "token" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "expiresAt" TIMESTAMP(3) NOT NULL,
+    "usedAt" TIMESTAMP(3),
 
     CONSTRAINT "Invitation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."f1000Document" (
+    "doi" TEXT NOT NULL,
+    "xmlData" XML NOT NULL,
+    "hash" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "f1000Document_pkey" PRIMARY KEY ("doi")
 );
 
 -- CreateTable
@@ -185,13 +197,34 @@ CREATE TABLE "public"."_AuthorToManuscript" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Author_orcId_key" ON "public"."Author"("orcId");
+
+-- CreateIndex
+CREATE INDEX "Manuscript_title_idx" ON "public"."Manuscript"("title");
+
+-- CreateIndex
+CREATE INDEX "Manuscript_createdAt_idx" ON "public"."Manuscript"("createdAt");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ManuscriptVersion_manuscriptId_versionNumber_key" ON "public"."ManuscriptVersion"("manuscriptId", "versionNumber");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Reviewer_code_key" ON "public"."Reviewer"("code");
+CREATE UNIQUE INDEX "Reviewer_name_affiliation_key" ON "public"."Reviewer"("name", "affiliation");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Source_name_key" ON "public"."Source"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ManuscriptSource_url_key" ON "public"."ManuscriptSource"("url");
+
+-- CreateIndex
+CREATE INDEX "ManuscriptSource_url_idx" ON "public"."ManuscriptSource"("url");
+
+-- CreateIndex
+CREATE INDEX "ManuscriptSource_externalId_idx" ON "public"."ManuscriptSource"("externalId");
+
+-- CreateIndex
+CREATE INDEX "ManuscriptSource_doi_idx" ON "public"."ManuscriptSource"("doi");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ManuscriptSource_manuscriptId_sourceId_url_key" ON "public"."ManuscriptSource"("manuscriptId", "sourceId", "url");
@@ -216,6 +249,9 @@ CREATE UNIQUE INDEX "Invitation_email_key" ON "public"."Invitation"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Invitation_token_key" ON "public"."Invitation"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "f1000Document_hash_key" ON "public"."f1000Document"("hash");
 
 -- CreateIndex
 CREATE INDEX "_AuthorToManuscript_B_index" ON "public"."_AuthorToManuscript"("B");

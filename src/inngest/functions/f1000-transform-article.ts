@@ -25,7 +25,7 @@ export const f1000TransformArticle = inngest.createFunction(
     id: "f1000-transform-article",
     name: "F1000: Transform Article",
     concurrency: {
-      limit: 10, // Process up to 10 articles in parallel
+      limit: 5, // Process up to 5 articles in parallel
     },
   },
   { event: "f1000.article.saved" },
