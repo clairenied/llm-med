@@ -49,31 +49,28 @@ async function main() {
 
   // Create reviewers
   const reviewerA = await prisma.reviewer.upsert({
-    where: { code: "A" },
+    where: { name_affiliation: { name: "Anonymous Reviewer", affiliation: "External" } },
     update: {},
     create: {
       name: "Anonymous Reviewer",
-      code: "A",
       affiliation: "External",
     },
   });
 
   const reviewerB = await prisma.reviewer.upsert({
-    where: { code: "B" },
+    where: { name_affiliation: { name: "Internal Reviewer", affiliation: "Internal" } },
     update: {},
     create: {
       name: "Internal Reviewer",
-      code: "B",
       affiliation: "Internal",
     },
   });
 
   const reviewerC = await prisma.reviewer.upsert({
-    where: { code: "C" },
+    where: { name_affiliation: { name: "Senior Reviewer", affiliation: "External" } },
     update: {},
     create: {
       name: "Senior Reviewer",
-      code: "C",
       affiliation: "External",
     },
   });
@@ -159,9 +156,9 @@ async function main() {
   console.log("✅ Created authors:", author1.name, author2.name);
   console.log(
     "✅ Created reviewers:",
-    reviewerA.code,
-    reviewerB.code,
-    reviewerC.code,
+    reviewerA.name,
+    reviewerB.name,
+    reviewerC.name,
   );
   console.log("🎉 Seeding completed!");
 }
