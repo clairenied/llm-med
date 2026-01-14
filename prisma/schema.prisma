@@ -69,6 +69,7 @@ model Review {
   documentType     DocumentType?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+  grades           ReviewGrade[]
 }
 
 model Reviewer {
@@ -154,6 +155,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  reviewGrades ReviewGrade[]
 }
 
 model Account {
@@ -213,10 +215,38 @@ enum UserRole {
   ADMIN
   REVIEWER
   AUTHOR
+  GRADER
 }
 
 enum InvitationStatus {
   PENDING
   ACCEPTED
   EXPIRED
+}
+
+// Human grading of reviews for AI training
+model ReviewGrade {
+  id                    String      @id @default(cuid())
+  review                Review      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reviewId              String
+  grader                User        @relation(fields: [graderId], references: [id])
+  graderId              String
+  clinicalRelevance     GradeValue?
+  methodology           GradeValue?
+  results               GradeValue?
+  writingClarity        GradeValue?
+  ethicalConsiderations GradeValue?
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([reviewId, graderId]) // One grade per grader per review
+}
+
+enum GradeValue {
+  VERY_GOOD
+  GOOD
+  POOR
+  VERY_POOR
+  NA
 }

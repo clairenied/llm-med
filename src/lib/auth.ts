@@ -1,9 +1,11 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
+import Resend from "next-auth/providers/resend";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@prisma/client";
+import { sendMagicLinkEmail } from "@/lib/email";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -45,6 +47,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
         };
       },
+    }),
+    Resend({
+      apiKey: process.env.RESEND_API_KEY,
+      from: process.env.FROM_EMAIL || "LLM-Med <noreply@mail.llm-med.art>",
+      sendVerificationRequest: sendMagicLinkEmail,
     }),
   ],
   session: {
