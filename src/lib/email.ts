@@ -102,11 +102,12 @@ export interface PasswordResetEmailData {
 // Environment-based email routing for development vs production
 const getEmailConfig = (userEmail: string) => {
   const isDevelopment = process.env.NODE_ENV === "development";
+  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
 
   if (isDevelopment) {
     // TEMPORARY: Send to real emails in development for testing
     return {
-      from: "LLM-Med <noreply@mail.llm-med.art>",
+      from: fromEmail,
       to: userEmail, // Send to actual user email
       isDevelopment: true,
     };
@@ -114,7 +115,7 @@ const getEmailConfig = (userEmail: string) => {
 
   // Production configuration
   return {
-    from: process.env.FROM_EMAIL || "LLM-Med <noreply@mail.llm-med.art>",
+    from: fromEmail,
     to: userEmail,
     isDevelopment: false,
   };
