@@ -32,6 +32,8 @@ model Manuscript {
   abstract    String?
   keywords    String[]
   status      ManuscriptStatus   @default(DRAFT)
+  aiSummary   String?            // LLM-generated summary for grading context
+  aiSummaryGeneratedAt DateTime? // When the summary was generated
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   authors     Author[]

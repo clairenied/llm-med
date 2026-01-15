@@ -159,3 +159,4 @@ postgres_data/*
 !*test*.spec.*
 !*test*.test.*
 production_backup.sql
+dev.log

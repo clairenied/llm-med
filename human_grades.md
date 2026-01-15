@@ -8,6 +8,14 @@ Build a feature for human graders to evaluate existing peer reviews from the tra
 
 ---
 
+## User notes
+
+### To run the server and have a log file for Claude Code use:
+
+    npm run dev 2>&1 | tee dev.log
+
+---
+
 ## Implementation Status
 
 ### Completed
