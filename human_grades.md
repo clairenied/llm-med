@@ -2,7 +2,78 @@
 
 ## Overview
 
-Build a feature for human graders to evaluate existing peer reviews from the training set (~200 reviews). This enables quality assessment of reviews to train an AI reviewer for urology literature peer review.
+Build a feature for human graders to evaluate existing peer reviews from the training set (~232 reviews). This enables quality assessment of reviews to train an AI reviewer for urology literature peer review.
+
+**Target:** Each review graded by at least 2 human graders (~400 total grading tasks, ~20 graders)
+
+---
+
+## Implementation Status
+
+### Completed
+
+- [x] **GRADER role** - Added to UserRole enum in Prisma schema
+- [x] **ReviewGrade model** - Database model for storing grades with 5 domains
+- [x] **GradeValue enum** - VERY_GOOD, GOOD, POOR, VERY_POOR, NA
+- [x] **Magic link authentication** - Passwordless sign-in via email for graders
+- [x] **Sign-in UI** - Email Link / Password toggle on sign-in page
+- [x] **Database migration** - Schema changes applied
+- [x] **Admin user setup** - Craig added as admin (local + production)
+
+### Remaining
+
+- [ ] **Article summary field** - Add `aiSummary` field to store generated summaries
+- [ ] **Summary generation** - Generate summary via DeepSeek LLM using prompt
+- [ ] **Summary persistence** - Generate once, show same summary to all graders
+- [ ] **Grading form UI** - Form to submit grades for 5 domains
+- [ ] **Grading queue** - Show graders which reviews need grading
+- [ ] **2-grader enforcement** - Ensure each review gets exactly 2 grades
+- [ ] **Progress report** - Dashboard showing grading completion status
+- [ ] **Admin invitation flow** - UI for admins to invite graders by email
+
+---
+
+## Data Model
+
+### ReviewGrade (implemented)
+
+```prisma
+model ReviewGrade {
+  id                    String      @id @default(cuid())
+  review                Review      @relation(fields: [reviewId], references: [id])
+  reviewId              String
+  grader                User        @relation(fields: [graderId], references: [id])
+  graderId              String
+  clinicalRelevance     GradeValue?
+  methodology           GradeValue?
+  results               GradeValue?
+  writingClarity        GradeValue?
+  ethicalConsiderations GradeValue?
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([reviewId, graderId]) // One grade per grader per review
+}
+
+enum GradeValue {
+  VERY_GOOD   // 4
+  GOOD        // 3
+  POOR        // 2
+  VERY_POOR   // 1
+  NA          // Not applicable
+}
+```
+
+### Summary Storage (to be added)
+
+Need to add `aiSummary` field to store the LLM-generated manuscript summary. Options:
+1. Add to `Manuscript` model (summary of the paper)
+2. Add to `ManuscriptVersion` model (version-specific)
+
+The summary should be generated once when the first grader accesses the review, then persisted for all subsequent graders.
+
+---
 
 ## User Interface Requirements
 
@@ -11,7 +82,7 @@ Build a feature for human graders to evaluate existing peer reviews from the tra
 Present each human grader with:
 
 1. **The Original Review** - Full text of the peer review being evaluated
-2. **AI-Generated Summary** - Structured summary of the manuscript (generated using the prompt below)
+2. **AI-Generated Summary** - Structured summary of the manuscript (generated via DeepSeek)
 3. **Grading Form** - 5 domains to grade
 
 ### Grading Domains
@@ -26,8 +97,6 @@ Present each human grader with:
 
 ### Grade Scale
 
-For each domain, the grader selects one of:
-
 | Grade | Value |
 |-------|-------|
 | Very Good | 4 |
@@ -36,104 +105,87 @@ For each domain, the grader selects one of:
 | Very Poor | 1 |
 | N/A | null |
 
-## Data Model Requirements
-
-### Human Grader Tracking
-
-- Track which user submitted each grade
-- Record timestamp of grading
-- Support multiple graders per review (for inter-rater reliability)
-
-### Grade Storage
-
-Store for each grading session:
-- Review ID
-- Grader (User) ID
-- Grades for all 5 domains
-- Optional notes/comments
-- Timestamp
+---
 
 ## AI Summary Generation
 
-### Prompt for Manuscript Summary
+### LLM Provider
 
-The AI-generated summary uses the following structured prompt to summarize the manuscript (not the review). This gives graders context about what the review should address.
+**DeepSeek** - Used for generating manuscript summaries
 
----
+### Summary Workflow
 
-**System Instructions:**
+1. Grader opens a review to grade
+2. System checks if manuscript has `aiSummary`
+3. If no summary exists:
+   - Fetch manuscript content
+   - Send to DeepSeek with summary prompt
+   - Store result in `aiSummary` field
+4. Display summary to grader (same summary for all graders)
 
-You are an expert scientific summarizer assisting peer review.
+### Summary Prompt
 
-**Grounding Requirement (MANDATORY):**
-- Use ONLY information explicitly stated in the provided paper
-- Do NOT rely on external knowledge, prior training, common practice, assumptions, or typical methods
-- Do NOT infer, guess, generalize, or fill in missing details
-- Do NOT add background context not written in the paper
-- If information is not explicitly reported, state: "Not reported in the paper."
+See `PromptForSummary.pdf` for the full prompt. Key sections:
 
-**Constraints:**
-- Do not critique, evaluate, or suggest improvements
-- Do not introduce information not explicitly stated
-- Use neutral academic language
-- Do not speculate or infer beyond the text
-- Do not merge sections or reorder headings
-
-**Style Guidelines:**
-- Concise but complete
-- Third-person, factual tone
-
----
-
-### Summary Sections (with word budgets)
-
-#### Paper Summary (50-80 words)
-- Main research problem
-- Study objective
-- General approach used
-
-#### Clinical Relevance (100-130 words)
-- Stated research objectives / clinical goals
-- Practical applicability to clinical settings / proposed use cases
-- Claimed contributions relative to existing work
-- Comparison to existing clinical practices
-
-#### Methodology (200-250 words)
-- Study design and stated objectives (type, research questions)
-- Data sources and sample characteristics (origin, size, inclusion/exclusion)
-- Model or intervention description (algorithms, key components)
-- Experimental or simulation setup (training/validation/testing, baselines)
-- Evaluation metrics
-
-#### Results (200-250 words)
-- Descriptive statistics or summary outcomes
-- Alignment between reported results and stated hypotheses
-
-#### Writing Clarity (50-70 words)
-- Clarity of stated research questions and aims
-- Presence or absence of ambiguity or redundancy
-
-#### Ethical Considerations (50-70 words)
-- Data privacy and confidentiality
-- Informed consent (if applicable)
-- Transparency and explainability
-- Potential harms or misuse
-- Compliance with ethical guidelines
-- If not addressed, state: "Not discussed in the paper."
+- Paper Summary (50-80 words)
+- Clinical Relevance (100-130 words)
+- Methodology (200-250 words)
+- Results (200-250 words)
+- Writing Clarity (50-70 words)
+- Ethical Considerations (50-70 words)
 
 ---
 
 ## Workflow
 
-1. Grader logs in (existing auth system)
-2. System presents next ungraded review (or allows selection)
-3. Grader sees review text + AI summary of the manuscript
-4. Grader assigns grades to all 5 domains
-5. Grader submits; system records grades with user ID and timestamp
-6. Repeat until all reviews graded
+1. Admin invites grader by email
+2. Grader receives magic link, clicks to sign in
+3. Grader sees dashboard with reviews needing grades
+4. Grader selects a review (or system assigns next one)
+5. Grader sees: review text + AI summary of manuscript
+6. Grader assigns grades to all 5 domains + optional notes
+7. Grader submits; system records grade with user ID and timestamp
+8. System shows next review (until grader's quota is done)
 
-## Progress Tracking
+---
 
-- Dashboard showing: total reviews, graded reviews, remaining reviews
-- Per-grader statistics
-- Inter-rater agreement metrics (if multiple graders per review)
+## Progress Report Requirements
+
+Dashboard showing:
+
+| Metric | Description |
+|--------|-------------|
+| Total reviews | 232 |
+| Reviews with 0 grades | Need 2 graders |
+| Reviews with 1 grade | Need 1 more grader |
+| Reviews with 2+ grades | Complete |
+| Grades per grader | Individual progress |
+| Remaining work | Reviews still needing grades |
+
+---
+
+## Technical Notes
+
+### Database
+
+- PostgreSQL via Docker (local)
+- Prisma ORM
+- Production: Vercel + managed PostgreSQL
+
+### Authentication
+
+- NextAuth.js v5
+- Magic link via Resend (passwordless)
+- Password auth also available
+
+### Branch
+
+`feature/human-grading`
+
+### Related Files
+
+- `prisma/schema.prisma` - Database schema
+- `src/lib/auth.ts` - Authentication config
+- `src/lib/email.ts` - Magic link email
+- `src/app/auth/signin/page.tsx` - Sign-in UI
+- `PromptForSummary.pdf` - LLM prompt for summaries
