@@ -69,13 +69,21 @@ export default function GradingQueuePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Review Grading
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Grade peer reviews to help train the AI reviewer. Each review needs 2 graders.
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Review Grading
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Grade peer reviews to help train the AI reviewer. Each review needs 2 graders.
+            </p>
+          </div>
+          <Link
+            href="/grading/progress"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md transition-colors"
+          >
+            View Progress Report
+          </Link>
         </div>
 
         {/* Stats Cards */}
@@ -121,7 +129,7 @@ export default function GradingQueuePage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-4">
-                      <GradeStatus count={review.gradeCount} hasUserGraded={review.hasUserGraded} />
+                      <GradeStatus count={review.gradeCount} />
                       {!review.hasUserGraded && (
                         <Link
                           href={`/grading/${review.id}`}
@@ -164,7 +172,7 @@ function StatCard({ label, value, color = "gray" }: { label: string; value: numb
   );
 }
 
-function GradeStatus({ count, hasUserGraded }: { count: number; hasUserGraded: boolean }) {
+function GradeStatus({ count }: { count: number }) {
   if (count >= 2) {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
