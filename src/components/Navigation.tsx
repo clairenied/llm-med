@@ -17,6 +17,11 @@ export default function Navigation() {
       { href: "/authors", label: "Authors", icon: "👤" },
     ];
 
+    // Add grading for ADMIN and GRADER roles
+    if (session.user?.role === "ADMIN" || session.user?.role === "GRADER") {
+      items.push({ href: "/grading", label: "Grading", icon: "📝" });
+    }
+
     // Add admin routes for admin users
     if (session.user?.role === "ADMIN") {
       items.push({ href: "/admin", label: "Admin", icon: "⚙️" });

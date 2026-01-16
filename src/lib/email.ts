@@ -99,6 +99,48 @@ export interface PasswordResetEmailData {
   resetUrl: string;
 }
 
+export interface SendEmailParams {
+  to: string;
+  subject: string;
+  html: string;
+}
+
+// Generic email sending function
+export async function sendEmail({ to, subject, html }: SendEmailParams) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error("⚠️  RESEND_API_KEY not configured. Email cannot be sent.");
+    throw new Error("Email service not configured");
+  }
+
+  try {
+    const resendClient = await getResendClient();
+    if (!resendClient) {
+      throw new Error("Failed to initialize email client");
+    }
+
+    const emailConfig = getEmailConfig(to);
+    console.log(`📧 Sending email: ${emailConfig.from} → ${emailConfig.to}`);
+
+    const { data, error } = await resendClient.emails.send({
+      from: emailConfig.from,
+      to: [emailConfig.to],
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error("Failed to send email:", error);
+      throw new Error("Failed to send email");
+    }
+
+    console.log(`✅ Email sent: ${data?.id}`);
+    return { success: true, emailId: data?.id };
+  } catch (error) {
+    console.error("Email service error:", error);
+    throw error;
+  }
+}
+
 // Environment-based email routing for development vs production
 const getEmailConfig = (userEmail: string) => {
   const isDevelopment = process.env.NODE_ENV === "development";
