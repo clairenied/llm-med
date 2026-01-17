@@ -241,12 +241,24 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
 
         {/* Manuscript Title */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {review.manuscript.title}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Reviewed by: {review.reviewerName}
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {review.manuscript.title}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Reviewed by: {review.reviewerName}
+              </p>
+            </div>
+            <Link
+              href={`/manuscripts/${review.manuscript.id}`}
+              target="_blank"
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+            >
+              View Manuscript
+              <span className="text-xs">↗</span>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -267,7 +279,7 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
                     </div>
                   </div>
                 ) : review.manuscript.aiSummary ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
                     <ReactMarkdown>{review.manuscript.aiSummary}</ReactMarkdown>
                   </div>
                 ) : (
@@ -291,7 +303,7 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
                 </h3>
               </div>
               <div className="p-4 max-h-96 overflow-y-auto">
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-gray-800 dark:text-gray-200">
                   {review.content}
                 </div>
               </div>
