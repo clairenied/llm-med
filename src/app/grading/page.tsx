@@ -22,6 +22,7 @@ interface VersionData {
 interface ManuscriptGroup {
   manuscriptId: string;
   manuscriptTitle: string;
+  externalUrl: string | null;
   versions: VersionData[];
   totalReviews: number;
   ungradedByUser: number;
@@ -210,14 +211,26 @@ function ManuscriptCard({
               No Summary
             </span>
           )}
-          <Link
-            href={`/manuscripts/${manuscript.manuscriptId}`}
-            target="_blank"
-            onClick={(e) => e.stopPropagation()}
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
-          >
-            View Manuscript ↗
-          </Link>
+          {manuscript.externalUrl ? (
+            <a
+              href={manuscript.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+            >
+              View Manuscript ↗
+            </a>
+          ) : (
+            <Link
+              href={`/manuscripts/${manuscript.manuscriptId}`}
+              target="_blank"
+              onClick={(e) => e.stopPropagation()}
+              className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+            >
+              View Internal ↗
+            </Link>
+          )}
         </div>
       </button>
 

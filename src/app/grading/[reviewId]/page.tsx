@@ -17,6 +17,7 @@ interface ReviewData {
     title: string;
     abstract: string | null;
     aiSummary: string | null;
+    externalUrl: string | null;
   };
   existingGrade: GradeData | null;
 }
@@ -264,14 +265,26 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
                 Reviewer: {review.reviewerName}
               </p>
             </div>
-            <Link
-              href={`/manuscripts/${review.manuscript.id}`}
-              target="_blank"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
-            >
-              <span>View Full Manuscript</span>
-              <span className="text-lg">↗</span>
-            </Link>
+            {review.manuscript.externalUrl ? (
+              <a
+                href={review.manuscript.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+              >
+                <span>View Full Manuscript</span>
+                <span className="text-lg">↗</span>
+              </a>
+            ) : (
+              <Link
+                href={`/manuscripts/${review.manuscript.id}`}
+                target="_blank"
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+              >
+                <span>View Internal Record</span>
+                <span className="text-lg">↗</span>
+              </Link>
+            )}
           </div>
           <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
             <p className="text-sm text-blue-800 dark:text-blue-200">

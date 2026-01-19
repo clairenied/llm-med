@@ -28,6 +28,13 @@ export async function GET(
                 title: true,
                 abstract: true,
                 aiSummary: true,
+                sources: {
+                  select: {
+                    url: true,
+                    doi: true,
+                  },
+                  take: 1,
+                },
               },
             },
           },
@@ -57,14 +64,24 @@ export async function GET(
       return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
+    // Use DOI resolver to link to the paper (it redirects to F1000Research)
+    const source = review.version.manuscript.sources[0];
+    const externalUrl = source?.doi ? `https://doi.org/${source.doi}` : null;
+
     return NextResponse.json({
       review: {
         id: review.id,
         content: review.content,
         reviewerName: review.reviewer.name,
         reviewType: review.reviewType,
-        versionNumber: review.version.versionNumber,
-        manuscript: review.version.manuscript,
+        versionNumber: review.reviewedVersionNumber ?? review.version.versionNumber,
+        manuscript: {
+          id: review.version.manuscript.id,
+          title: review.version.manuscript.title,
+          abstract: review.version.manuscript.abstract,
+          aiSummary: review.version.manuscript.aiSummary,
+          externalUrl,
+        },
         existingGrade: review.grades[0] || null,
       },
     });

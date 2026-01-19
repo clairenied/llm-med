@@ -19,6 +19,7 @@ interface VersionData {
 interface ManuscriptGroup {
   manuscriptId: string;
   manuscriptTitle: string;
+  externalUrl: string | null;
   versions: VersionData[];
   totalReviews: number;
   ungradedByUser: number;
@@ -37,6 +38,12 @@ export async function GET() {
     // Get all manuscripts with their versions and reviews, grouped properly
     const manuscripts = await prisma.manuscript.findMany({
       include: {
+        sources: {
+          select: {
+            doi: true,
+          },
+          take: 1,
+        },
         versions: {
           include: {
             reviews: {
@@ -114,9 +121,14 @@ export async function GET() {
 
       // Only include manuscripts with reviews needing grades
       if (versions.length > 0) {
+        // Build external URL from DOI
+        const doi = manuscript.sources[0]?.doi;
+        const externalUrl = doi ? `https://doi.org/${doi}` : null;
+
         manuscriptGroups.push({
           manuscriptId: manuscript.id,
           manuscriptTitle: manuscript.title,
+          externalUrl,
           versions,
           totalReviews,
           ungradedByUser,
