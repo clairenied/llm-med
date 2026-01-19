@@ -60,18 +60,19 @@ model ManuscriptVersion {
 }
 
 model Review {
-  id                String            @id @default(cuid())
-  version          ManuscriptVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
-  versionId        String
-  reviewer         Reviewer          @relation(fields: [reviewerId], references: [id])
-  reviewerId       String
-  reviewType       ReviewType        @default(INTERNAL)
-  content          String
-  documentUrl      String?
-  documentType     DocumentType?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  grades           ReviewGrade[]
+  id                    String            @id @default(cuid())
+  version               ManuscriptVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  versionId             String
+  reviewer              Reviewer          @relation(fields: [reviewerId], references: [id])
+  reviewerId            String
+  reviewType            ReviewType        @default(INTERNAL)
+  reviewedVersionNumber Int?              // Which version of the manuscript this review was written for (1, 2, 3, etc.)
+  content               String
+  documentUrl           String?
+  documentType          DocumentType?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  grades                ReviewGrade[]
 }
 
 model Reviewer {

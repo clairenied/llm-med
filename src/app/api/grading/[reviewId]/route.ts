@@ -62,6 +62,8 @@ export async function GET(
         id: review.id,
         content: review.content,
         reviewerName: review.reviewer.name,
+        reviewType: review.reviewType,
+        versionNumber: review.version.versionNumber,
         manuscript: review.version.manuscript,
         existingGrade: review.grades[0] || null,
       },

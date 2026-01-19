@@ -136,6 +136,30 @@ export type F1000BatchTransformCompletedData = z.infer<
   typeof F1000BatchTransformCompletedDataSchema
 >;
 
+// manuscript.summary.requested
+export const ManuscriptSummaryRequestedDataSchema = z.object({
+  manuscriptId: z.string(),
+  title: z.string().optional(),
+});
+
+export type ManuscriptSummaryRequestedData = z.infer<
+  typeof ManuscriptSummaryRequestedDataSchema
+>;
+
+// manuscript.summaries.batch.requested
+export const ManuscriptSummariesBatchRequestedDataSchema = z.object({});
+
+export type ManuscriptSummariesBatchRequestedData = z.infer<
+  typeof ManuscriptSummariesBatchRequestedDataSchema
+>;
+
+// reviews.reprocess.requested
+export const ReviewsReprocessRequestedDataSchema = z.object({});
+
+export type ReviewsReprocessRequestedData = z.infer<
+  typeof ReviewsReprocessRequestedDataSchema
+>;
+
 // ============================================================================
 // Event Type Definitions (for Inngest)
 // ============================================================================
@@ -167,5 +191,14 @@ export type Events = {
   };
   "f1000.batch.transform.completed": {
     data: F1000BatchTransformCompletedData;
+  };
+  "manuscript.summary.requested": {
+    data: ManuscriptSummaryRequestedData;
+  };
+  "manuscript.summaries.batch.requested": {
+    data: ManuscriptSummariesBatchRequestedData;
+  };
+  "reviews.reprocess.requested": {
+    data: ReviewsReprocessRequestedData;
   };
 };

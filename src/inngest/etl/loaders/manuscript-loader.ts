@@ -126,6 +126,7 @@ export async function loadManuscript(
           connect: { id: reviewer.id },
         },
         reviewType: "EXTERNAL", // F1000 reviews are external peer reviews
+        reviewedVersionNumber: review.reviewedVersionNumber, // Which version this review was written for
         content: review.content,
         documentType: "FREE_TEXT",
       },

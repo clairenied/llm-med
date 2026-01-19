@@ -33,16 +33,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
-      // Update role to GRADER if not already
-      if (existingUser.role === "USER") {
+      // Update role to GRADER if not already a grader or admin
+      if (existingUser.role !== "GRADER" && existingUser.role !== "ADMIN") {
         await prisma.user.update({
           where: { id: existingUser.id },
           data: { role: "GRADER" },
         });
+        return NextResponse.json({
+          success: true,
+          message: "User role updated to GRADER",
+          userId: existingUser.id,
+        });
       }
       return NextResponse.json({
         success: true,
-        message: "User already exists and has been updated to GRADER role",
+        message: `User already exists with ${existingUser.role} role`,
         userId: existingUser.id,
       });
     }

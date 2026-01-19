@@ -2,6 +2,29 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+interface ReviewData {
+  id: string;
+  reviewerName: string;
+  reviewType: string;
+  gradeCount: number;
+  hasUserGraded: boolean;
+  createdAt: string;
+}
+
+interface VersionData {
+  versionNumber: number;
+  reviews: ReviewData[];
+}
+
+interface ManuscriptGroup {
+  manuscriptId: string;
+  manuscriptTitle: string;
+  versions: VersionData[];
+  totalReviews: number;
+  ungradedByUser: number;
+  hasAiSummary: boolean;
+}
+
 export async function GET() {
   try {
     const session = await auth();
@@ -11,75 +34,124 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    // Get all reviews with their grade counts and manuscript info
-    const reviews = await prisma.review.findMany({
+    // Get all manuscripts with their versions and reviews, grouped properly
+    const manuscripts = await prisma.manuscript.findMany({
       include: {
-        version: {
+        versions: {
           include: {
-            manuscript: {
-              select: {
-                id: true,
-                title: true,
+            reviews: {
+              include: {
+                reviewer: {
+                  select: {
+                    name: true,
+                  },
+                },
+                grades: {
+                  select: {
+                    graderId: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "asc",
               },
             },
           },
-        },
-        reviewer: {
-          select: {
-            name: true,
+          orderBy: {
+            versionNumber: "asc",
           },
         },
+      },
+    });
+
+    // Transform into grouped structure
+    const manuscriptGroups: ManuscriptGroup[] = [];
+
+    for (const manuscript of manuscripts) {
+      // Group reviews by their reviewedVersionNumber (which version they reviewed)
+      const versionMap = new Map<number, ReviewData[]>();
+      let totalReviews = 0;
+      let ungradedByUser = 0;
+
+      for (const version of manuscript.versions) {
+        for (const review of version.reviews) {
+          const gradeCount = review.grades.length;
+          const hasUserGraded = review.grades.some((g) => g.graderId === userId);
+
+          // Only include reviews that need grading (less than 2 grades) or user hasn't graded
+          if (gradeCount < 2 || !hasUserGraded) {
+            // Use reviewedVersionNumber if available, otherwise fall back to version.versionNumber
+            const reviewVersion = review.reviewedVersionNumber ?? version.versionNumber;
+
+            if (!versionMap.has(reviewVersion)) {
+              versionMap.set(reviewVersion, []);
+            }
+
+            versionMap.get(reviewVersion)!.push({
+              id: review.id,
+              reviewerName: review.reviewer.name,
+              reviewType: review.reviewType,
+              gradeCount,
+              hasUserGraded,
+              createdAt: review.createdAt.toISOString(),
+            });
+
+            totalReviews++;
+            if (!hasUserGraded) {
+              ungradedByUser++;
+            }
+          }
+        }
+      }
+
+      // Convert map to sorted array of versions
+      const versions: VersionData[] = Array.from(versionMap.entries())
+        .sort((a, b) => a[0] - b[0]) // Sort by version number ascending
+        .map(([versionNumber, reviews]) => ({
+          versionNumber,
+          reviews,
+        }));
+
+      // Only include manuscripts with reviews needing grades
+      if (versions.length > 0) {
+        manuscriptGroups.push({
+          manuscriptId: manuscript.id,
+          manuscriptTitle: manuscript.title,
+          versions,
+          totalReviews,
+          ungradedByUser,
+          hasAiSummary: !!manuscript.aiSummary,
+        });
+      }
+    }
+
+    // Sort: prioritize manuscripts with more ungraded reviews by user
+    manuscriptGroups.sort((a, b) => b.ungradedByUser - a.ungradedByUser);
+
+    // Calculate overall stats
+    const allReviews = await prisma.review.findMany({
+      include: {
         grades: {
           select: {
             graderId: true,
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
     });
 
-    // Transform for the frontend
-    const reviewsForGrading = reviews.map((review) => ({
-      id: review.id,
-      manuscriptTitle: review.version.manuscript.title,
-      manuscriptId: review.version.manuscript.id,
-      reviewerName: review.reviewer.name,
-      gradeCount: review.grades.length,
-      hasUserGraded: review.grades.some((g) => g.graderId === userId),
-      createdAt: review.createdAt.toISOString(),
-    }));
-
-    // Filter to show reviews that need grading (less than 2 grades)
-    // or that the user hasn't graded yet
-    const reviewsNeedingGrades = reviewsForGrading.filter(
-      (r) => r.gradeCount < 2 || !r.hasUserGraded
-    );
-
-    // Sort: prioritize reviews with fewer grades, then by user not having graded
-    reviewsNeedingGrades.sort((a, b) => {
-      // First, show reviews user hasn't graded
-      if (a.hasUserGraded !== b.hasUserGraded) {
-        return a.hasUserGraded ? 1 : -1;
-      }
-      // Then sort by grade count (fewer first)
-      return a.gradeCount - b.gradeCount;
-    });
-
-    // Calculate stats
     const stats = {
-      totalReviews: reviews.length,
-      reviewsWithNoGrades: reviews.filter((r) => r.grades.length === 0).length,
-      reviewsWithOneGrade: reviews.filter((r) => r.grades.length === 1).length,
-      reviewsComplete: reviews.filter((r) => r.grades.length >= 2).length,
-      userGradedCount: reviews.filter((r) =>
+      totalReviews: allReviews.length,
+      reviewsWithNoGrades: allReviews.filter((r) => r.grades.length === 0).length,
+      reviewsWithOneGrade: allReviews.filter((r) => r.grades.length === 1).length,
+      reviewsComplete: allReviews.filter((r) => r.grades.length >= 2).length,
+      userGradedCount: allReviews.filter((r) =>
         r.grades.some((g) => g.graderId === userId)
       ).length,
+      manuscriptsToGrade: manuscriptGroups.length,
     };
 
     return NextResponse.json({
-      reviews: reviewsNeedingGrades,
+      manuscripts: manuscriptGroups,
       stats,
     });
   } catch (error) {

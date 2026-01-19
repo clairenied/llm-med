@@ -50,6 +50,7 @@ export interface ExtractedReview {
   articleTitle: string | null; // e.g., "Reviewer response for version 1"
   subArticleId: string | null; // e.g., "report144207"
   doi: string | null; // Review-specific DOI if available
+  reviewedVersionNumber: number | null; // Which version this review was written for (1, 2, 3, etc.)
 }
 
 /**

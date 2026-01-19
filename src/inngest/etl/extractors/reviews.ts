@@ -58,16 +58,31 @@ export function extractReviews(xmlString: string): ExtractedReview[] {
       return;
     }
 
+    // Extract version number from articleTitle (e.g., "Reviewer response for version 2" -> 2)
+    const reviewedVersionNumber = articleTitle
+      ? extractVersionFromArticleTitle(articleTitle)
+      : null;
+
     reviews.push({
       reviewer,
       content,
       articleTitle,
       subArticleId,
       doi,
+      reviewedVersionNumber,
     });
   });
 
   return reviews;
+}
+
+/**
+ * Extract version number from review article title
+ * e.g., "Reviewer response for version 2" -> 2
+ */
+function extractVersionFromArticleTitle(articleTitle: string): number | null {
+  const match = articleTitle.match(/version\s+(\d+)/i);
+  return match ? parseInt(match[1], 10) : null;
 }
 
 /**

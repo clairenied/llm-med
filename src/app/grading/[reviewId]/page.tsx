@@ -10,6 +10,8 @@ interface ReviewData {
   id: string;
   content: string;
   reviewerName: string;
+  reviewType: string;
+  versionNumber: number;
   manuscript: {
     id: string;
     title: string;
@@ -239,25 +241,43 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
           </div>
         </div>
 
-        {/* Manuscript Title */}
+        {/* Manuscript and Version Context */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-medium rounded">
+                  Version {review.versionNumber}
+                </span>
+                <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                  review.reviewType === "INTERNAL"
+                    ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                }`}>
+                  {review.reviewType === "INTERNAL" ? "Internal" : "External"} Review
+                </span>
+              </div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {review.manuscript.title}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Reviewed by: {review.reviewerName}
+                Reviewer: {review.reviewerName}
               </p>
             </div>
             <Link
               href={`/manuscripts/${review.manuscript.id}`}
               target="_blank"
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
             >
-              View Manuscript
-              <span className="text-xs">↗</span>
+              <span>View Full Manuscript</span>
+              <span className="text-lg">↗</span>
             </Link>
+          </div>
+          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 rounded border border-blue-200 dark:border-blue-700">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Tip:</strong> The review may reference specific parts of the manuscript (e.g., &quot;First paragraph, second line&quot;).
+              Open the full manuscript to follow along.
+            </p>
           </div>
         </div>
 

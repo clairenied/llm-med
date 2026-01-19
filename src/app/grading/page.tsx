@@ -5,13 +5,27 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface ReviewToGrade {
+interface ReviewData {
   id: string;
-  manuscriptTitle: string;
   reviewerName: string;
+  reviewType: string;
   gradeCount: number;
   hasUserGraded: boolean;
   createdAt: string;
+}
+
+interface VersionData {
+  versionNumber: number;
+  reviews: ReviewData[];
+}
+
+interface ManuscriptGroup {
+  manuscriptId: string;
+  manuscriptTitle: string;
+  versions: VersionData[];
+  totalReviews: number;
+  ungradedByUser: number;
+  hasAiSummary: boolean;
 }
 
 interface GradingStats {
@@ -20,15 +34,17 @@ interface GradingStats {
   reviewsWithOneGrade: number;
   reviewsComplete: number;
   userGradedCount: number;
+  manuscriptsToGrade: number;
 }
 
 export default function GradingQueuePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [reviews, setReviews] = useState<ReviewToGrade[]>([]);
+  const [manuscripts, setManuscripts] = useState<ManuscriptGroup[]>([]);
   const [stats, setStats] = useState<GradingStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [expandedManuscripts, setExpandedManuscripts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -48,13 +64,29 @@ export default function GradingQueuePage() {
         throw new Error("Failed to fetch reviews");
       }
       const data = await response.json();
-      setReviews(data.reviews);
+      setManuscripts(data.manuscripts);
       setStats(data.stats);
+      // Auto-expand first manuscript
+      if (data.manuscripts.length > 0) {
+        setExpandedManuscripts(new Set([data.manuscripts[0].manuscriptId]));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load reviews");
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleManuscript = (manuscriptId: string) => {
+    setExpandedManuscripts((prev) => {
+      const next = new Set(prev);
+      if (next.has(manuscriptId)) {
+        next.delete(manuscriptId);
+      } else {
+        next.add(manuscriptId);
+      }
+      return next;
+    });
   };
 
   if (status === "loading" || loading) {
@@ -88,12 +120,13 @@ export default function GradingQueuePage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
             <StatCard label="Total Reviews" value={stats.totalReviews} />
             <StatCard label="Need 2 Graders" value={stats.reviewsWithNoGrades} color="red" />
             <StatCard label="Need 1 Grader" value={stats.reviewsWithOneGrade} color="yellow" />
             <StatCard label="Complete" value={stats.reviewsComplete} color="green" />
             <StatCard label="Your Grades" value={stats.userGradedCount} color="blue" />
+            <StatCard label="Papers to Review" value={stats.manuscriptsToGrade} color="purple" />
           </div>
         )}
 
@@ -103,54 +136,154 @@ export default function GradingQueuePage() {
           </div>
         )}
 
-        {/* Reviews List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Reviews Needing Grades
-            </h2>
-          </div>
+        {/* Instructions */}
+        <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to Grade</h3>
+          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <li>Papers are grouped with their reviews organized by version (v1, v2, etc.)</li>
+            <li>Grade reviews in version order to understand how the manuscript evolved</li>
+            <li>Click a paper to expand and see all reviews for all versions</li>
+            <li>Use &quot;View Manuscript&quot; to read the full paper content</li>
+          </ul>
+        </div>
 
-          {reviews.length === 0 ? (
-            <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+        {/* Manuscripts List */}
+        <div className="space-y-4">
+          {manuscripts.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow px-6 py-12 text-center text-gray-500 dark:text-gray-400">
               No reviews available for grading at this time.
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-              {reviews.map((review) => (
-                <li key={review.id} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {review.manuscriptTitle}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Reviewed by: {review.reviewerName}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <GradeStatus count={review.gradeCount} />
-                      {!review.hasUserGraded && (
-                        <Link
-                          href={`/grading/${review.id}`}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md transition-colors"
-                        >
-                          Grade
-                        </Link>
-                      )}
-                      {review.hasUserGraded && (
-                        <span className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-md">
-                          Graded
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            manuscripts.map((manuscript) => (
+              <ManuscriptCard
+                key={manuscript.manuscriptId}
+                manuscript={manuscript}
+                isExpanded={expandedManuscripts.has(manuscript.manuscriptId)}
+                onToggle={() => toggleManuscript(manuscript.manuscriptId)}
+              />
+            ))
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function ManuscriptCard({
+  manuscript,
+  isExpanded,
+  onToggle,
+}: {
+  manuscript: ManuscriptGroup;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      {/* Header - Clickable */}
+      <button
+        onClick={onToggle}
+        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3">
+            <span className="text-lg">{isExpanded ? "▼" : "▶"}</span>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                {manuscript.manuscriptTitle}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {manuscript.versions.length} version{manuscript.versions.length !== 1 ? "s" : ""} &middot;{" "}
+                {manuscript.totalReviews} review{manuscript.totalReviews !== 1 ? "s" : ""} to grade
+                {manuscript.ungradedByUser > 0 && (
+                  <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-medium">
+                    ({manuscript.ungradedByUser} new)
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {!manuscript.hasAiSummary && (
+            <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded">
+              No Summary
+            </span>
+          )}
+          <Link
+            href={`/manuscripts/${manuscript.manuscriptId}`}
+            target="_blank"
+            onClick={(e) => e.stopPropagation()}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+          >
+            View Manuscript ↗
+          </Link>
+        </div>
+      </button>
+
+      {/* Expanded Content */}
+      {isExpanded && (
+        <div className="border-t border-gray-200 dark:border-gray-700">
+          {manuscript.versions.map((version) => (
+            <div key={version.versionNumber} className="border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+              {/* Version Header */}
+              <div className="px-6 py-2 bg-gray-50 dark:bg-gray-700/50">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Version {version.versionNumber}
+                  <span className="ml-2 font-normal text-gray-500 dark:text-gray-400">
+                    ({version.reviews.length} review{version.reviews.length !== 1 ? "s" : ""})
+                  </span>
+                </h4>
+              </div>
+
+              {/* Reviews for this version */}
+              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                {version.reviews.map((review) => (
+                  <li key={review.id} className="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                            review.reviewType === "INTERNAL" ? "bg-purple-500" : "bg-gray-500"
+                          }`}
+                        >
+                          {review.reviewerName.charAt(0).toUpperCase()}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {review.reviewerName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {review.reviewType === "INTERNAL" ? "Internal" : "External"} Reviewer
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <GradeStatus count={review.gradeCount} />
+                        {!review.hasUserGraded ? (
+                          <Link
+                            href={`/grading/${review.id}`}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md transition-colors"
+                          >
+                            Grade
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/grading/${review.id}`}
+                            className="px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                          >
+                            Edit Grade
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -162,6 +295,7 @@ function StatCard({ label, value, color = "gray" }: { label: string; value: numb
     yellow: "bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-100",
     green: "bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
     blue: "bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100",
+    purple: "bg-purple-100 dark:bg-purple-900 text-purple-900 dark:text-purple-100",
   };
 
   return (

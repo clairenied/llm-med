@@ -76,7 +76,20 @@ export const f1000TransformArticle = inngest.createFunction(
       });
     });
 
-    // Step 6: Emit result event
+    // Step 6: Queue summary generation if manuscript was created
+    if (!result.skipped && result.manuscriptId) {
+      await step.run("queue-summary-generation", async () => {
+        await inngest.send({
+          name: "manuscript.summary.requested",
+          data: {
+            manuscriptId: result.manuscriptId,
+          },
+        });
+        console.log(`📝 Queued summary generation for manuscript: ${result.manuscriptId}`);
+      });
+    }
+
+    // Step 7: Emit result event
     await step.run("emit-result-event", async () => {
       if (result.skipped) {
         await inngest.send({
