@@ -181,7 +181,7 @@ function extractTextFromXml(xmlData: string): string {
   // For more sophisticated parsing, could use a proper XML parser
 
   // Remove XML declaration and processing instructions
-  let text = xmlData.replace(/<\?[^>]+\?>/g, "");
+  const text = xmlData.replace(/<\?[^>]+\?>/g, "");
 
   // Extract content from common text elements
   const sections: string[] = [];

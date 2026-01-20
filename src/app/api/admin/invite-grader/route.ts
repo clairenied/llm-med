@@ -130,9 +130,12 @@ export async function GET() {
       },
       select: {
         id: true,
+        firstName: true,
+        lastName: true,
         name: true,
         email: true,
         role: true,
+        emailVerified: true,
         createdAt: true,
         _count: {
           select: {
@@ -146,9 +149,12 @@ export async function GET() {
     return NextResponse.json({
       graders: graders.map((g) => ({
         id: g.id,
+        firstName: g.firstName,
+        lastName: g.lastName,
         name: g.name,
         email: g.email,
         role: g.role,
+        emailVerified: g.emailVerified?.toISOString() || null,
         gradeCount: g._count.reviewGrades,
         createdAt: g.createdAt.toISOString(),
       })),
