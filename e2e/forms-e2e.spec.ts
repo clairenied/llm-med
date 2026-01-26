@@ -260,10 +260,21 @@ test.describe("Form Submission Tests", () => {
       await page.goto(`/manuscripts/${createdManuscriptId}/versions/${createdVersionId}/reviews/new`);
       await page.waitForLoadState("networkidle");
 
+      // CRITICAL: Select a reviewer from the dropdown (this was the bug!)
+      const reviewerDropdown = page.getByLabel(/reviewer/i);
+      await expect(reviewerDropdown).toBeVisible();
+      
+      // Get first actual reviewer option (skip placeholder)
+      const reviewerOption = reviewerDropdown.locator("option").nth(1);
+      const reviewerValue = await reviewerOption.getAttribute("value");
+      expect(reviewerValue).toBeTruthy();
+      await reviewerDropdown.selectOption(reviewerValue!);
+
       // Fill review content (required)
-      const contentField = page.getByLabel(/content|review/i);
+      const contentField = page.getByLabel(/content/i);
+      const timestamp = Date.now();
       await contentField.fill(`
-        This is an E2E test review.
+        This is an E2E test review created at ${timestamp}.
         
         The manuscript is well-written and the methodology is sound.
         
@@ -277,13 +288,37 @@ test.describe("Form Submission Tests", () => {
       }
 
       // Submit
-      await page.getByRole("button", { name: /create|submit|save/i }).click();
+      await page.getByRole("button", { name: /create.*review/i }).click();
 
       // Wait for redirect
       await page.waitForURL(/\/manuscripts\/[a-zA-Z0-9]+$/);
 
-      // Verify review was created
-      await expect(page.getByText(/review/i)).toBeVisible();
+      // Verify review was ACTUALLY created - check for specific content
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByText(new RegExp(`E2E test review created at ${timestamp}`))).toBeVisible();
+    });
+
+    test("review form validates required reviewer selection", async ({ page, loginAs }) => {
+      test.skip(!createdManuscriptId || !createdVersionId, "No manuscript/version created");
+
+      await loginAs("admin");
+      await page.goto(`/manuscripts/${createdManuscriptId}/versions/${createdVersionId}/reviews/new`);
+      await page.waitForLoadState("networkidle");
+
+      // Fill content but DON'T select reviewer
+      const contentField = page.getByLabel(/content/i);
+      await contentField.fill("Test review without selecting reviewer");
+
+      // Try to submit
+      await page.getByRole("button", { name: /create.*review/i }).click();
+
+      // Should stay on form
+      await page.waitForTimeout(500);
+      expect(page.url()).toContain("/reviews/new");
+
+      // Should show validation error
+      const errorMessage = page.getByText(/select.*reviewer|reviewer.*required/i);
+      await expect(errorMessage).toBeVisible();
     });
   });
 

@@ -239,30 +239,112 @@ test.describe("Versions CRUD Operations", () => {
 
 test.describe("Reviews CRUD Operations", () => {
   test.describe("Create Review", () => {
-    test("can access new review form", async ({ page, loginAs }) => {
-      await loginAs("author");
+    test("can create a review with reviewer selection", async ({ page, loginAs }) => {
+      await loginAs("admin");
 
       await page.goto("/");
       await page.waitForLoadState("networkidle");
 
-      // Navigate to manuscript -> version -> new review
+      // Navigate to manuscript
       const manuscriptLink = page
         .locator("a[href*='/manuscripts/']")
         .filter({ hasNot: page.locator("[href*='/new']") })
+        .filter({ hasNot: page.locator("[href*='/upload']") })
         .first();
 
-      if (await manuscriptLink.isVisible()) {
-        await manuscriptLink.click();
-        await page.waitForLoadState("networkidle");
-
-        const addReviewLink = page.getByRole("link", { name: /add.*review|new.*review/i });
-        if (await addReviewLink.isVisible()) {
-          await addReviewLink.click();
-          await page.waitForLoadState("networkidle");
-
-          expect(page.url()).toContain("/reviews/new");
-        }
+      if (!(await manuscriptLink.isVisible())) {
+        test.skip(true, "No manuscripts available");
+        return;
       }
+
+      await manuscriptLink.click();
+      await page.waitForLoadState("networkidle");
+
+      const addReviewLink = page.getByRole("link", { name: /add.*review|new.*review/i });
+      if (!(await addReviewLink.isVisible())) {
+        test.skip(true, "No add review link");
+        return;
+      }
+
+      await addReviewLink.click();
+      await page.waitForLoadState("networkidle");
+
+      expect(page.url()).toContain("/reviews/new");
+
+      // CRITICAL: Select a reviewer from dropdown
+      const reviewerDropdown = page.getByLabel(/reviewer/i);
+      await expect(reviewerDropdown).toBeVisible();
+      
+      // Select the first real reviewer option (not placeholder)
+      const reviewerOption = reviewerDropdown.locator("option").nth(1);
+      const reviewerValue = await reviewerOption.getAttribute("value");
+      if (reviewerValue) {
+        await reviewerDropdown.selectOption(reviewerValue);
+      }
+
+      // Fill review content (required)
+      const contentField = page.getByLabel(/content/i);
+      await expect(contentField).toBeVisible();
+      const timestamp = Date.now();
+      await contentField.fill(`Test review created at ${timestamp}. The methodology is sound.`);
+
+      // Submit
+      const submitButton = page.getByRole("button", { name: /create.*review/i });
+      await submitButton.click();
+
+      // Should redirect to manuscript page
+      await page.waitForURL(/\/manuscripts\/[a-zA-Z0-9]+$/);
+      expect(page.url()).not.toContain("/reviews/new");
+
+      // Verify review was created - content should appear
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByText(new RegExp(`Test review created at ${timestamp}`))).toBeVisible();
+    });
+
+    test("review form requires reviewer selection", async ({ page, loginAs }) => {
+      await loginAs("admin");
+
+      await page.goto("/");
+      await page.waitForLoadState("networkidle");
+
+      const manuscriptLink = page
+        .locator("a[href*='/manuscripts/']")
+        .filter({ hasNot: page.locator("[href*='/new']") })
+        .filter({ hasNot: page.locator("[href*='/upload']") })
+        .first();
+
+      if (!(await manuscriptLink.isVisible())) {
+        test.skip(true, "No manuscripts available");
+        return;
+      }
+
+      await manuscriptLink.click();
+      await page.waitForLoadState("networkidle");
+
+      const addReviewLink = page.getByRole("link", { name: /add.*review/i });
+      if (!(await addReviewLink.isVisible())) {
+        test.skip(true, "No add review link");
+        return;
+      }
+
+      await addReviewLink.click();
+      await page.waitForLoadState("networkidle");
+
+      // Fill content but DO NOT select reviewer
+      const contentField = page.getByLabel(/content/i);
+      await contentField.fill("Test content without reviewer");
+
+      // Try to submit
+      const submitButton = page.getByRole("button", { name: /create.*review/i });
+      await submitButton.click();
+
+      // Should stay on form with validation error
+      await page.waitForTimeout(500);
+      expect(page.url()).toContain("/reviews/new");
+
+      // Should show error about missing reviewer
+      const errorText = page.getByText(/select.*reviewer|reviewer.*required|please select/i);
+      await expect(errorText).toBeVisible();
     });
   });
 
@@ -282,9 +364,9 @@ test.describe("Reviews CRUD Operations", () => {
         await manuscriptLink.click();
         await page.waitForLoadState("networkidle");
 
-        // Should show reviews section or reviewer names
+        // Should show reviews section
         const reviewSection = page.getByText(/review/i).first();
-        const hasReviews = await reviewSection.isVisible().catch(() => false);
+        await expect(reviewSection).toBeVisible();
       }
     });
   });

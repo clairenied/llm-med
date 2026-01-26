@@ -35,6 +35,19 @@ export async function GET() {
 
     const userId = session.user.id;
 
+    // Verify user has grader or admin role
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (!user || !["GRADER", "ADMIN"].includes(user.role)) {
+      return NextResponse.json(
+        { error: "Grader access required" },
+        { status: 403 }
+      );
+    }
+
     // Get all manuscripts with their versions and reviews, grouped properly
     const manuscripts = await prisma.manuscript.findMany({
       include: {
