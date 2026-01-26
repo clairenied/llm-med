@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
+interface Reviewer {
+  id: string;
+  name: string;
+  email?: string;
+  affiliation?: string;
+}
+
 interface ReviewFormData {
+  reviewerId: string;
   reviewType: "INTERNAL" | "EXTERNAL";
   content: string;
   documentUrl?: string;
@@ -31,7 +39,10 @@ export default function NewReviewPage() {
   const manuscriptId = params.id as string;
   const versionId = params.versionId as string;
 
+  const [reviewers, setReviewers] = useState<Reviewer[]>([]);
+  const [loadingReviewers, setLoadingReviewers] = useState(true);
   const [formData, setFormData] = useState<ReviewFormData>({
+    reviewerId: "",
     reviewType: "EXTERNAL",
     content: "",
     documentUrl: "",
@@ -41,12 +52,34 @@ export default function NewReviewPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
+  // Fetch reviewers on mount
+  useEffect(() => {
+    async function fetchReviewers() {
+      try {
+        const response = await fetch("/api/reviewers");
+        if (response.ok) {
+          const data = await response.json();
+          setReviewers(data);
+        }
+      } catch (error) {
+        console.error("Error fetching reviewers:", error);
+      } finally {
+        setLoadingReviewers(false);
+      }
+    }
+
+    fetchReviewers();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: Record<string, string> = {};
     if (!session?.user?.id) {
       newErrors.session = "You must be logged in to create a review";
+    }
+    if (!formData.reviewerId) {
+      newErrors.reviewerId = "Please select a reviewer";
     }
     if (!formData.content.trim()) {
       newErrors.content = "Review content is required";
@@ -66,7 +99,6 @@ export default function NewReviewPage() {
           body: JSON.stringify({
             ...formData,
             versionId,
-            reviewerId: session!.user!.id,
           }),
         });
 
@@ -89,8 +121,8 @@ export default function NewReviewPage() {
     field: keyof ReviewFormData,
     value: string | undefined,
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
+    setFormData((prev) => ({ ...prev, [field]: value || "" }));
+    // Clear error when user makes a selection or starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
@@ -142,14 +174,39 @@ export default function NewReviewPage() {
               </div>
             )}
 
-            {/* Current Reviewer Info */}
+            {/* Reviewer Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Reviewer
+              <label
+                htmlFor="reviewerId"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Reviewer *
               </label>
-              <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700">
-                {session?.user?.name || session?.user?.email || "Current User"}
-              </div>
+              {loadingReviewers ? (
+                <div className="px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500">
+                  Loading reviewers...
+                </div>
+              ) : (
+                <select
+                  id="reviewerId"
+                  value={formData.reviewerId}
+                  onChange={(e) => handleChange("reviewerId", e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.reviewerId ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
+                  <option value="">Select a reviewer</option>
+                  {reviewers.map((reviewer) => (
+                    <option key={reviewer.id} value={reviewer.id}>
+                      {reviewer.name}
+                      {reviewer.affiliation && ` - ${reviewer.affiliation}`}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {errors.reviewerId && (
+                <p className="text-red-500 text-sm mt-1">{errors.reviewerId}</p>
+              )}
             </div>
 
             {/* Review Type */}

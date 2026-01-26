@@ -94,13 +94,13 @@ async function main() {
     },
   });
 
-  // Create version 1
+  // Create version 1 - Initial submission
   const version1 = await prisma.manuscriptVersion.create({
     data: {
       versionNumber: 1,
       manuscriptId: manuscript.id,
-      documentType: "WORD",
-      documentUrl: "/documents/manuscript-v1.docx",
+      documentType: "TEXT",
+      documentUrl: "/test-documents/sample-manuscript-v1.txt",
       notes: "Initial submission",
     },
   });
@@ -113,8 +113,8 @@ async function main() {
       reviewType: "EXTERNAL",
       content:
         "The methodology is sound but requires more detailed statistical analysis. The results section needs expansion with additional validation studies.",
-      documentType: "PDF",
-      documentUrl: "/reviews/review-a-v1.pdf",
+      documentType: "TEXT",
+      documentUrl: "/test-documents/sample-review-external.txt",
     },
   });
 
@@ -125,16 +125,18 @@ async function main() {
       reviewType: "INTERNAL",
       content:
         "Strong technical contribution. Suggest minor revisions to the introduction and discussion sections.",
+      documentType: "TEXT",
+      documentUrl: "/test-documents/sample-review-internal.txt",
     },
   });
 
-  // Create version 2
+  // Create version 2 - Revised submission
   const version2 = await prisma.manuscriptVersion.create({
     data: {
       versionNumber: 2,
       manuscriptId: manuscript.id,
-      documentType: "PDF",
-      documentUrl: "/documents/manuscript-v2.pdf",
+      documentType: "TEXT",
+      documentUrl: "/test-documents/sample-manuscript-v2.txt",
       notes: "Revised based on reviewer feedback",
     },
   });
@@ -147,7 +149,8 @@ async function main() {
       reviewType: "EXTERNAL",
       content:
         "Significant improvements made. The statistical analysis is now comprehensive. Ready for publication pending minor formatting changes.",
-      documentType: "TEXT",
+      documentType: "PDF",
+      documentUrl: "/test-documents/sample-review.pdf",
     },
   });
 

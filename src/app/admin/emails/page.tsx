@@ -198,10 +198,22 @@ function EmailManagementContent() {
 
   const handleSelectAllUsers = () => {
     const filteredUsers = roleFilter === "ALL" ? users : users.filter((u) => u.role === roleFilter);
-    if (selectedUserIds.size === filteredUsers.length) {
-      setSelectedUserIds(new Set());
+    // Check if ALL filtered users are currently selected (not just count comparison)
+    const allFilteredSelected = filteredUsers.every((u) => selectedUserIds.has(u.id));
+    if (allFilteredSelected && filteredUsers.length > 0) {
+      // Deselect only the filtered users, keep others selected
+      setSelectedUserIds((prev) => {
+        const newSet = new Set(prev);
+        filteredUsers.forEach((u) => newSet.delete(u.id));
+        return newSet;
+      });
     } else {
-      setSelectedUserIds(new Set(filteredUsers.map((u) => u.id)));
+      // Add all filtered users to selection (keep existing selections from other filters)
+      setSelectedUserIds((prev) => {
+        const newSet = new Set(prev);
+        filteredUsers.forEach((u) => newSet.add(u.id));
+        return newSet;
+      });
     }
   };
 

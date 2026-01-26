@@ -84,6 +84,20 @@ async function main() {
         });
       }
 
+      // Check if this review already exists (prevent duplicates on re-run)
+      const existingReview = await prisma.review.findFirst({
+        where: {
+          versionId,
+          reviewerId: reviewer.id,
+          reviewedVersionNumber: review.reviewedVersionNumber,
+        },
+      });
+
+      if (existingReview) {
+        // Review already exists, skip
+        continue;
+      }
+
       // Create review with version tracking
       await prisma.review.create({
         data: {

@@ -1,0 +1,41 @@
+# Internal Review Report
+
+## Manuscript: Novel Approaches to Machine Learning in Medical Diagnosis
+
+### Review Type: Internal Review (Reviewer to Author)
+
+---
+
+## Summary
+
+Strong technical contribution with innovative methodology. The paper makes a valuable addition to the field of medical AI.
+
+## Strengths
+
+1. **Novel Architecture**: The attention-based modifications to ResNet-50 are well-motivated and effective
+2. **Large Dataset**: The multi-center data collection strengthens generalizability claims
+3. **Clear Presentation**: Methods are described with sufficient detail for reproduction
+
+## Suggestions for Improvement
+
+### Introduction
+- Consider adding discussion of recent transformer-based approaches
+- The motivation for choosing ResNet-50 over alternatives could be expanded
+
+### Discussion
+- Address potential deployment challenges in clinical settings
+- Discuss computational requirements and inference time
+
+### Minor Revisions
+- Check consistency of terminology (e.g., "accuracy" vs "classification accuracy")
+- Update reference 5 to include DOI
+- Proofread Section 3.2 for minor grammatical issues
+
+## Conclusion
+
+This is a solid contribution that will be ready for publication after minor revisions. The core methodology and results are sound.
+
+---
+
+Reviewer: Internal Editorial Board
+Date: January 2026

@@ -160,3 +160,10 @@ postgres_data/*
 !*test*.test.*
 production_backup.sql
 dev.log
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/e2e/.auth/*.json
