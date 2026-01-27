@@ -1,11 +1,22 @@
 import OpenAI from "openai";
 import { prisma } from "@/lib/prisma";
 
-// DeepSeek uses OpenAI-compatible API
-const deepseek = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: "https://api.deepseek.com",
-});
+// Lazy-loaded DeepSeek client to avoid initialization errors when API key is missing
+let deepseekClient: OpenAI | null = null;
+
+function getDeepSeekClient(): OpenAI {
+  if (!deepseekClient) {
+    const apiKey = process.env.DEEPSEEK_API_KEY;
+    if (!apiKey) {
+      throw new Error("DEEPSEEK_API_KEY environment variable is not configured");
+    }
+    deepseekClient = new OpenAI({
+      apiKey,
+      baseURL: "https://api.deepseek.com",
+    });
+  }
+  return deepseekClient;
+}
 
 const SUMMARY_SYSTEM_PROMPT = `You are an expert scientific summarizer assisting peer review.
 
@@ -136,6 +147,7 @@ export async function generateManuscriptSummary(
     // Call DeepSeek API
     console.log(`🤖 Generating summary for manuscript: ${manuscript.title.substring(0, 50)}...`);
 
+    const deepseek = getDeepSeekClient();
     const completion = await deepseek.chat.completions.create({
       model: "deepseek-chat",
       messages: [

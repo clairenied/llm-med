@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -69,15 +69,20 @@ const GRADING_DOMAINS = [
 
 export default function GradingFormPage({ params }: { params: Promise<{ reviewId: string }> }) {
   const { reviewId } = use(params);
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   const [review, setReview] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  // Refs to prevent duplicate API calls
+  const summaryGenerationInProgress = useRef(false);
+  const fetchedReviewId = useRef<string | null>(null);
 
   const [grades, setGrades] = useState<Record<string, string>>({
     clinicalRelevance: "",
@@ -88,22 +93,56 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
   });
   const [notes, setNotes] = useState("");
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
+  // Memoized summary generation to prevent duplicate calls
+  const generateSummary = useCallback(async (manuscriptId: string) => {
+    // Prevent duplicate calls
+    if (summaryGenerationInProgress.current) {
       return;
     }
 
-    if (status === "authenticated" && reviewId) {
-      fetchReview();
-    }
-  }, [status, reviewId, router]);
+    summaryGenerationInProgress.current = true;
+    setSummaryLoading(true);
+    setSummaryError("");
 
-  const fetchReview = async () => {
+    try {
+      const response = await fetch(`/api/summaries/${manuscriptId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setReview((prev) =>
+          prev
+            ? {
+                ...prev,
+                manuscript: { ...prev.manuscript, aiSummary: data.summary },
+              }
+            : null
+        );
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setSummaryError(errorData.error || "Failed to generate summary");
+      }
+    } catch (err) {
+      console.error("Failed to generate summary:", err);
+      setSummaryError("Failed to connect to summary service");
+    } finally {
+      setSummaryLoading(false);
+      summaryGenerationInProgress.current = false;
+    }
+  }, []);
+
+  // Memoized review fetcher
+  const fetchReview = useCallback(async () => {
+    // Prevent refetching the same review
+    if (fetchedReviewId.current === reviewId) {
+      return;
+    }
+
+    fetchedReviewId.current = reviewId;
+
     try {
       const response = await fetch(`/api/grading/${reviewId}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch review");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to fetch review");
       }
       const data = await response.json();
       setReview(data.review);
@@ -121,38 +160,28 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
         setNotes(existing.notes || "");
       }
 
-      // If no AI summary, generate one
+      // If no AI summary, generate one (but don't block the page)
       if (!data.review.manuscript.aiSummary) {
         generateSummary(data.review.manuscript.id);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load review");
+      fetchedReviewId.current = null; // Allow retry on error
     } finally {
       setLoading(false);
     }
-  };
+  }, [reviewId, generateSummary]);
 
-  const generateSummary = async (manuscriptId: string) => {
-    setSummaryLoading(true);
-    try {
-      const response = await fetch(`/api/summaries/${manuscriptId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setReview((prev) =>
-          prev
-            ? {
-                ...prev,
-                manuscript: { ...prev.manuscript, aiSummary: data.summary },
-              }
-            : null
-        );
-      }
-    } catch (err) {
-      console.error("Failed to generate summary:", err);
-    } finally {
-      setSummaryLoading(false);
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+      return;
     }
-  };
+
+    if (status === "authenticated" && reviewId) {
+      fetchReview();
+    }
+  }, [status, reviewId, router, fetchReview]);
 
   const handleGradeChange = (domain: string, value: string) => {
     setGrades((prev) => ({ ...prev, [domain]: value }));
@@ -306,10 +335,36 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
               </div>
               <div className="p-4 max-h-96 overflow-y-auto">
                 {summaryLoading ? (
-                  <div className="flex items-center justify-center py-8">
+                  <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     <div className="text-gray-500 dark:text-gray-400">
-                      Generating summary...
+                      Generating AI summary...
                     </div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+                      This may take 10-30 seconds. You can start reading the review below.
+                    </p>
+                  </div>
+                ) : summaryError ? (
+                  <div className="py-4">
+                    <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-3 mb-3">
+                      <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                        Summary generation failed: {summaryError}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => review && generateSummary(review.manuscript.id)}
+                      className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 font-medium"
+                    >
+                      Try again
+                    </button>
+                    {review.manuscript.abstract && (
+                      <div className="mt-3 text-gray-500 dark:text-gray-400">
+                        <p className="text-xs font-medium mb-1">Abstract (fallback):</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          {review.manuscript.abstract}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ) : review.manuscript.aiSummary ? (
                   <div className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">

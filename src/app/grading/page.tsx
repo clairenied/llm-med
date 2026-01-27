@@ -39,7 +39,7 @@ interface GradingStats {
 }
 
 export default function GradingQueuePage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [manuscripts, setManuscripts] = useState<ManuscriptGroup[]>([]);
   const [stats, setStats] = useState<GradingStats | null>(null);

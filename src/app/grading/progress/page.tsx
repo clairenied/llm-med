@@ -30,7 +30,7 @@ interface RecentActivity {
 }
 
 export default function ProgressReportPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const [overall, setOverall] = useState<OverallStats | null>(null);
   const [graderStats, setGraderStats] = useState<GraderStat[]>([]);
