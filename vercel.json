@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "prisma migrate deploy && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "env": {
