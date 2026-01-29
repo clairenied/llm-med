@@ -158,6 +158,7 @@ postgres_data/*
 *test*.ts
 !*test*.spec.*
 !*test*.test.*
+!vitest.config.ts
 production_backup.sql
 dev.log
 
