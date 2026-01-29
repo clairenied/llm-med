@@ -38,11 +38,23 @@ interface GradingStats {
   manuscriptsToGrade: number;
 }
 
+interface PaginationData {
+  page: number;
+  limit: number;
+  totalManuscripts: number;
+  totalPages: number;
+}
+
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
+
 export default function GradingQueuePage() {
   const { status } = useSession();
   const router = useRouter();
   const [manuscripts, setManuscripts] = useState<ManuscriptGroup[]>([]);
   const [stats, setStats] = useState<GradingStats | null>(null);
+  const [pagination, setPagination] = useState<PaginationData | null>(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [expandedManuscripts, setExpandedManuscripts] = useState<Set<string>>(new Set());
@@ -56,17 +68,19 @@ export default function GradingQueuePage() {
     if (status === "authenticated") {
       fetchReviews();
     }
-  }, [status, router]);
+  }, [status, router, page, limit]);
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch("/api/grading/queue");
+      setLoading(true);
+      const response = await fetch(`/api/grading/queue?page=${page}&limit=${limit}`);
       if (!response.ok) {
         throw new Error("Failed to fetch reviews");
       }
       const data = await response.json();
       setManuscripts(data.manuscripts);
       setStats(data.stats);
+      setPagination(data.pagination);
       // Auto-expand first manuscript
       if (data.manuscripts.length > 0) {
         setExpandedManuscripts(new Set([data.manuscripts[0].manuscriptId]));
@@ -76,6 +90,18 @@ export default function GradingQueuePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    setExpandedManuscripts(new Set());
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    setExpandedManuscripts(new Set());
   };
 
   const toggleManuscript = (manuscriptId: string) => {
@@ -148,6 +174,29 @@ export default function GradingQueuePage() {
           </ul>
         </div>
 
+        {/* Pagination Controls - Top */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Show:</span>
+              <select
+                value={limit}
+                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size} per page
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {((page - 1) * limit) + 1}-{Math.min(page * limit, pagination.totalManuscripts)} of {pagination.totalManuscripts} papers
+            </div>
+          </div>
+        )}
+
         {/* Manuscripts List */}
         <div className="space-y-4">
           {manuscripts.length === 0 ? (
@@ -165,6 +214,47 @@ export default function GradingQueuePage() {
             ))
           )}
         </div>
+
+        {/* Pagination Controls - Bottom */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-2">
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === pagination.totalPages || Math.abs(p - page) <= 2)
+                .map((p, idx, arr) => (
+                  <span key={p} className="flex items-center gap-2">
+                    {idx > 0 && arr[idx - 1] !== p - 1 && (
+                      <span className="text-gray-400">...</span>
+                    )}
+                    <button
+                      onClick={() => handlePageChange(p)}
+                      className={`w-10 h-10 rounded-md font-medium transition-colors ${
+                        p === page
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  </span>
+                ))}
+            </div>
+            <button
+              onClick={() => handlePageChange(page + 1)}
+              disabled={page === pagination.totalPages}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

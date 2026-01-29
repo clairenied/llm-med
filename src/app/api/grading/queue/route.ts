@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -26,7 +26,7 @@ interface ManuscriptGroup {
   hasAiSummary: boolean;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -34,6 +34,11 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+
+    // Parse pagination params
+    const searchParams = request.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
 
     // Verify user has grader or admin role
     const user = await prisma.user.findUnique({
@@ -153,6 +158,12 @@ export async function GET() {
     // Sort: prioritize manuscripts with more ungraded reviews by user
     manuscriptGroups.sort((a, b) => b.ungradedByUser - a.ungradedByUser);
 
+    // Apply pagination
+    const totalManuscripts = manuscriptGroups.length;
+    const totalPages = Math.ceil(totalManuscripts / limit);
+    const startIndex = (page - 1) * limit;
+    const paginatedManuscripts = manuscriptGroups.slice(startIndex, startIndex + limit);
+
     // Calculate overall stats
     const allReviews = await prisma.review.findMany({
       include: {
@@ -172,12 +183,18 @@ export async function GET() {
       userGradedCount: allReviews.filter((r) =>
         r.grades.some((g) => g.graderId === userId)
       ).length,
-      manuscriptsToGrade: manuscriptGroups.length,
+      manuscriptsToGrade: totalManuscripts,
     };
 
     return NextResponse.json({
-      manuscripts: manuscriptGroups,
+      manuscripts: paginatedManuscripts,
       stats,
+      pagination: {
+        page,
+        limit,
+        totalManuscripts,
+        totalPages,
+      },
     });
   } catch (error) {
     console.error("Grading queue error:", error);
