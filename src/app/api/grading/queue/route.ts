@@ -155,8 +155,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort: prioritize manuscripts with more ungraded reviews by user
-    manuscriptGroups.sort((a, b) => b.ungradedByUser - a.ungradedByUser);
+    // Sort: prioritize manuscripts with more total reviews, then by title for stability
+    // Using totalReviews (not ungradedByUser) ensures order doesn't shift as user grades
+    manuscriptGroups.sort((a, b) => {
+      if (b.totalReviews !== a.totalReviews) {
+        return b.totalReviews - a.totalReviews;
+      }
+      // Secondary sort by title for consistency
+      return a.manuscriptTitle.localeCompare(b.manuscriptTitle);
+    });
 
     // Apply pagination
     const totalManuscripts = manuscriptGroups.length;
