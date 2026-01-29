@@ -270,17 +270,21 @@ function ManuscriptCard({
   onToggle: () => void;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border-l-4 ${
+      manuscript.ungradedByUser > 0 ? "border-l-emerald-500" : "border-l-gray-300 dark:border-l-gray-600"
+    }`}>
       {/* Header - Clickable */}
       <button
         onClick={onToggle}
-        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors group"
       >
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-center gap-3">
-            <span className="text-lg">{isExpanded ? "▼" : "▶"}</span>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+            <span className={`text-lg flex-shrink-0 transition-colors ${
+              isExpanded ? "text-emerald-600" : "text-gray-400 group-hover:text-emerald-600"
+            }`}>{isExpanded ? "▼" : "▶"}</span>
+            <div className="min-w-0">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                 {manuscript.manuscriptTitle}
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -295,9 +299,9 @@ function ManuscriptCard({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4 flex-shrink-0 ml-4">
           {!manuscript.hasAiSummary && (
-            <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded">
+            <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 rounded whitespace-nowrap">
               No Summary
             </span>
           )}
@@ -307,20 +311,27 @@ function ManuscriptCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center gap-1 whitespace-nowrap"
             >
-              View Manuscript ↗
+              View manuscript ↗
             </a>
           ) : (
             <Link
               href={`/manuscripts/${manuscript.manuscriptId}`}
               target="_blank"
               onClick={(e) => e.stopPropagation()}
-              className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-1"
+              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center gap-1 whitespace-nowrap"
             >
-              View Internal ↗
+              View internal ↗
             </Link>
           )}
+          <span className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+            isExpanded
+              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+              : "bg-emerald-600 text-white group-hover:bg-emerald-700"
+          }`}>
+            {isExpanded ? "Grading..." : "Grade Reviews"}
+          </span>
         </div>
       </button>
 
