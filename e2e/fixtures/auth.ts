@@ -1,5 +1,6 @@
 import { test as base, expect } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Page, Response } from "@playwright/test";
+export type { Page, Response };
 
 // Test user credentials (must exist in database or be created by global setup)
 export const TEST_USERS = {

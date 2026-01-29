@@ -1,4 +1,4 @@
-import { test, expect, Page } from "./fixtures/auth";
+import { test, expect, Page, Response } from "./fixtures/auth";
 
 /**
  * STRICT Form Submission Tests
@@ -20,14 +20,14 @@ async function waitForApiSuccess(
   method: string = "POST"
 ): Promise<{ ok: boolean; status: number; body: unknown }> {
   const responsePromise = page.waitForResponse(
-    (response) =>
+    (response: Response) =>
       (typeof urlPattern === "string"
         ? response.url().includes(urlPattern)
         : urlPattern.test(response.url())) &&
       response.request().method() === method
   );
 
-  return responsePromise.then(async (response) => {
+  return responsePromise.then(async (response: Response) => {
     const body = await response.json().catch(() => null);
     return {
       ok: response.ok(),
