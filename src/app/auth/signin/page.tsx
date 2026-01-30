@@ -24,7 +24,13 @@ function SignInForm() {
   useEffect(() => {
     if (status === "loading") return;
     if (session) {
-      router.push(callbackUrl);
+      // If grader with no specific callback, redirect to grading page
+      const isDefaultCallback = callbackUrl === "/" || callbackUrl === "";
+      if (isDefaultCallback && session.user?.role === "GRADER") {
+        router.push("/grading");
+      } else {
+        router.push(callbackUrl);
+      }
     }
   }, [session, status, router, callbackUrl]);
 

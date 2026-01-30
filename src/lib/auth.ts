@@ -62,6 +62,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.role = user.role;
       }
+      // Always ensure role is set - fetch from DB if missing
+      if (!token.role && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        if (dbUser) {
+          token.role = dbUser.role;
+        }
+      }
       return token;
     },
     async session({ session, token }) {
@@ -73,6 +83,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async signIn() {
       return true;
+    },
+    async redirect({ url, baseUrl }) {
+      // If the callback URL is the home page and user is a grader, redirect to grading
+      // This is checked in the jwt callback via token, but we need to handle it here too
+      // For now, we'll rely on the client-side redirect logic
+      // Always allow relative URLs or URLs on the same origin
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl;
     },
   },
   pages: {

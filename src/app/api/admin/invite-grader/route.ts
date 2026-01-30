@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
 
     // Send invitation email using template
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
-    const signinUrl = `${baseUrl}/auth/signin`;
+    // Include callbackUrl so graders are redirected to grading page after sign-in
+    const signinUrl = `${baseUrl}/auth/signin?callbackUrl=/grading`;
 
     // Get default invitation template from database
     let template = await prisma.emailTemplate.findFirst({

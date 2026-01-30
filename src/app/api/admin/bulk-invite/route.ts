@@ -120,7 +120,8 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
-    const signinUrl = `${baseUrl}/auth/signin`;
+    // Include callbackUrl so graders are redirected to grading page after sign-in
+    const signinUrl = `${baseUrl}/auth/signin?callbackUrl=/grading`;
 
     const results: InviteResult[] = [];
 
