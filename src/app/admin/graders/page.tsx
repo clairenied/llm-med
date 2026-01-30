@@ -283,8 +283,12 @@ export default function ManageGradersPage() {
     }
   };
 
-  const handleDelete = async (graderId: string, email: string) => {
-    if (!confirm(`Are you sure you want to delete ${email}?`)) {
+  const handleDelete = async (graderId: string, email: string, gradeCount: number) => {
+    const gradeWarning = gradeCount > 0
+      ? `\n\nWARNING: This will also delete ${gradeCount} grade${gradeCount !== 1 ? "s" : ""} submitted by this user!`
+      : "";
+
+    if (!confirm(`Are you sure you want to delete ${email}?${gradeWarning}`)) {
       return;
     }
 
@@ -835,7 +839,7 @@ export default function ManageGradersPage() {
                             </button>
                             {grader.id !== session?.user?.id && (
                               <button
-                                onClick={() => handleDelete(grader.id, grader.email)}
+                                onClick={() => handleDelete(grader.id, grader.email, grader.gradeCount)}
                                 className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
                               >
                                 Delete
