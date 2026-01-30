@@ -53,6 +53,7 @@ export default function ManageGradersPage() {
   const [inviteRows, setInviteRows] = useState<InviteRow[]>([emptyRow()]);
   const [inviteRole, setInviteRole] = useState("GRADER");
   const [inviteTemplateId, setInviteTemplateId] = useState("");
+  const [inviteCcEmails, setInviteCcEmails] = useState("");
   const [inviting, setInviting] = useState(false);
   const [inviteResults, setInviteResults] = useState<InviteResult[]>([]);
 
@@ -175,6 +176,7 @@ export default function ManageGradersPage() {
           invites: validInviteRows,
           role: inviteRole,
           templateId: inviteTemplateId || undefined,
+          ccEmails: inviteCcEmails || undefined,
         }),
       });
 
@@ -538,6 +540,19 @@ export default function ManageGradersPage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  CC Emails (optional, comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={inviteCcEmails}
+                  onChange={(e) => setInviteCcEmails(e.target.value)}
+                  placeholder="e.g. admin@example.com, team@example.com"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+                />
               </div>
 
               <div className="flex items-center justify-between">

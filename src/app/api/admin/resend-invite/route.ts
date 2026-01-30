@@ -10,6 +10,7 @@ import { processEmailTemplate } from "@/lib/email-templates";
  * Request body:
  * - userId: string (required)
  * - templateId?: string (optional, uses default if not provided)
+ * - ccEmails?: string (comma-separated list of CC emails)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +30,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userId, templateId } = body;
+    const { userId, templateId, ccEmails: ccEmailsRaw } = body;
+
+    // Parse CC emails (comma-separated string to array)
+    const ccEmails = ccEmailsRaw
+      ? ccEmailsRaw.split(",").map((e: string) => e.trim()).filter((e: string) => e && e.includes("@"))
+      : undefined;
 
     if (!userId) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -99,6 +105,7 @@ export async function POST(request: NextRequest) {
       to: user.email,
       subject,
       html: htmlBody,
+      cc: ccEmails,
     });
 
     return NextResponse.json({

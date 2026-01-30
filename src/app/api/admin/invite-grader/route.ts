@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { processEmailTemplate } from "@/lib/email-templates";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +22,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, name } = body;
+    const { email, name, ccEmails: ccEmailsRaw } = body;
+
+    // Parse CC emails (comma-separated string to array)
+    const ccEmails = ccEmailsRaw
+      ? ccEmailsRaw.split(",").map((e: string) => e.trim()).filter((e: string) => e && e.includes("@"))
+      : undefined;
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -61,35 +67,42 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send invitation email
+    // Send invitation email using template
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
     const signinUrl = `${baseUrl}/auth/signin`;
 
-    try {
-      await sendEmail({
-        to: email,
-        subject: "Invitation to Grade Peer Reviews - LLM Med Research",
-        html: `
-          <h2>You've been invited to help grade peer reviews!</h2>
-          <p>Hi${name ? ` ${name}` : ""},</p>
-          <p>You've been invited to participate in a research project to evaluate peer reviews of urology manuscripts.</p>
-          <p>Your task will be to grade existing peer reviews across five domains:</p>
-          <ul>
-            <li>Clinical Relevance</li>
-            <li>Methodology</li>
-            <li>Results</li>
-            <li>Writing Clarity</li>
-            <li>Ethical Considerations</li>
-          </ul>
-          <p>Each review takes about 5-10 minutes to grade. You can complete them at your own pace.</p>
-          <p><a href="${signinUrl}" style="display: inline-block; padding: 12px 24px; background-color: #059669; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">Get Started</a></p>
-          <p>When you click the button above, enter your email address and we'll send you a magic link to sign in (no password needed).</p>
-          <p>Thank you for contributing to this research!</p>
-        `,
+    // Get default invitation template from database
+    let template = await prisma.emailTemplate.findFirst({
+      where: { type: "INVITATION", isDefault: true },
+    });
+    if (!template) {
+      template = await prisma.emailTemplate.findFirst({
+        where: { type: "INVITATION" },
       });
-    } catch (emailError) {
-      console.error("Failed to send invitation email:", emailError);
-      // Don't fail the request if email fails - user is still created
+    }
+
+    if (template) {
+      try {
+        const { subject, body: htmlBody } = processEmailTemplate(
+          template.subject,
+          template.body,
+          {
+            firstName: name || "",
+            email,
+            signInUrl: signinUrl,
+          }
+        );
+
+        await sendEmail({
+          to: email,
+          subject,
+          html: htmlBody,
+          cc: ccEmails,
+        });
+      } catch (emailError) {
+        console.error("Failed to send invitation email:", emailError);
+        // Don't fail the request if email fails - user is still created
+      }
     }
 
     return NextResponse.json({

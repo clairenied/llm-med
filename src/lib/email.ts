@@ -103,10 +103,11 @@ export interface SendEmailParams {
   to: string;
   subject: string;
   html: string;
+  cc?: string | string[];
 }
 
 // Generic email sending function
-export async function sendEmail({ to, subject, html }: SendEmailParams) {
+export async function sendEmail({ to, subject, html, cc }: SendEmailParams) {
   if (!process.env.RESEND_API_KEY) {
     console.error("⚠️  RESEND_API_KEY not configured. Email cannot be sent.");
     throw new Error("Email service not configured");
@@ -119,11 +120,13 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
     }
 
     const emailConfig = getEmailConfig(to);
-    console.log(`📧 Sending email: ${emailConfig.from} → ${emailConfig.to}`);
+    const ccList = cc ? (Array.isArray(cc) ? cc : [cc]) : undefined;
+    console.log(`📧 Sending email: ${emailConfig.from} → ${emailConfig.to}${ccList ? ` (CC: ${ccList.join(", ")})` : ""}`);
 
     const { data, error } = await resendClient.emails.send({
       from: emailConfig.from,
       to: [emailConfig.to],
+      cc: ccList,
       subject,
       html,
     });

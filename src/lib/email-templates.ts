@@ -59,7 +59,7 @@ export function processEmailTemplate(
  */
 export const DEFAULT_INVITATION_TEMPLATE = {
   name: "Grader Invitation",
-  subject: "Invitation to Grade Peer Reviews - LLM Med Research",
+  subject: "Invitation to Grade Peer Reviews - Urology AI Reviewer Project",
   body: `<!DOCTYPE html>
 <html>
 <head>
@@ -72,36 +72,27 @@ export const DEFAULT_INVITATION_TEMPLATE = {
   </div>
 
   <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
-    <h2 style="color: #495057; margin-top: 0;">Hi {{firstName}},</h2>
+    <p style="font-size: 16px;">Hi {{firstName}},</p>
 
-    <p style="font-size: 16px;">You've been invited to participate in a research project to evaluate peer reviews of urology manuscripts.</p>
+    <p style="font-size: 16px;">Thanks so much for participating in our project to create an artificial intelligence urology manuscript reviewer! We're in the process of using real reviews to teach the AI reviewer, and we need humans like you to grade current human reviews.</p>
 
-    <p style="font-size: 16px;">Your task will be to grade existing peer reviews across five domains:</p>
+    <p style="font-size: 16px;">You'll be presented with a synopsis of a paper, its revisions, and its reviews. You'll grade reviews in 5 domains: clinical relevance, methodology, results, writing clarity, and ethical considerations. You'll choose for each domain whether it is very good, good, poor, very poor, or not applicable.</p>
 
-    <ul style="font-size: 16px;">
-      <li>Clinical Relevance</li>
-      <li>Methodology</li>
-      <li>Results</li>
-      <li>Writing Clarity</li>
-      <li>Ethical Considerations</li>
-    </ul>
+    <p style="font-size: 16px;">A link to the paper is available, but we hope that the paper summary will meet your assessment needs and lighten the load of grading reviews, which shouldn't be too great.</p>
 
-    <p style="font-size: 16px;">Each review takes about 5-10 minutes to grade. You can complete them at your own pace.</p>
+    <p style="font-size: 16px;">We really appreciate your help with this. We've made logging into the system easy with magic links! So please click the button below to sign up!</p>
 
     <div style="text-align: center; margin: 30px 0;">
       <a href="{{signInUrl}}" style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
-        Get Started
+        Sign Up Now
       </a>
     </div>
 
-    <p style="font-size: 14px; color: #6c757d;">
-      When you click the button above, enter your email address ({{email}}) and we'll send you a magic link to sign in.
-    </p>
+    <p style="font-size: 16px;">Thanks so much,<br>The Urology AI Reviewer team</p>
   </div>
 
   <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d;">
-    <p>Thank you for contributing to this research!</p>
-    <p>LLM-Med Review Tracker</p>
+    <p>Urology AI Reviewer Project</p>
   </div>
 </body>
 </html>`,

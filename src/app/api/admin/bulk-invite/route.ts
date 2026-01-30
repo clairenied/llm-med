@@ -25,6 +25,7 @@ interface InviteInput {
  * - invites: Array<{ email: string, firstName?: string, lastName?: string }>
  * - role: UserRole (GRADER, ADMIN, AUTHOR, REVIEWER)
  * - templateId?: string (optional, uses default if not provided)
+ * - ccEmails?: string (comma-separated list of CC emails)
  *
  * Also supports legacy format:
  * - emails: string (comma or newline separated list of emails)
@@ -49,7 +50,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { invites, emails, firstName, lastName, role, templateId } = body;
+    const { invites, emails, firstName, lastName, role, templateId, ccEmails: ccEmailsRaw } = body;
+
+    // Parse CC emails (comma-separated string to array)
+    const ccEmails = ccEmailsRaw
+      ? ccEmailsRaw.split(",").map((e: string) => e.trim()).filter((e: string) => e && e.includes("@"))
+      : undefined;
 
     // Validate role
     const validRoles: UserRole[] = ["ADMIN", "REVIEWER", "AUTHOR", "GRADER"];
@@ -175,6 +181,7 @@ export async function POST(request: NextRequest) {
                 to: invite.email,
                 subject,
                 html: htmlBody,
+                cc: ccEmails,
               });
               message += ", invitation sent";
             } catch (emailError) {
