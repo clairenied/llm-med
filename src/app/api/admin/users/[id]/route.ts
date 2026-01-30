@@ -116,6 +116,12 @@ export async function DELETE(
       );
     }
 
+    // Delete associated records first (cascade)
+    // This includes ReviewGrade records submitted by this user
+    await prisma.reviewGrade.deleteMany({
+      where: { graderId: id },
+    });
+
     await prisma.user.delete({
       where: { id },
     });
