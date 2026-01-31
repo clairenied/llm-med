@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --port 3010",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "next start --port 3010",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
@@ -36,7 +36,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:all": "npm run test:unit && npm run test:e2e",
-    "test:setup": "tsx scripts/create-test-users.ts"
+    "test:setup": "tsx scripts/setup-e2e-users.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

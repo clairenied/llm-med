@@ -8,6 +8,8 @@ on:
 
 env:
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+  POSTGRES_PRISMA_URL: postgresql://postgres:postgres@localhost:5432/test_db
+  POSTGRES_URL_NON_POOLING: postgresql://postgres:postgres@localhost:5432/test_db
   NEXTAUTH_SECRET: test-secret-key-for-ci
   NEXTAUTH_URL: http://localhost:3010
 
