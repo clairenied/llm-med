@@ -168,3 +168,4 @@ dev.log
 /blob-report/
 /playwright/.cache/
 /e2e/.auth/*.json
+.env*.local
