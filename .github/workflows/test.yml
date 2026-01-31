@@ -84,13 +84,6 @@ jobs:
       - name: Run database migrations
         run: npx prisma migrate deploy
 
-      - name: Seed test data
-        run: npx prisma db seed
-        continue-on-error: true
-
-      - name: Create test users
-        run: npm run test:setup
-
       - name: Build application
         run: npm run build
 
