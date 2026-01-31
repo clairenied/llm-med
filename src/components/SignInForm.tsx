@@ -57,8 +57,13 @@ export default function SignInForm() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        await getSession();
-        router.push("/");
+        // Refresh the session and redirect based on role
+        const newSession = await getSession();
+        if (newSession?.user?.role === "GRADER") {
+          window.location.href = "/grading";
+        } else {
+          window.location.href = "/";
+        }
       }
     } catch {
       setError("An error occurred. Please try again.");

@@ -75,12 +75,12 @@ function SignInForm() {
         setError("Invalid email or password");
       } else {
         // Refresh the session and redirect based on role
-        const session = await getSession();
+        const newSession = await getSession();
         const isDefaultCallback = callbackUrl === "/" || callbackUrl === "";
-        if (isDefaultCallback && session?.user?.role === "GRADER") {
-          router.push("/grading");
+        if (isDefaultCallback && newSession?.user?.role === "GRADER") {
+          window.location.href = "/grading";
         } else {
-          router.push(callbackUrl);
+          window.location.href = callbackUrl;
         }
       }
     } catch {
