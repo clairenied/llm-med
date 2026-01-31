@@ -60,16 +60,22 @@ export function deduplicateReviewers(reviewers: ExtractedReviewer[]): ExtractedR
 }
 
 /**
- * Deduplicate reviews by reviewer (name + affiliation)
- * Keeps only the first review from each unique reviewer
+ * Deduplicate reviews by their unique identifier (subArticleId or doi)
+ *
+ * NOTE: We intentionally keep multiple reviews from the same reviewer
+ * because reviewers often review multiple versions of a paper.
+ * Each review has a unique subArticleId in F1000 XML.
  */
 export function deduplicateReviews(reviews: ExtractedReview[]): ExtractedReview[] {
   const seen = new Set<string>();
   const deduplicated: ExtractedReview[] = [];
 
   for (const review of reviews) {
-    const normalized = normalizeName(review.reviewer.surname, review.reviewer.givenNames).normalized;
-    const key = `${normalized}|${review.reviewer.affiliation || ""}`;
+    // Use subArticleId or doi as unique key - these are truly unique per review
+    const key = review.subArticleId || review.doi ||
+      // Fallback: combine reviewer + content hash for uniqueness
+      `${review.reviewer.surname}|${review.content?.substring(0, 100)}`;
+
     if (seen.has(key)) {
       continue;
     }
@@ -78,6 +84,16 @@ export function deduplicateReviews(reviews: ExtractedReview[]): ExtractedReview[
   }
 
   return deduplicated;
+}
+
+/**
+ * Extract version number from review article title
+ * e.g., "Reviewer response for version 2" -> 2
+ */
+export function extractReviewVersionNumber(articleTitle: string | null): number | null {
+  if (!articleTitle) return null;
+  const match = articleTitle.match(/version\s+(\d+)/i);
+  return match ? parseInt(match[1], 10) : null;
 }
 
 /**

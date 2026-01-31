@@ -9,8 +9,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // Vercel Postgres connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Direct connection for migrations
 }
 
 // Manuscript review tracking models
@@ -32,6 +33,8 @@ model Manuscript {
   abstract    String?
   keywords    String[]
   status      ManuscriptStatus   @default(DRAFT)
+  aiSummary   String?            // LLM-generated summary for grading context
+  aiSummaryGeneratedAt DateTime? // When the summary was generated
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   authors     Author[]
@@ -58,17 +61,19 @@ model ManuscriptVersion {
 }
 
 model Review {
-  id                String            @id @default(cuid())
-  version          ManuscriptVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
-  versionId        String
-  reviewer         Reviewer          @relation(fields: [reviewerId], references: [id])
-  reviewerId       String
-  reviewType       ReviewType        @default(INTERNAL)
-  content          String
-  documentUrl      String?
-  documentType     DocumentType?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                    String            @id @default(cuid())
+  version               ManuscriptVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  versionId             String
+  reviewer              Reviewer          @relation(fields: [reviewerId], references: [id])
+  reviewerId            String
+  reviewType            ReviewType        @default(INTERNAL)
+  reviewedVersionNumber Int?              // Which version of the manuscript this review was written for (1, 2, 3, etc.)
+  content               String
+  documentUrl           String?
+  documentType          DocumentType?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  grades                ReviewGrade[]
 }
 
 model Reviewer {
@@ -141,7 +146,9 @@ model ManuscriptSource {
 // Authentication models for NextAuth.js
 model User {
   id            String    @id @default(cuid())
-  name          String?
+  firstName     String?   // Separate first name for personalization
+  lastName      String?   // Separate last name for personalization
+  name          String?   // Full name (computed or legacy)
   email         String    @unique
   emailVerified DateTime?
   image         String?
@@ -154,6 +161,7 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  reviewGrades ReviewGrade[]
 }
 
 model Account {
@@ -213,10 +221,55 @@ enum UserRole {
   ADMIN
   REVIEWER
   AUTHOR
+  GRADER
 }
 
 enum InvitationStatus {
   PENDING
   ACCEPTED
   EXPIRED
+}
+
+// Email templates for invitations and communications
+model EmailTemplate {
+  id        String            @id @default(cuid())
+  name      String            @unique // e.g., "Grader Invitation", "Progress Reminder"
+  subject   String            // Email subject line
+  body      String            @db.Text // HTML body with placeholders like {{firstName}}
+  type      EmailTemplateType
+  isDefault Boolean           @default(false)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+enum EmailTemplateType {
+  INVITATION    // For inviting new users
+  COMMUNICATION // For mass emails to existing users
+}
+
+// Human grading of reviews for AI training
+model ReviewGrade {
+  id                    String      @id @default(cuid())
+  review                Review      @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reviewId              String
+  grader                User        @relation(fields: [graderId], references: [id])
+  graderId              String
+  clinicalRelevance     GradeValue?
+  methodology           GradeValue?
+  results               GradeValue?
+  writingClarity        GradeValue?
+  ethicalConsiderations GradeValue?
+  notes                 String?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@unique([reviewId, graderId]) // One grade per grader per review
+}
+
+enum GradeValue {
+  VERY_GOOD
+  GOOD
+  POOR
+  VERY_POOR
+  NA
 }

@@ -12,13 +12,22 @@ export default function Navigation() {
   const getNavItems = () => {
     if (!session) return [];
 
+    const role = session.user?.role;
+
+    // Graders only see grading interface
+    if (role === "GRADER") {
+      return [{ href: "/grading", label: "Grading", icon: "📝" }];
+    }
+
+    // Admin and other roles see full navigation
     const items = [
       { href: "/", label: "Manuscripts", icon: "📄" },
       { href: "/authors", label: "Authors", icon: "👤" },
     ];
 
-    // Add admin routes for admin users
-    if (session.user?.role === "ADMIN") {
+    // Add grading for ADMIN role
+    if (role === "ADMIN") {
+      items.push({ href: "/grading", label: "Grading", icon: "📝" });
       items.push({ href: "/admin", label: "Admin", icon: "⚙️" });
     }
 

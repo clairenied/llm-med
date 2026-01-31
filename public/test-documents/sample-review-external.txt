@@ -1,0 +1,41 @@
+# Peer Review Report
+
+## Manuscript: Novel Approaches to Machine Learning in Medical Diagnosis
+
+### Review Type: External Review
+
+---
+
+## Overall Assessment
+
+This manuscript presents a well-structured study on machine learning applications in medical diagnosis. The research addresses an important clinical need and demonstrates promising results.
+
+## Major Comments
+
+### 1. Statistical Analysis
+The methodology is sound but requires more detailed statistical analysis. Specifically:
+- Please provide confidence intervals for all reported accuracy metrics
+- Include comparison with baseline models using appropriate statistical tests
+- Report effect sizes where applicable
+
+### 2. Validation
+The results section needs expansion with additional validation studies:
+- Cross-institutional validation would strengthen the findings
+- Consider adding a held-out test set from a different data source
+- Report model performance stratified by demographic factors
+
+## Minor Comments
+
+1. The introduction could benefit from a more comprehensive literature review
+2. Figure 2 resolution should be improved for print publication
+3. Please clarify the inclusion/exclusion criteria for patient data
+
+## Recommendation
+
+**Revise and Resubmit** - The manuscript has merit but requires revisions before acceptance.
+
+---
+
+Reviewer: Anonymous
+Date: January 2026
+Confidential - For Editorial Use Only

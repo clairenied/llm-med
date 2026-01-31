@@ -58,16 +58,31 @@ export function extractReviews(xmlString: string): ExtractedReview[] {
       return;
     }
 
+    // Extract version number from articleTitle (e.g., "Reviewer response for version 2" -> 2)
+    const reviewedVersionNumber = articleTitle
+      ? extractVersionFromArticleTitle(articleTitle)
+      : null;
+
     reviews.push({
       reviewer,
       content,
       articleTitle,
       subArticleId,
       doi,
+      reviewedVersionNumber,
     });
   });
 
   return reviews;
+}
+
+/**
+ * Extract version number from review article title
+ * e.g., "Reviewer response for version 2" -> 2
+ */
+function extractVersionFromArticleTitle(articleTitle: string): number | null {
+  const match = articleTitle.match(/version\s+(\d+)/i);
+  return match ? parseInt(match[1], 10) : null;
 }
 
 /**
@@ -137,25 +152,43 @@ function extractReviewerFromSubArticle($subArticle: Cheerio<any>): ExtractedRevi
 /**
  * Extract review content from sub-article body
  * Concatenates all paragraphs and sections
+ * IMPORTANT: Excludes content from nested sub-articles (author responses)
  */
 function extractReviewContent($subArticle: Cheerio<any>): string | null {
   const contentParts: string[] = [];
 
-  // Extract all paragraphs from the body
-  $subArticle.find("body p").each((_, pEl) => {
-    const text = cheerio.load(pEl, {
+  // Get the direct body element (not nested sub-article bodies)
+  const $body = $subArticle.children("body").first();
+
+  // Extract paragraphs only from the direct body, not nested sub-articles
+  $body.find("p").each((_, pEl) => {
+    const $p = cheerio.load(pEl, {
       xml: { xmlMode: true, decodeEntities: true }
-    })(pEl).text().trim();
+    });
+
+    // Skip if this paragraph is inside a nested sub-article
+    if ($p(pEl).parents("sub-article").length > 0) {
+      return;
+    }
+
+    const text = $p(pEl).text().trim();
     if (text) {
       contentParts.push(text);
     }
   });
 
-  // Also extract section titles for context
-  $subArticle.find("body sec > title").each((_, titleEl) => {
-    const title = cheerio.load(titleEl, {
+  // Also extract section titles for context (excluding nested sub-articles)
+  $body.find("sec > title").each((_, titleEl) => {
+    const $title = cheerio.load(titleEl, {
       xml: { xmlMode: true, decodeEntities: true }
-    })(titleEl).text().trim();
+    });
+
+    // Skip if inside a nested sub-article
+    if ($title(titleEl).parents("sub-article").length > 0) {
+      return;
+    }
+
+    const title = $title(titleEl).text().trim();
     if (title) {
       contentParts.push(`\n## ${title}\n`);
     }
