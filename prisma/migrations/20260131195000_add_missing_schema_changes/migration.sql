@@ -2,10 +2,6 @@
 ALTER TABLE "public"."User" ADD COLUMN "firstName" TEXT;
 ALTER TABLE "public"."User" ADD COLUMN "lastName" TEXT;
 
--- Add aiSummary fields to Manuscript table
-ALTER TABLE "public"."Manuscript" ADD COLUMN "aiSummary" TEXT;
-ALTER TABLE "public"."Manuscript" ADD COLUMN "aiSummaryGeneratedAt" TIMESTAMP(3);
-
 -- Add reviewedVersionNumber to Review table
 ALTER TABLE "public"."Review" ADD COLUMN "reviewedVersionNumber" INTEGER;
 
