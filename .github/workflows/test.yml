@@ -12,6 +12,7 @@ env:
   POSTGRES_URL_NON_POOLING: postgresql://postgres:postgres@localhost:5432/test_db
   NEXTAUTH_SECRET: test-secret-key-for-ci
   AUTH_SECRET: test-secret-key-for-ci
+  AUTH_TRUST_HOST: "true"
   NEXTAUTH_URL: http://localhost:3010
   # Dummy value for Resend provider - emails won't actually send in CI
   RESEND_API_KEY: re_test_dummy_key_for_ci
