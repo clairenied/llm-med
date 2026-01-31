@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { UserRole } from "@prisma/client";
+
+const validRoles: UserRole[] = ["ADMIN", "REVIEWER", "AUTHOR", "GRADER"];
 
 export async function GET() {
   try {
@@ -48,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!["ADMIN", "REVIEWER", "AUTHOR"].includes(role)) {
+    if (!validRoles.includes(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 

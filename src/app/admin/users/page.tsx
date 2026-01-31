@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import type { UserRole } from "@prisma/client";
 
 interface User {
   id: string;
   name: string | null;
   email: string;
-  role: "ADMIN" | "REVIEWER" | "AUTHOR";
+  role: UserRole;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,7 +18,7 @@ interface User {
 interface Invitation {
   id: string;
   email: string;
-  role: "ADMIN" | "REVIEWER" | "AUTHOR";
+  role: UserRole;
   status: "PENDING" | "ACCEPTED" | "EXPIRED";
   createdAt: string;
   expiresAt: string;
@@ -31,18 +32,24 @@ export default function AdminUserManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showInviteForm, setShowInviteForm] = useState(false);
-  const [inviteFormData, setInviteFormData] = useState({
+  const [inviteFormData, setInviteFormData] = useState<{
+    email: string;
+    role: UserRole;
+  }>({
     email: "",
-    role: "AUTHOR" as "ADMIN" | "REVIEWER" | "AUTHOR",
+    role: "AUTHOR",
   });
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState<string | null>(null);
   const [editingInvitation, setEditingInvitation] = useState<string | null>(
     null,
   );
-  const [editFormData, setEditFormData] = useState({
+  const [editFormData, setEditFormData] = useState<{
+    email: string;
+    role: UserRole;
+  }>({
     email: "",
-    role: "AUTHOR" as "ADMIN" | "REVIEWER" | "AUTHOR",
+    role: "AUTHOR",
   });
   const [showPasswordReset, setShowPasswordReset] = useState<string | null>(
     null,
@@ -435,13 +442,14 @@ export default function AdminUserManagementPage() {
                     onChange={(e) =>
                       setInviteFormData({
                         ...inviteFormData,
-                        role: e.target.value as "AUTHOR" | "REVIEWER" | "ADMIN",
+                        role: e.target.value as UserRole,
                       })
                     }
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white cursor-pointer"
                   >
                     <option value="AUTHOR">Author</option>
                     <option value="REVIEWER">Reviewer</option>
+                    <option value="GRADER">Grader</option>
                     <option value="ADMIN">Admin</option>
                   </select>
                 </div>
@@ -590,6 +598,7 @@ export default function AdminUserManagementPage() {
                                   >
                                     <option value="AUTHOR">Author</option>
                                     <option value="REVIEWER">Reviewer</option>
+                                    <option value="GRADER">Grader</option>
                                     <option value="ADMIN">Admin</option>
                                   </select>
                                 )}
@@ -745,16 +754,14 @@ export default function AdminUserManagementPage() {
                                     onChange={(e) =>
                                       setEditFormData({
                                         ...editFormData,
-                                        role: e.target.value as
-                                          | "ADMIN"
-                                          | "REVIEWER"
-                                          | "AUTHOR",
+                                        role: e.target.value as UserRole,
                                       })
                                     }
                                     className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                                   >
                                     <option value="AUTHOR">AUTHOR</option>
                                     <option value="REVIEWER">REVIEWER</option>
+                                    <option value="GRADER">GRADER</option>
                                     <option value="ADMIN">ADMIN</option>
                                   </select>
                                 ) : (

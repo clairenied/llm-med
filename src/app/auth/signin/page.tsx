@@ -74,9 +74,14 @@ function SignInForm() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        // Refresh the session and redirect
-        await getSession();
-        router.push(callbackUrl);
+        // Refresh the session and redirect based on role
+        const session = await getSession();
+        const isDefaultCallback = callbackUrl === "/" || callbackUrl === "";
+        if (isDefaultCallback && session?.user?.role === "GRADER") {
+          router.push("/grading");
+        } else {
+          router.push(callbackUrl);
+        }
       }
     } catch {
       setError("An error occurred. Please try again.");
