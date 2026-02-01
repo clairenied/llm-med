@@ -10,11 +10,13 @@ export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Redirect graders to grading page
+  // Redirect users based on role
   useEffect(() => {
     if (status === "loading") return;
     if (session?.user?.role === "GRADER") {
       router.push("/grading");
+    } else if (session?.user?.role === "ADMIN") {
+      router.push("/admin");
     }
   }, [session, status, router]);
 
@@ -33,13 +35,13 @@ export default function Home() {
     return <SignInForm />;
   }
 
-  // Show loading for graders while redirecting
-  if (session.user?.role === "GRADER") {
+  // Show loading while redirecting based on role
+  if (session.user?.role === "GRADER" || session.user?.role === "ADMIN") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Redirecting to grading...</p>
+          <p className="text-gray-600 dark:text-gray-400">Redirecting...</p>
         </div>
       </div>
     );

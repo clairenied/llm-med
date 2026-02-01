@@ -18,9 +18,11 @@ function VerifyContent() {
   useEffect(() => {
     if (status === "loading") return;
     if (session) {
-      // Redirect graders to grading page, others to callback or home
+      // Redirect based on role
       if (session.user?.role === "GRADER") {
         router.push("/grading");
+      } else if (session.user?.role === "ADMIN") {
+        router.push("/admin");
       } else {
         router.push(callbackUrl);
       }

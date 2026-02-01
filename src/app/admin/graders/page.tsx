@@ -241,8 +241,20 @@ export default function ManageGradersPage() {
 
   const handleEdit = (grader: Grader) => {
     setEditingId(grader.id);
-    setEditFirstName(grader.firstName || "");
-    setEditLastName(grader.lastName || "");
+    // If firstName/lastName are empty, try to parse from name field
+    if (!grader.firstName && !grader.lastName && grader.name) {
+      const nameParts = grader.name.trim().split(/\s+/);
+      if (nameParts.length >= 2) {
+        setEditFirstName(nameParts[0]);
+        setEditLastName(nameParts.slice(1).join(" "));
+      } else {
+        setEditFirstName(grader.name);
+        setEditLastName("");
+      }
+    } else {
+      setEditFirstName(grader.firstName || "");
+      setEditLastName(grader.lastName || "");
+    }
     setEditRole(grader.role);
   };
 
@@ -385,10 +397,10 @@ export default function ManageGradersPage() {
             ← Back to Admin
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Manage Graders
+            User Management
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Invite new graders and send communications
+            Invite users, manage roles, and send communications
           </p>
         </div>
 

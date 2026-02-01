@@ -24,10 +24,12 @@ function SignInForm() {
   useEffect(() => {
     if (status === "loading") return;
     if (session) {
-      // If grader with no specific callback, redirect to grading page
+      // Redirect based on role if no specific callback
       const isDefaultCallback = callbackUrl === "/" || callbackUrl === "";
       if (isDefaultCallback && session.user?.role === "GRADER") {
         router.push("/grading");
+      } else if (isDefaultCallback && session.user?.role === "ADMIN") {
+        router.push("/admin");
       } else {
         router.push(callbackUrl);
       }
@@ -79,6 +81,8 @@ function SignInForm() {
         const isDefaultCallback = callbackUrl === "/" || callbackUrl === "";
         if (isDefaultCallback && newSession?.user?.role === "GRADER") {
           window.location.href = "/grading";
+        } else if (isDefaultCallback && newSession?.user?.role === "ADMIN") {
+          window.location.href = "/admin";
         } else {
           window.location.href = callbackUrl;
         }
@@ -158,6 +162,12 @@ function SignInForm() {
 
           {signInMethod === "magic-link" ? (
             <form onSubmit={handleMagicLinkSubmit} className="space-y-4">
+              <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 mb-2">
+                <p className="text-emerald-800 dark:text-emerald-200 text-sm font-medium text-center">
+                  No password needed — just enter your email
+                </p>
+              </div>
+
               <div>
                 <label
                   htmlFor="email"
@@ -185,7 +195,7 @@ function SignInForm() {
               </button>
 
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                We&apos;ll email you a magic link for password-free sign in.
+                We&apos;ll email you a sign-in link. Just click it to access your account.
               </p>
             </form>
           ) : (

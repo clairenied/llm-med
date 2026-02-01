@@ -204,10 +204,8 @@ export async function GET() {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
+    // Return ALL users (not just GRADER/ADMIN)
     const graders = await prisma.user.findMany({
-      where: {
-        role: { in: ["GRADER", "ADMIN"] },
-      },
       select: {
         id: true,
         firstName: true,

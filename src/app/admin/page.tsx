@@ -48,32 +48,8 @@ export default function AdminDashboard() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* User Management */}
-            <Link
-              href="/admin/users"
-              className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-100 rounded-md flex items-center justify-center">
-                      <span className="text-2xl">👥</span>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                      User Management
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Manage users and send invitations
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Manage Graders */}
             <Link
               href="/admin/graders"
               className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow cursor-pointer"
@@ -82,15 +58,15 @@ export default function AdminDashboard() {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="w-8 h-8 bg-emerald-100 rounded-md flex items-center justify-center">
-                      <span className="text-2xl">📝</span>
+                      <span className="text-2xl">👥</span>
                     </div>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                      Manage Graders
+                      User Management
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Invite graders and track progress
+                      Invite users, manage roles, and send communications
                     </p>
                   </div>
                 </div>
