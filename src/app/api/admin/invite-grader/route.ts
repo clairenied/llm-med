@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { processEmailTemplate } from "@/lib/email-templates";
+import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,15 +46,63 @@ export async function POST(request: NextRequest) {
           where: { id: existingUser.id },
           data: { role: "GRADER" },
         });
-        return NextResponse.json({
-          success: true,
-          message: "User role updated to GRADER",
-          userId: existingUser.id,
+      }
+
+      // Send magic link to existing user so they can sign in
+      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
+      const secret = process.env.NEXTAUTH_SECRET || "";
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(`${rawToken}${secret}`).digest("hex");
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,
+          token: hashedToken,
+          expires,
+        },
+      });
+
+      const magicLinkUrl = `${baseUrl}/auth/verify?token=${rawToken}&email=${encodeURIComponent(email)}&callbackUrl=/grading`;
+
+      // Get and send invitation template
+      let template = await prisma.emailTemplate.findFirst({
+        where: { type: "INVITATION", isDefault: true },
+      });
+      if (!template) {
+        template = await prisma.emailTemplate.findFirst({
+          where: { type: "INVITATION" },
         });
       }
+
+      if (template) {
+        try {
+          const { subject, body: htmlBody } = processEmailTemplate(
+            template.subject,
+            template.body,
+            {
+              firstName: name || existingUser.name || "",
+              email,
+              signInUrl: magicLinkUrl,
+            }
+          );
+
+          await sendEmail({
+            to: email,
+            subject,
+            html: htmlBody,
+            cc: ccEmails,
+          });
+        } catch (emailError) {
+          console.error("Failed to send invitation email:", emailError);
+        }
+      }
+
       return NextResponse.json({
         success: true,
-        message: `User already exists with ${existingUser.role} role`,
+        message: existingUser.role === "GRADER" || existingUser.role === "ADMIN"
+          ? `Magic link sent to existing ${existingUser.role}`
+          : "User role updated to GRADER and magic link sent",
         userId: existingUser.id,
       });
     }
@@ -67,10 +116,27 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send invitation email using template
+    // Generate magic link token for immediate sign-in
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
-    // Include callbackUrl so graders are redirected to grading page after sign-in
-    const signinUrl = `${baseUrl}/auth/signin?callbackUrl=/grading`;
+    const secret = process.env.NEXTAUTH_SECRET || "";
+
+    // Generate a secure random token
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    // Hash it for storage (NextAuth uses sha256 with secret appended)
+    const hashedToken = crypto.createHash("sha256").update(`${rawToken}${secret}`).digest("hex");
+
+    // Store the verification token (expires in 24 hours)
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: hashedToken,
+        expires,
+      },
+    });
+
+    // Build magic link URL pointing to verification page
+    const magicLinkUrl = `${baseUrl}/auth/verify?token=${rawToken}&email=${encodeURIComponent(email)}&callbackUrl=/grading`;
 
     // Get default invitation template from database
     let template = await prisma.emailTemplate.findFirst({
@@ -90,7 +156,7 @@ export async function POST(request: NextRequest) {
           {
             firstName: name || "",
             email,
-            signInUrl: signinUrl,
+            signInUrl: magicLinkUrl,
           }
         );
 

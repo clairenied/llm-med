@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { UserRole } from "@prisma/client";
 import { processEmailTemplate } from "@/lib/email-templates";
+import crypto from "crypto";
 
 interface InviteResult {
   email: string;
@@ -120,8 +121,24 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
-    // Include callbackUrl so graders are redirected to grading page after sign-in
-    const signinUrl = `${baseUrl}/auth/signin?callbackUrl=/grading`;
+
+    // Helper function to generate magic link for a user
+    const secret = process.env.NEXTAUTH_SECRET || "";
+    const generateMagicLink = async (email: string): Promise<string> => {
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(`${rawToken}${secret}`).digest("hex");
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,
+          token: hashedToken,
+          expires,
+        },
+      });
+
+      return `${baseUrl}/auth/verify?token=${rawToken}&email=${encodeURIComponent(email)}&callbackUrl=/grading`;
+    };
 
     const results: InviteResult[] = [];
 
@@ -164,20 +181,22 @@ export async function POST(request: NextRequest) {
           userId = newUser.id;
           message = `User created with ${role} role`;
 
-          // Send invitation email for new users
+          // Send invitation email with magic link for new users
           if (template) {
-            const { subject, body: htmlBody } = processEmailTemplate(
-              template.subject,
-              template.body,
-              {
-                firstName: invite.firstName || "",
-                lastName: invite.lastName || "",
-                email: invite.email,
-                signInUrl: signinUrl,
-              }
-            );
-
             try {
+              const magicLinkUrl = await generateMagicLink(invite.email);
+
+              const { subject, body: htmlBody } = processEmailTemplate(
+                template.subject,
+                template.body,
+                {
+                  firstName: invite.firstName || "",
+                  lastName: invite.lastName || "",
+                  email: invite.email,
+                  signInUrl: magicLinkUrl,
+                }
+              );
+
               await sendEmail({
                 to: invite.email,
                 subject,

@@ -8,6 +8,11 @@ export default function Navigation() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
+  // Hide navigation on auth pages
+  if (pathname?.startsWith("/auth/")) {
+    return null;
+  }
+
   // Only show navigation items if user is authenticated
   const getNavItems = () => {
     if (!session) return [];

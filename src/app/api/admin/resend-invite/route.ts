@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { processEmailTemplate } from "@/lib/email-templates";
+import crypto from "crypto";
 
 /**
  * POST: Resend invitation email to a user
@@ -87,8 +88,23 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3010";
-    // Include callbackUrl so graders are redirected to grading page after sign-in
-    const signinUrl = `${baseUrl}/auth/signin?callbackUrl=/grading`;
+    const secret = process.env.NEXTAUTH_SECRET || "";
+
+    // Generate magic link token for immediate sign-in
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(`${rawToken}${secret}`).digest("hex");
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: user.email,
+        token: hashedToken,
+        expires,
+      },
+    });
+
+    // Build magic link URL pointing to verification page
+    const magicLinkUrl = `${baseUrl}/auth/verify?token=${rawToken}&email=${encodeURIComponent(user.email)}&callbackUrl=/grading`;
 
     // Process template and send email
     const { subject, body: htmlBody } = processEmailTemplate(
@@ -98,7 +114,7 @@ export async function POST(request: NextRequest) {
         firstName: user.firstName || "",
         lastName: user.lastName || "",
         email: user.email,
-        signInUrl: signinUrl,
+        signInUrl: magicLinkUrl,
       }
     );
 

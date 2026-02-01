@@ -27,6 +27,20 @@ export async function sendMagicLinkEmail(params: EmailProviderSendVerificationRe
       throw new Error("Failed to initialize email client");
     }
 
+    // Parse the NextAuth callback URL to extract token and redirect to verification page
+    // This prevents email security scanners from consuming the token
+    const originalUrl = new URL(url);
+    const token = originalUrl.searchParams.get("token");
+    const callbackUrl = originalUrl.searchParams.get("callbackUrl") || "/";
+
+    // Build verification page URL instead of direct callback
+    const verifyUrl = new URL("/auth/verify", originalUrl.origin);
+    verifyUrl.searchParams.set("token", token || "");
+    verifyUrl.searchParams.set("email", email);
+    verifyUrl.searchParams.set("callbackUrl", callbackUrl);
+
+    const safeUrl = verifyUrl.toString();
+
     const emailConfig = getEmailConfig(email);
     console.log(`📧 Magic link: ${emailConfig.from} → ${emailConfig.to}`);
 
@@ -53,7 +67,7 @@ export async function sendMagicLinkEmail(params: EmailProviderSendVerificationRe
               </p>
 
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${url}"
+                <a href="${safeUrl}"
                    style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; font-size: 16px;">
                   Sign In
                 </a>
@@ -63,7 +77,7 @@ export async function sendMagicLinkEmail(params: EmailProviderSendVerificationRe
                 If the button doesn't work, copy and paste this link into your browser:
               </p>
               <p style="font-size: 14px; color: #10b981; word-break: break-all; background: #f1f3f4; padding: 10px; border-radius: 4px;">
-                ${url}
+                ${safeUrl}
               </p>
 
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
