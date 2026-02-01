@@ -163,6 +163,16 @@ export default function SignInForm() {
               <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                 We&apos;ll email you a sign-in link. Just click it to access your account.
               </p>
+
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-3">
+                Email link not working?{" "}
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-blue-600 hover:text-blue-500 dark:text-blue-400 underline"
+                >
+                  Set a password instead
+                </Link>
+              </p>
             </form>
           ) : (
             <form onSubmit={handlePasswordSubmit} className="space-y-4">

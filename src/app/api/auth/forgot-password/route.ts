@@ -17,13 +17,12 @@ export async function POST(request: NextRequest) {
       select: { id: true, email: true, name: true },
     });
 
-    // Always return success to prevent email enumeration attacks
+    // For internal tools, be direct about whether the account exists
     if (!user) {
-      return NextResponse.json({
-        success: true,
-        message:
-          "If an account with that email exists, password reset instructions have been sent.",
-      });
+      return NextResponse.json(
+        { error: "No account found with that email address. Please contact an administrator for an invitation." },
+        { status: 404 }
+      );
     }
 
     // Generate secure reset token
@@ -53,12 +52,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(emailResult);
     } catch (emailError) {
       console.error("Email service error:", emailError);
-      // Return generic success for security (don't reveal if email sending failed)
-      return NextResponse.json({
-        success: true,
-        message:
-          "If an account with that email exists, password reset instructions have been sent.",
-      });
+      return NextResponse.json(
+        { error: "Failed to send email. Please try again or contact an administrator." },
+        { status: 500 }
+      );
     }
   } catch (error) {
     console.error("Forgot password error:", error);

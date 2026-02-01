@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
 
       setMessage(
         data.message ||
-          "Password reset instructions have been sent to your email address.",
+          "A link to set your password has been sent to your email address.",
       );
 
       // If email service is not configured, show the reset URL for development
@@ -56,11 +56,11 @@ export default function ForgotPasswordPage() {
           <div className="text-center mb-8">
             <div className="text-4xl mb-4">🔑</div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Forgot Password
+              Set or Reset Password
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Enter your email address and we&apos;ll send you instructions to
-              reset your password.
+              Enter your email address and we&apos;ll send you a link to
+              set your password.
             </p>
           </div>
 
@@ -100,13 +100,13 @@ export default function ForgotPasswordPage() {
               disabled={isLoading}
               className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              {isLoading ? "Sending..." : "Send Reset Instructions"}
+              {isLoading ? "Sending..." : "Send Password Link"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{" "}
+              Back to{" "}
               <Link
                 href="/auth/signin"
                 className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
