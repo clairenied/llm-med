@@ -169,3 +169,7 @@ dev.log
 /playwright/.cache/
 /e2e/.auth/*.json
 .env*.local
+
+# Vercel keepalive (machine-specific)
+scripts/keep-vercel-token-alive.sh
+scripts/vercel-*.log

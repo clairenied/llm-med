@@ -148,6 +148,27 @@ curl -X POST "http://localhost:8288/e/llm-med" \
 - `deploy-test.sh` - Test environment deployment
 - `deploy-production.sh` - Production deployment
 
+### Vercel CLI Access
+
+This project is linked to Claire's Vercel project (`claire-niederbergers-projects/llm-med`).
+
+**Important:** Always use `--token` flag to use Claire's token (stored in `.env.local`):
+```bash
+# List environment variables
+vercel env ls --token="$VERCEL_TOKEN"
+
+# Pull environment variables
+vercel env pull --token="$VERCEL_TOKEN"
+
+# Check deployments
+vercel ls --token="$VERCEL_TOKEN"
+
+# View project info
+vercel inspect <deployment-url> --token="$VERCEL_TOKEN"
+```
+
+Without `--token`, the CLI uses your personal Vercel credentials instead of Claire's project access.
+
 ## Project Structure
 
 ```
