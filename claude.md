@@ -169,6 +169,58 @@ vercel inspect <deployment-url> --token="$VERCEL_TOKEN"
 
 Without `--token`, the CLI uses your personal Vercel credentials instead of Claire's project access.
 
+### Production Database Access
+
+**Pull production credentials:**
+```bash
+VERCEL_TOKEN=$(grep VERCEL_TOKEN .env.local | cut -d'"' -f2) && \
+vercel env pull .env.production --environment=production --token="$VERCEL_TOKEN"
+```
+
+**Query production database:**
+```bash
+DATABASE_URL=$(grep "^DATABASE_URL=" .env.production | cut -d'=' -f2- | tr -d '"') && \
+node -e "
+const { Client } = require('pg');
+const client = new Client({ connectionString: '$DATABASE_URL' });
+client.connect()
+  .then(() => client.query('SELECT id, email, name, role FROM \"User\" LIMIT 10'))
+  .then(res => { console.table(res.rows); client.end(); })
+  .catch(err => { console.error(err.message); client.end(); });
+"
+```
+
+**Add a user to production:**
+```bash
+DATABASE_URL=$(grep "^DATABASE_URL=" .env.production | cut -d'=' -f2- | tr -d '"') && \
+node -e "
+const { Client } = require('pg');
+const client = new Client({ connectionString: '$DATABASE_URL' });
+const id = require('crypto').randomUUID();
+client.connect()
+  .then(() => client.query(
+    'INSERT INTO \"User\" (id, email, name, role, \"createdAt\", \"updatedAt\") VALUES (\$1, \$2, \$3, \$4, NOW(), NOW()) RETURNING *',
+    [id, 'user@example.com', 'User Name', 'GRADER']
+  ))
+  .then(res => { console.log('Created:', res.rows[0]); client.end(); })
+  .catch(err => { console.error(err.message); client.end(); });
+"
+```
+
+### Airtable API Access
+
+The project has access to the "LLM Reviewer Project" Airtable (credentials in `.env`).
+
+```bash
+# Fetch records from Airtable
+source .env && curl -s "https://api.airtable.com/v0/$AIRTABLE_BASE_ID/$AIRTABLE_TABLE_ID?maxRecords=10" \
+  -H "Authorization: Bearer $AIRTABLE_API_KEY" | python3 -m json.tool
+```
+
+### Gmail SMTP
+
+For personal emails (vs Resend for system emails), Gmail SMTP credentials are in `.env`.
+
 ## Project Structure
 
 ```
