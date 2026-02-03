@@ -99,8 +99,8 @@ export function extractVersionFromDoi(doi: string): number {
 }
 
 /**
- * Generate F1000Research article URL from DOI
+ * Generate article URL from DOI using doi.org resolver
  */
 export function generateF1000Url(doi: string): string {
-  return `https://f1000research.com/articles/${doi}`;
+  return `https://doi.org/${doi}`;
 }
