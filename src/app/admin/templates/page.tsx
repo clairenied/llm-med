@@ -304,17 +304,14 @@ function EmailManagementContent() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href="/admin"
+            href="/admin/users"
             className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 mb-2 inline-block"
           >
-            ← Back to Admin
+            ← Back to User Management
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Email Communications
+            Edit Templates
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage email templates and send communications to users
-          </p>
         </div>
 
         {error && (
@@ -328,8 +325,8 @@ function EmailManagementContent() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Templates */}
+        <div className="max-w-2xl">
+          {/* Templates */}
           <div>
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
@@ -537,156 +534,6 @@ function EmailManagementContent() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Right Column: Send Emails */}
-          <div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Send Emails
-                </h2>
-              </div>
-
-              <div className="p-6 space-y-4">
-                {/* Template Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Select Template *
-                  </label>
-                  <select
-                    value={selectedTemplateId}
-                    onChange={(e) => setSelectedTemplateId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="">Choose a template...</option>
-                    {templates
-                      .filter((t) => t.type === "COMMUNICATION")
-                      .map((template) => (
-                        <option key={template.id} value={template.id}>
-                          {template.name}
-                          {template.isDefault ? " (Default)" : ""}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {/* Role Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Filter by Role
-                  </label>
-                  <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="ALL">All Roles</option>
-                    <option value="GRADER">Graders</option>
-                    <option value="ADMIN">Admins</option>
-                    <option value="REVIEWER">Reviewers</option>
-                    <option value="AUTHOR">Authors</option>
-                  </select>
-                </div>
-
-                {/* User Selection */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Select Recipients ({selectedUserIds.size} of {filteredUsers.length})
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleSelectAllUsers}
-                      className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
-                    >
-                      {selectedUserIds.size === filteredUsers.length ? "Deselect All" : "Select All"}
-                    </button>
-                  </div>
-                  <div className="border border-gray-200 dark:border-gray-600 rounded-md max-h-64 overflow-y-auto">
-                    {filteredUsers.length === 0 ? (
-                      <p className="p-4 text-sm text-gray-500 dark:text-gray-400 text-center">
-                        No users found
-                      </p>
-                    ) : (
-                      <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {filteredUsers.map((user) => (
-                          <li
-                            key={user.id}
-                            className={`px-4 py-2 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer ${
-                              selectedUserIds.has(user.id) ? "bg-emerald-50 dark:bg-emerald-900/20" : ""
-                            }`}
-                            onClick={() => handleSelectUser(user.id)}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedUserIds.has(user.id)}
-                              onChange={() => {}}
-                              className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-gray-900 dark:text-white truncate">
-                                {user.firstName || user.lastName
-                                  ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
-                                  : user.name || user.email}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                {user.email}
-                              </p>
-                            </div>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded ${
-                                user.role === "ADMIN"
-                                  ? "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                                  : user.role === "GRADER"
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
-                                  : "bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200"
-                              }`}
-                            >
-                              {user.role}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-
-                {/* Send Results */}
-                {sendResults.length > 0 && (
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Send Results:
-                    </h4>
-                    <ul className="text-sm space-y-1 max-h-32 overflow-y-auto">
-                      {sendResults.map((result, idx) => (
-                        <li
-                          key={idx}
-                          className={`${
-                            result.success
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
-                          }`}
-                        >
-                          {result.email}: {result.message}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Send Button */}
-                <button
-                  onClick={handleSendEmails}
-                  disabled={sending || selectedUserIds.size === 0 || !selectedTemplateId}
-                  className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {sending
-                    ? "Sending..."
-                    : `Send Email to ${selectedUserIds.size} Recipient${selectedUserIds.size !== 1 ? "s" : ""}`}
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -5,6 +5,20 @@ const nextConfig: NextConfig = {
     dirs: ["src"],
   },
   serverExternalPackages: ["@prisma/client"],
+  async redirects() {
+    return [
+      {
+        source: "/admin/graders",
+        destination: "/admin/users",
+        permanent: true,
+      },
+      {
+        source: "/admin/emails",
+        destination: "/admin/templates",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

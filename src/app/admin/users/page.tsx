@@ -77,6 +77,21 @@ export default function ManageGradersPage() {
   // Gmail option
   const [useGmail, setUseGmail] = useState(false);
 
+  // Filter state
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+
+  // Filtered graders based on role and status filters
+  const filteredGraders = graders.filter((g) => {
+    if (roleFilter !== "ALL" && g.role !== roleFilter) return false;
+    if (statusFilter !== "ALL") {
+      if (statusFilter === "SIGNED_IN" && !g.emailVerified) return false;
+      if (statusFilter === "INVITED" && (g.emailVerified || g.invitationStatus !== "INVITED")) return false;
+      if (statusFilter === "NOT_INVITED" && (g.emailVerified || g.invitationStatus !== "NOT_INVITED")) return false;
+    }
+    return true;
+  });
+
   const fetchGraders = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/invite-grader");
@@ -363,10 +378,10 @@ export default function ManageGradersPage() {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.size === graders.length) {
+    if (selectedIds.size === filteredGraders.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(graders.map((g) => g.id)));
+      setSelectedIds(new Set(filteredGraders.map((g) => g.id)));
     }
   };
 
@@ -587,7 +602,7 @@ export default function ManageGradersPage() {
                   {inviting ? "Sending..." : `Invite ${validInviteRows.length || ""} User${validInviteRows.length !== 1 ? "s" : ""}`}
                 </button>
                 <Link
-                  href="/admin/emails"
+                  href="/admin/templates"
                   className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400"
                 >
                   Manage Templates
@@ -649,7 +664,7 @@ export default function ManageGradersPage() {
                     Email Template
                   </label>
                   <Link
-                    href="/admin/emails"
+                    href="/admin/templates"
                     className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
                   >
                     Edit Templates
@@ -688,25 +703,60 @@ export default function ManageGradersPage() {
 
         {/* Users List */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Users ({graders.length})
-            </h2>
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Users ({filteredGraders.length}{filteredGraders.length !== graders.length ? ` of ${graders.length}` : ""})
+              </h2>
+              <div className="flex items-center gap-4">
+                {filteredGraders.length > 0 && (
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                  >
+                    {selectedIds.size === filteredGraders.length ? "Deselect All" : "Select All"}
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex items-center gap-4">
-              {graders.length > 0 && (
-                <button
-                  onClick={handleSelectAll}
-                  className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">Role:</label>
+                <select
+                  value={roleFilter}
+                  onChange={(e) => setRoleFilter(e.target.value)}
+                  className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
                 >
-                  {selectedIds.size === graders.length ? "Deselect All" : "Select All"}
-                </button>
-              )}
+                  <option value="ALL">All</option>
+                  <option value="GRADER">Grader</option>
+                  <option value="ADMIN">Admin</option>
+                  <option value="REVIEWER">Reviewer</option>
+                  <option value="AUTHOR">Author</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-600 dark:text-gray-400">Status:</label>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="ALL">All</option>
+                  <option value="NOT_INVITED">Not Invited</option>
+                  <option value="INVITED">Invited</option>
+                  <option value="SIGNED_IN">Signed In</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {graders.length === 0 ? (
             <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-              No users invited yet
+              No users yet
+            </div>
+          ) : filteredGraders.length === 0 ? (
+            <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+              No users match the current filters
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -716,7 +766,7 @@ export default function ManageGradersPage() {
                     <th className="px-4 py-3 text-left">
                       <input
                         type="checkbox"
-                        checked={selectedIds.size === graders.length && graders.length > 0}
+                        checked={selectedIds.size === filteredGraders.length && filteredGraders.length > 0}
                         onChange={handleSelectAll}
                         className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                       />
@@ -742,7 +792,7 @@ export default function ManageGradersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {graders.map((grader) => (
+                  {filteredGraders.map((grader) => (
                     <tr
                       key={grader.id}
                       className={`${

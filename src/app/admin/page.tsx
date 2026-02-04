@@ -51,7 +51,7 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* User Management */}
             <Link
-              href="/admin/graders"
+              href="/admin/users"
               className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow cursor-pointer"
             >
               <div className="p-6">
