@@ -203,6 +203,12 @@ export async function POST(request: NextRequest) {
                 html: htmlBody,
                 cc: ccEmails,
               });
+
+              // Update invitation status to INVITED
+              await prisma.user.update({
+                where: { id: userId },
+                data: { invitationStatus: "INVITED" },
+              });
               message += ", invitation sent";
             } catch (emailError) {
               console.error(`Failed to send invitation to ${invite.email}:`, emailError);

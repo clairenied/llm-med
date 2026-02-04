@@ -214,6 +214,7 @@ export async function GET() {
         email: true,
         role: true,
         emailVerified: true,
+        invitationStatus: true,
         createdAt: true,
         _count: {
           select: {
@@ -233,6 +234,7 @@ export async function GET() {
         email: g.email,
         role: g.role,
         emailVerified: g.emailVerified?.toISOString() || null,
+        invitationStatus: g.invitationStatus,
         gradeCount: g._count.reviewGrades,
         createdAt: g.createdAt.toISOString(),
       })),

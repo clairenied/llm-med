@@ -154,6 +154,7 @@ model User {
   image         String?
   password      String?   // For email/password auth
   role          UserRole  @default(AUTHOR)
+  invitationStatus UserInvitationStatus @default(NOT_INVITED)
   resetToken    String?   // Password reset token
   resetTokenExpiry DateTime? // Token expiration
   createdAt     DateTime  @default(now())
@@ -222,6 +223,11 @@ enum UserRole {
   REVIEWER
   AUTHOR
   GRADER
+}
+
+enum UserInvitationStatus {
+  NOT_INVITED
+  INVITED
 }
 
 enum InvitationStatus {

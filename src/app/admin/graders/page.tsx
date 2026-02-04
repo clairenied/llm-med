@@ -13,6 +13,7 @@ interface Grader {
   email: string;
   role: string;
   emailVerified: string | null;
+  invitationStatus: "NOT_INVITED" | "INVITED";
   gradeCount: number;
   createdAt: string;
 }
@@ -347,7 +348,8 @@ export default function ManageGradersPage() {
         throw new Error(data.error || "Failed to resend invitation");
       }
 
-      setSuccess(`Invitation resent to ${email}`);
+      setSuccess(data.message || `Invitation sent to ${email}`);
+      await fetchGraders(); // Refresh the list to show updated status
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to resend invitation");
     } finally {
@@ -804,9 +806,13 @@ export default function ManageGradersPage() {
                               {new Date(grader.emailVerified).toLocaleDateString()}
                             </p>
                           </div>
-                        ) : (
+                        ) : grader.invitationStatus === "INVITED" ? (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                             Invited
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200">
+                            Not Invited
                           </span>
                         )}
                       </td>
@@ -834,7 +840,16 @@ export default function ManageGradersPage() {
                           </div>
                         ) : (
                           <div className="flex justify-end gap-2">
-                            {!grader.emailVerified && (
+                            {!grader.emailVerified && grader.invitationStatus === "NOT_INVITED" && (
+                              <button
+                                onClick={() => handleResendInvite(grader.id, grader.email)}
+                                disabled={resendingId === grader.id}
+                                className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 disabled:opacity-50"
+                              >
+                                {resendingId === grader.id ? "Sending..." : "Invite"}
+                              </button>
+                            )}
+                            {!grader.emailVerified && grader.invitationStatus === "INVITED" && (
                               <button
                                 onClick={() => handleResendInvite(grader.id, grader.email)}
                                 disabled={resendingId === grader.id}

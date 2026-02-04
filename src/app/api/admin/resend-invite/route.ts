@@ -118,16 +118,30 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    await sendEmail({
-      to: user.email,
-      subject,
-      html: htmlBody,
-      cc: ccEmails,
+    // Update invitation status to INVITED first
+    await prisma.user.update({
+      where: { id: userId },
+      data: { invitationStatus: "INVITED" },
     });
+
+    let emailSent = true;
+    try {
+      await sendEmail({
+        to: user.email,
+        subject,
+        html: htmlBody,
+        cc: ccEmails,
+      });
+    } catch (emailError) {
+      console.error("Failed to send email:", emailError);
+      emailSent = false;
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Invitation resent to ${user.email}`,
+      message: emailSent
+        ? `Invitation sent to ${user.email}`
+        : `User marked as invited, but email failed to send`,
     });
   } catch (error) {
     console.error("Resend invite error:", error);
