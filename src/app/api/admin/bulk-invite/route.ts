@@ -27,6 +27,7 @@ interface InviteInput {
  * - role: UserRole (GRADER, ADMIN, AUTHOR, REVIEWER)
  * - templateId?: string (optional, uses default if not provided)
  * - ccEmails?: string (comma-separated list of CC emails)
+ * - useGmail?: boolean (send from admin's Gmail instead of system email)
  *
  * Also supports legacy format:
  * - emails: string (comma or newline separated list of emails)
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { invites, emails, firstName, lastName, role, templateId, ccEmails: ccEmailsRaw } = body;
+    const { invites, emails, firstName, lastName, role, templateId, ccEmails: ccEmailsRaw, useGmail } = body;
 
     // Parse CC emails (comma-separated string to array)
     const ccEmails = ccEmailsRaw
@@ -202,6 +203,7 @@ export async function POST(request: NextRequest) {
                 subject,
                 html: htmlBody,
                 cc: ccEmails,
+                useGmail,
               });
 
               // Update invitation status to INVITED

@@ -17,6 +17,7 @@ interface SendResult {
  * Request body:
  * - userIds: string[] (list of user IDs to email)
  * - templateId: string (required, the template to use)
+ * - ccEmails?: string (comma-separated CC email addresses)
  * - useGmail?: boolean (send from admin's Gmail instead of system email)
  */
 export async function POST(request: NextRequest) {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userIds, templateId, useGmail } = body;
+    const { userIds, templateId, ccEmails, useGmail } = body;
 
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
       return NextResponse.json(
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
           to: recipient.email,
           subject,
           html: htmlBody,
+          cc: ccEmails || undefined,
           useGmail,
         });
 

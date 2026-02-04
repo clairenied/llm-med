@@ -54,7 +54,6 @@ export default function ManageGradersPage() {
   const [inviteRows, setInviteRows] = useState<InviteRow[]>([emptyRow()]);
   const [inviteRole, setInviteRole] = useState("GRADER");
   const [inviteTemplateId, setInviteTemplateId] = useState("");
-  const [inviteCcEmails, setInviteCcEmails] = useState("");
   const [inviting, setInviting] = useState(false);
   const [inviteResults, setInviteResults] = useState<InviteResult[]>([]);
 
@@ -63,6 +62,9 @@ export default function ManageGradersPage() {
   const [sendTemplateId, setSendTemplateId] = useState("");
   const [sending, setSending] = useState(false);
   const [sendResults, setSendResults] = useState<{ email: string; success: boolean; message: string }[]>([]);
+
+  // Shared email options (applies to both Invite and Send)
+  const [sharedCcEmails, setSharedCcEmails] = useState("");
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -195,7 +197,8 @@ export default function ManageGradersPage() {
           invites: validInviteRows,
           role: inviteRole,
           templateId: inviteTemplateId || undefined,
-          ccEmails: inviteCcEmails || undefined,
+          ccEmails: sharedCcEmails || undefined,
+          useGmail,
         }),
       });
 
@@ -239,6 +242,7 @@ export default function ManageGradersPage() {
         body: JSON.stringify({
           userIds: Array.from(selectedIds),
           templateId: sendTemplateId,
+          ccEmails: sharedCcEmails || undefined,
           useGmail,
         }),
       });
@@ -580,19 +584,6 @@ export default function ManageGradersPage() {
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  CC Emails (optional, comma-separated)
-                </label>
-                <input
-                  type="text"
-                  value={inviteCcEmails}
-                  onChange={(e) => setInviteCcEmails(e.target.value)}
-                  placeholder="e.g. admin@example.com, team@example.com"
-                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
               <div className="flex items-center justify-between">
                 <button
                   type="submit"
@@ -646,18 +637,6 @@ export default function ManageGradersPage() {
                 Select users from the table below, then choose a template and send.
               </p>
 
-              {session?.user?.email?.toLowerCase() === "craignied@gmail.com" && (
-                <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  <input
-                    type="checkbox"
-                    checked={useGmail}
-                    onChange={(e) => setUseGmail(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  Send from Gmail
-                </label>
-              )}
-
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -698,6 +677,39 @@ export default function ManageGradersPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Shared Email Options */}
+        <div className="mb-8 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email Options:
+            </span>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600 dark:text-gray-400">CC:</label>
+              <input
+                type="text"
+                value={sharedCcEmails}
+                onChange={(e) => setSharedCcEmails(e.target.value)}
+                placeholder="e.g. admin@example.com"
+                className="w-64 px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+            {session?.user?.email?.toLowerCase() === "craignied@gmail.com" && (
+              <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 ml-4">
+                <input
+                  type="checkbox"
+                  checked={useGmail}
+                  onChange={(e) => setUseGmail(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                Send from Gmail
+              </label>
+            )}
+            <span className="text-xs text-gray-400 dark:text-gray-500 italic">
+              (applies to both Invite and Send)
+            </span>
           </div>
         </div>
 
