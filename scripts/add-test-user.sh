@@ -7,6 +7,24 @@
 #
 # Defaults to sholomcraig@gmail.com / Craig Niederberger if no args provided
 
+# Get the directory where the script is located, then go to project root
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Check for --help flag
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  echo "Add or reset a test user"
+  echo ""
+  echo "Usage: ./scripts/add-test-user.sh [--local] [email] [firstName] [lastName]"
+  echo ""
+  echo "Options:"
+  echo "  --local    Use local database instead of production"
+  echo "  --help     Show this help message"
+  echo ""
+  echo "Defaults to sholomcraig@gmail.com / Craig Niederberger if no args provided"
+  exit 0
+fi
+
 # Check for --local flag
 if [ "$1" = "--local" ]; then
   USE_LOCAL=true
@@ -24,9 +42,9 @@ if [ "$USE_LOCAL" = true ]; then
   DB_URL="postgresql://postgres:postgres@localhost:5433/postgres"
   echo "Using LOCAL database"
 else
-  DB_URL=$(grep "^POSTGRES_URL_NON_POOLING=" .env.production | cut -d'"' -f2)
+  DB_URL=$(grep "^POSTGRES_URL_NON_POOLING=" "$PROJECT_ROOT/.env.production" | cut -d'"' -f2)
   if [ -z "$DB_URL" ]; then
-    echo "Error: Could not find POSTGRES_URL_NON_POOLING in .env.production"
+    echo "Error: Could not find POSTGRES_URL_NON_POOLING in $PROJECT_ROOT/.env.production"
     echo "Run: vercel env pull .env.production --environment=production --token=\"\$VERCEL_TOKEN\""
     exit 1
   fi

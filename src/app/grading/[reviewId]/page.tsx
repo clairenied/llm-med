@@ -6,6 +6,45 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 
+/**
+ * Clean up AI summary for display:
+ * - Remove word count hints like "(50–80 words)" from headers
+ * - Add proper markdown ## headers for known sections
+ */
+function formatAiSummary(summary: string): string {
+  // Known section headers from the AI prompt
+  const sectionHeaders = [
+    "Paper Summary",
+    "Clinical Relevance",
+    "Methodology",
+    "Results",
+    "Writing Clarity",
+    "Ethical Considerations",
+  ];
+
+  let formatted = summary;
+
+  // Remove word count patterns: (50–80 words), (100-130 words), etc.
+  formatted = formatted.replace(/\s*\(\d+[–-]\d+\s*words?\)/gi, "");
+
+  // Add ## before each known section header
+  // Match header anywhere (even inline) and add proper newlines
+  for (const header of sectionHeaders) {
+    // Remove any existing ## or ** formatting around the header
+    // Then add proper markdown h2 with newlines
+    const regex = new RegExp(`(##\\s*|\\*\\*)?${header}(\\*\\*)?\\s*(?:\\n|:)?`, "gi");
+    formatted = formatted.replace(regex, `\n\n## ${header}\n\n`);
+  }
+
+  // Clean up multiple newlines (keep max 2)
+  formatted = formatted.replace(/\n{3,}/g, "\n\n");
+
+  // Remove leading newlines
+  formatted = formatted.replace(/^\n+/, "");
+
+  return formatted.trim();
+}
+
 interface ReviewData {
   id: string;
   content: string;
@@ -367,8 +406,8 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
                     )}
                   </div>
                 ) : review.manuscript.aiSummary ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200">
-                    <ReactMarkdown>{review.manuscript.aiSummary}</ReactMarkdown>
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 [&>h2]:text-base [&>h2]:font-bold [&>h2]:text-emerald-700 [&>h2]:dark:text-emerald-400 [&>h2]:mt-6 [&>h2]:mb-2 [&>h2:first-child]:mt-0 [&>h2]:border-b [&>h2]:border-gray-200 [&>h2]:dark:border-gray-700 [&>h2]:pb-1">
+                    <ReactMarkdown>{formatAiSummary(review.manuscript.aiSummary)}</ReactMarkdown>
                   </div>
                 ) : (
                   <div className="text-gray-500 dark:text-gray-400 italic">
