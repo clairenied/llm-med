@@ -173,3 +173,6 @@ dev.log
 # Vercel keepalive (machine-specific)
 scripts/keep-vercel-token-alive.sh
 scripts/vercel-*.log
+
+# Manuscript exports (data already in database)
+manuscript-exports/
