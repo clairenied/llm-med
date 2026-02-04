@@ -76,6 +76,10 @@ export default function ManageGradersPage() {
   // Resend invite state
   const [resendingId, setResendingId] = useState<string | null>(null);
 
+  // Bulk invite state
+  const [bulkInviting, setBulkInviting] = useState(false);
+  const [bulkInviteResults, setBulkInviteResults] = useState<{ email: string; success: boolean; message: string }[]>([]);
+
   // Gmail option
   const [useGmail, setUseGmail] = useState(false);
 
@@ -402,6 +406,62 @@ export default function ManageGradersPage() {
     });
   };
 
+  // Get selected users who haven't been invited yet
+  const selectedNotInvited = graders.filter(
+    (g) => selectedIds.has(g.id) && !g.emailVerified && g.invitationStatus === "NOT_INVITED"
+  );
+
+  // Bulk invite selected NOT_INVITED users
+  const handleBulkInvite = async () => {
+    if (selectedNotInvited.length === 0) return;
+
+    const templateName = templates.find(t => t.id === inviteTemplateId)?.name || "invitation";
+    if (!confirm(`Send "${templateName}" to ${selectedNotInvited.length} user(s)?`)) {
+      return;
+    }
+
+    setBulkInviting(true);
+    setError("");
+    setSuccess("");
+    setBulkInviteResults([]);
+
+    const results: { email: string; success: boolean; message: string }[] = [];
+
+    for (const user of selectedNotInvited) {
+      try {
+        const response = await fetch("/api/admin/resend-invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            templateId: inviteTemplateId || undefined,
+            ccEmails: sharedCcEmails || undefined,
+            useGmail,
+          }),
+        });
+
+        const data = await response.json();
+        results.push({
+          email: user.email,
+          success: response.ok,
+          message: response.ok ? "Invitation sent" : (data.error || "Failed"),
+        });
+      } catch {
+        results.push({
+          email: user.email,
+          success: false,
+          message: "Failed to send",
+        });
+      }
+    }
+
+    setBulkInviteResults(results);
+    const successCount = results.filter(r => r.success).length;
+    setSuccess(`Sent ${successCount} of ${results.length} invitations`);
+    await fetchGraders();
+    setBulkInviting(false);
+  };
+
   const communicationTemplates = allTemplates.filter((t) => t.type === "COMMUNICATION");
 
   if (status === "loading" || loading) {
@@ -599,6 +659,54 @@ export default function ManageGradersPage() {
                 >
                   Manage Templates
                 </Link>
+              </div>
+
+              {/* Bulk Invite from Selection */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {bulkInviteResults.length > 0 && (
+                  <div className="mb-3 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Bulk Invite Results:
+                    </h4>
+                    <ul className="text-sm space-y-1 max-h-24 overflow-y-auto">
+                      {bulkInviteResults.map((result, idx) => (
+                        <li
+                          key={idx}
+                          className={
+                            result.success
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }
+                        >
+                          {result.email}: {result.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={handleBulkInvite}
+                    disabled={bulkInviting || selectedNotInvited.length === 0}
+                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {bulkInviting ? "Sending..." : `Invite ${selectedNotInvited.length} Selected`}
+                  </button>
+                  {selectedNotInvited.length > 0 ? (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {selectedNotInvited.length} not yet invited
+                    </span>
+                  ) : selectedIds.size > 0 ? (
+                    <span className="text-sm text-gray-400 dark:text-gray-500 italic">
+                      All selected users already invited
+                    </span>
+                  ) : (
+                    <span className="text-sm text-gray-400 dark:text-gray-500 italic">
+                      Select users from table below
+                    </span>
+                  )}
+                </div>
               </div>
             </form>
           </div>
