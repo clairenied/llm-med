@@ -226,7 +226,8 @@ export default function ManageGradersPage() {
       return;
     }
 
-    if (!confirm(`Send email to ${selectedIds.size} recipient(s)?`)) {
+    const templateName = communicationTemplates.find(t => t.id === sendTemplateId)?.name || "email";
+    if (!confirm(`Send "${templateName}" to ${selectedIds.size} recipient(s)?`)) {
       return;
     }
 
