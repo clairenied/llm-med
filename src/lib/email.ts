@@ -118,10 +118,50 @@ export interface SendEmailParams {
   subject: string;
   html: string;
   cc?: string | string[];
+  useGmail?: boolean;
+}
+
+// Send email via Gmail SMTP
+async function sendEmailViaGmail({ to, subject, html, cc }: Omit<SendEmailParams, 'useGmail'>) {
+  const nodemailer = await import("nodemailer");
+
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailPassword = process.env.GMAIL_APP_PASSWORD;
+
+  if (!gmailUser || !gmailPassword) {
+    throw new Error("Gmail credentials not configured (GMAIL_USER, GMAIL_APP_PASSWORD)");
+  }
+
+  const transporter = nodemailer.default.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailUser,
+      pass: gmailPassword,
+    },
+  });
+
+  const ccList = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : undefined;
+  console.log(`📧 Sending via Gmail: ${gmailUser} → ${to}${ccList ? ` (CC: ${ccList})` : ""}`);
+
+  const info = await transporter.sendMail({
+    from: `"Craig Niederberger" <${gmailUser}>`,
+    to,
+    cc: ccList,
+    subject,
+    html,
+  });
+
+  console.log(`✅ Gmail sent: ${info.messageId}`);
+  return { success: true, emailId: info.messageId };
 }
 
 // Generic email sending function
-export async function sendEmail({ to, subject, html, cc }: SendEmailParams) {
+export async function sendEmail({ to, subject, html, cc, useGmail }: SendEmailParams) {
+  // Use Gmail if requested
+  if (useGmail) {
+    return sendEmailViaGmail({ to, subject, html, cc });
+  }
+
   if (!process.env.RESEND_API_KEY) {
     console.error("⚠️  RESEND_API_KEY not configured. Email cannot be sent.");
     throw new Error("Email service not configured");

@@ -222,7 +222,10 @@ export async function GET() {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { lastName: "asc" },
+        { firstName: "asc" },
+      ],
     });
 
     return NextResponse.json({

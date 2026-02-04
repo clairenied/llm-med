@@ -74,6 +74,9 @@ export default function ManageGradersPage() {
   // Resend invite state
   const [resendingId, setResendingId] = useState<string | null>(null);
 
+  // Gmail option
+  const [useGmail, setUseGmail] = useState(false);
+
   const fetchGraders = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/invite-grader");
@@ -221,6 +224,7 @@ export default function ManageGradersPage() {
         body: JSON.stringify({
           userIds: Array.from(selectedIds),
           templateId: sendTemplateId,
+          useGmail,
         }),
       });
 
@@ -339,6 +343,7 @@ export default function ManageGradersPage() {
         body: JSON.stringify({
           userId,
           templateId: inviteTemplateId || undefined,
+          useGmail,
         }),
       });
 
@@ -591,11 +596,11 @@ export default function ManageGradersPage() {
             </form>
           </div>
 
-          {/* Send Reminder Emails */}
+          {/* Send Other Emails */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Send Reminder Emails
+                Send Other Emails
               </h2>
             </div>
             <div className="p-6">
@@ -625,6 +630,18 @@ export default function ManageGradersPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Select users from the table below, then choose a template and send.
               </p>
+
+              {session?.user?.email?.toLowerCase() === "craignied@gmail.com" && (
+                <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  <input
+                    type="checkbox"
+                    checked={useGmail}
+                    onChange={(e) => setUseGmail(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Send from Gmail
+                </label>
+              )}
 
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-1">
@@ -675,14 +692,16 @@ export default function ManageGradersPage() {
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Users ({graders.length})
             </h2>
-            {graders.length > 0 && (
-              <button
-                onClick={handleSelectAll}
-                className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
-              >
-                {selectedIds.size === graders.length ? "Deselect All" : "Select All"}
-              </button>
-            )}
+            <div className="flex items-center gap-4">
+              {graders.length > 0 && (
+                <button
+                  onClick={handleSelectAll}
+                  className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                >
+                  {selectedIds.size === graders.length ? "Deselect All" : "Select All"}
+                </button>
+              )}
+            </div>
           </div>
 
           {graders.length === 0 ? (

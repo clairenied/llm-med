@@ -17,6 +17,7 @@ interface SendResult {
  * Request body:
  * - userIds: string[] (list of user IDs to email)
  * - templateId: string (required, the template to use)
+ * - useGmail?: boolean (send from admin's Gmail instead of system email)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userIds, templateId } = body;
+    const { userIds, templateId, useGmail } = body;
 
     if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
       return NextResponse.json(
@@ -107,6 +108,7 @@ export async function POST(request: NextRequest) {
           to: recipient.email,
           subject,
           html: htmlBody,
+          useGmail,
         });
 
         results.push({

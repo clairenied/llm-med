@@ -12,6 +12,7 @@ import crypto from "crypto";
  * - userId: string (required)
  * - templateId?: string (optional, uses default if not provided)
  * - ccEmails?: string (comma-separated list of CC emails)
+ * - useGmail?: boolean (send from admin's Gmail instead of system email)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userId, templateId, ccEmails: ccEmailsRaw } = body;
+    const { userId, templateId, ccEmails: ccEmailsRaw, useGmail } = body;
 
     // Parse CC emails (comma-separated string to array)
     const ccEmails = ccEmailsRaw
@@ -131,6 +132,7 @@ export async function POST(request: NextRequest) {
         subject,
         html: htmlBody,
         cc: ccEmails,
+        useGmail,
       });
     } catch (emailError) {
       console.error("Failed to send email:", emailError);
