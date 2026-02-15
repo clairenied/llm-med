@@ -91,7 +91,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
-    async signIn() {
+    async signIn({ user, account }) {
+      // Magic link sign-in: only allow users who already exist in the DB
+      // (pre-created via admin invite). Prevents strangers from self-registering.
+      if (account?.provider === "resend" && user?.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email as string },
+          select: { id: true },
+        });
+        if (!existingUser) {
+          return false; // Shows "Access denied" error page
+        }
+      }
       return true;
     },
     async redirect({ url, baseUrl }) {

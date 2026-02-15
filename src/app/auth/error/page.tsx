@@ -13,7 +13,7 @@ function AuthErrorContent() {
       case "Configuration":
         return "There is a problem with the server configuration.";
       case "AccessDenied":
-        return "Access denied. You do not have permission to sign in.";
+        return "Did you use your invitation email? If you did and you\u2019re seeing this, please contact the system administrator.";
       case "Verification":
         return "The verification token has expired or has already been used.";
       case "Default":

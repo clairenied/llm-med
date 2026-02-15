@@ -49,7 +49,9 @@ function SignInForm() {
         callbackUrl,
       });
 
-      if (result?.error) {
+      if (result?.error === "AccessDenied") {
+        setError("Did you use your invitation email? If you did and you\u2019re seeing this, please contact the system administrator.");
+      } else if (result?.error) {
         setError("Failed to send magic link. Please try again.");
       } else {
         setSuccess("Check your email for a sign-in link!");
