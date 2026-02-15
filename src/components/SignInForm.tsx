@@ -31,7 +31,7 @@ export default function SignInForm() {
       });
 
       if (result?.error) {
-        setError("Failed to send magic link. Please try again.");
+        setError("Did you use your invitation email? If you did and you\u2019re seeing this, please contact the system administrator.");
       } else {
         setSuccess("Check your email for a sign-in link!");
       }
