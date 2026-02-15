@@ -35,6 +35,7 @@ function EmailManagementContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "date">("name");
 
   // Template editing state
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
@@ -190,10 +191,41 @@ function EmailManagementContent() {
       }
 
       setSuccess("Template deleted successfully");
+      // Close editor if the deleted template was being edited
+      if (editingTemplate?.id === templateId) {
+        setEditingTemplate(null);
+        setIsNewTemplate(false);
+        setShowPreview(false);
+      }
       fetchTemplates();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete template");
     }
+  };
+
+  // Sort templates: by name (grouped by type) or by date (newest first, no grouping)
+  const sortedTemplates = [...templates].sort((a, b) => {
+    if (sortBy === "name") {
+      // Group by type (INVITATION first), then alphabetical
+      if (a.type !== b.type) {
+        return a.type === "INVITATION" ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    }
+    // Date: newest first, no type grouping
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+
+  const handleDuplicateTemplate = (template: EmailTemplate) => {
+    // Open editor with duplicated content — nothing is saved until the user hits Save
+    setEditingTemplate(null);
+    setIsNewTemplate(true);
+    setTemplateName(template.name + " (Copy)");
+    setTemplateSubject(template.subject);
+    setTemplateBody(template.body);
+    setTemplateType(template.type);
+    setTemplateIsDefault(false);
+    setShowPreview(false);
   };
 
   const handleSelectAllUsers = () => {
@@ -333,17 +365,42 @@ function EmailManagementContent() {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Email Templates
                 </h2>
-                <button
-                  onClick={handleNewTemplate}
-                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md transition-colors"
-                >
-                  + New Template
-                </button>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Sort:</span>
+                    <button
+                      onClick={() => setSortBy("name")}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        sortBy === "name"
+                          ? "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white"
+                          : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      }`}
+                    >
+                      Name
+                    </button>
+                    <button
+                      onClick={() => setSortBy("date")}
+                      className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                        sortBy === "date"
+                          ? "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-white"
+                          : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      }`}
+                    >
+                      Date
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleNewTemplate}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md transition-colors"
+                  >
+                    + New Template
+                  </button>
+                </div>
               </div>
 
               {/* Template List */}
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {templates.map((template) => (
+                {sortedTemplates.map((template) => (
                   <div
                     key={template.id}
                     className={`px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer ${
@@ -352,7 +409,7 @@ function EmailManagementContent() {
                     onClick={() => handleEditTemplate(template)}
                   >
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium text-gray-900 dark:text-white">
                           {template.name}
                           {template.isDefault && (
@@ -365,15 +422,37 @@ function EmailManagementContent() {
                           {template.subject}
                         </p>
                       </div>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded ${
-                          template.type === "INVITATION"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200"
-                        }`}
-                      >
-                        {template.type}
-                      </span>
+                      <div className="flex items-center gap-2 ml-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDuplicateTemplate(template);
+                          }}
+                          className="text-xs px-2 py-1 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          title="Duplicate template"
+                        >
+                          Duplicate
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTemplate(template.id, template.name);
+                          }}
+                          className="text-xs px-2 py-1 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                          title="Delete template"
+                        >
+                          Delete
+                        </button>
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded ${
+                            template.type === "INVITATION"
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200"
+                          }`}
+                        >
+                          {template.type}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -387,22 +466,12 @@ function EmailManagementContent() {
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                     {isNewTemplate ? "New Template" : "Edit Template"}
                   </h3>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowPreview(!showPreview)}
-                      className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
-                    >
-                      {showPreview ? "Edit" : "Preview"}
-                    </button>
-                    {!isNewTemplate && editingTemplate && (
-                      <button
-                        onClick={() => handleDeleteTemplate(editingTemplate.id, editingTemplate.name)}
-                        className="text-sm text-red-600 hover:text-red-700 dark:text-red-400"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  >
+                    {showPreview ? "Edit" : "Preview"}
+                  </button>
                 </div>
 
                 <div className="p-6">
