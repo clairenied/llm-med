@@ -153,7 +153,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // For email/password auth
-  role          UserRole  @default(AUTHOR)
+  role          UserRole  @default(GRADER)
   invitationStatus UserInvitationStatus @default(NOT_INVITED)
   resetToken    String?   // Password reset token
   resetTokenExpiry DateTime? // Token expiration
@@ -203,7 +203,7 @@ model VerificationToken {
 model Invitation {
   id        String           @id @default(cuid())
   email     String           @unique
-  role      UserRole         @default(AUTHOR)
+  role      UserRole         @default(GRADER)
   status    InvitationStatus @default(PENDING)
   token     String           @unique @default(cuid())
   createdAt DateTime         @default(now())

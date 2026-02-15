@@ -312,7 +312,7 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
 
         {/* Manuscript and Version Context */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-medium rounded">
@@ -338,7 +338,7 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
                 href={review.manuscript.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 flex-shrink-0"
               >
                 <span>View Full Manuscript</span>
                 <span className="text-lg">↗</span>
@@ -347,7 +347,7 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
               <Link
                 href={`/manuscripts/${review.manuscript.id}`}
                 target="_blank"
-                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-md transition-colors flex items-center justify-center gap-2 flex-shrink-0"
               >
                 <span>View Internal Record</span>
                 <span className="text-lg">↗</span>

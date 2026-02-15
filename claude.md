@@ -6,6 +6,7 @@ Academic manuscript review tracking system built with Next.js 15, providing tran
 ## Tech Stack & Dependencies
 
 ### Core Framework
+- **Node.js 20** - Required runtime (pinned in `.nvmrc`). Node 22+ breaks the dev server with `localStorage.getItem is not a function` errors. Always run `nvm use` before `npm run dev`.
 - **Next.js 15.4.6** - React framework with App Router
 - **React 19.1.0** - UI library
 - **TypeScript** - Type safety
@@ -97,6 +98,11 @@ INNGEST_SIGNING_KEY="your-signing-key"
 ```
 
 ## Development Workflow
+
+### Quick Start
+```bash
+./test_start.sh   # Switches to Node 20, starts Postgres, runs dev server
+```
 
 ### Database Commands
 - `npm run db:push` - Push schema changes

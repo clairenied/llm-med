@@ -128,7 +128,7 @@ export default function GradingQueuePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Review Grading
@@ -139,7 +139,7 @@ export default function GradingQueuePage() {
           </div>
           <Link
             href="/grading/progress"
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md transition-colors"
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-md transition-colors text-center flex-shrink-0"
           >
             View Progress Report
           </Link>
@@ -147,7 +147,7 @@ export default function GradingQueuePage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
             <StatCard label="Total Reviews" value={stats.totalReviews} />
             <StatCard label="Need 2 Graders" value={stats.reviewsWithNoGrades} color="red" />
             <StatCard label="Need 1 Grader" value={stats.reviewsWithOneGrade} color="yellow" />
@@ -225,7 +225,7 @@ export default function GradingQueuePage() {
             >
               Previous
             </button>
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
                 .filter((p) => p === 1 || p === pagination.totalPages || Math.abs(p - page) <= 2)
                 .map((p, idx, arr) => (
@@ -311,7 +311,7 @@ function ManuscriptCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center gap-1 whitespace-nowrap"
+              className="hidden sm:flex text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors items-center gap-1 whitespace-nowrap"
             >
               View manuscript ↗
             </a>
@@ -320,7 +320,7 @@ function ManuscriptCard({
               href={`/manuscripts/${manuscript.manuscriptId}`}
               target="_blank"
               onClick={(e) => e.stopPropagation()}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center gap-1 whitespace-nowrap"
+              className="hidden sm:flex text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors items-center gap-1 whitespace-nowrap"
             >
               View internal ↗
             </Link>
@@ -354,10 +354,10 @@ function ManuscriptCard({
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {version.reviews.map((review) => (
                   <li key={review.id} className="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
                         <span
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0 ${
                             review.reviewType === "INTERNAL" ? "bg-purple-500" : "bg-gray-500"
                           }`}
                         >
@@ -372,7 +372,7 @@ function ManuscriptCard({
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 ml-11 sm:ml-0">
                         <GradeStatus count={review.gradeCount} />
                         {!review.hasUserGraded ? (
                           <Link
