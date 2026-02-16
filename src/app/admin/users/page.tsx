@@ -24,6 +24,7 @@ interface EmailTemplate {
   subject: string;
   type: string;
   isDefault: boolean;
+  createdAt: string;
 }
 
 interface InviteResult {
@@ -120,10 +121,15 @@ export default function ManageGradersPage() {
       const response = await fetch("/api/admin/email-templates");
       if (response.ok) {
         const data = await response.json();
-        setAllTemplates(data.templates);
+        // Sort all templates by date (newest first)
+        const sorted = [...data.templates].sort(
+          (a: EmailTemplate, b: EmailTemplate) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setAllTemplates(sorted);
 
         // Invitation templates
-        const invitationTemplates = data.templates.filter(
+        const invitationTemplates = sorted.filter(
           (t: EmailTemplate) => t.type === "INVITATION"
         );
         setTemplates(invitationTemplates);
