@@ -325,13 +325,23 @@ function ManuscriptCard({
               View internal ↗
             </Link>
           )}
-          <span className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-            isExpanded
-              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-              : "bg-emerald-600 text-white group-hover:bg-emerald-700"
-          }`}>
-            {isExpanded ? "Grading..." : "Grade Reviews"}
-          </span>
+          {manuscript.ungradedByUser > 0 ? (
+            <span className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+              isExpanded
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                : "bg-emerald-600 text-white group-hover:bg-emerald-700"
+            }`}>
+              {isExpanded ? "Grading..." : "Grade Reviews"}
+            </span>
+          ) : (
+            <span className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+              isExpanded
+                ? "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 group-hover:bg-gray-300 dark:group-hover:bg-gray-500"
+            }`}>
+              {isExpanded ? "Editing..." : "Edit Grades"}
+            </span>
+          )}
         </div>
       </button>
 

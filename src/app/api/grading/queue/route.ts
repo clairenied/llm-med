@@ -155,13 +155,15 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sort: prioritize manuscripts with more total reviews, then by title for stability
-    // Using totalReviews (not ungradedByUser) ensures order doesn't shift as user grades
+    // Sort: manuscripts with ungraded reviews first, then by total reviews, then by title
     manuscriptGroups.sort((a, b) => {
-      if (b.totalReviews !== a.totalReviews) {
-        return b.totalReviews - a.totalReviews;
-      }
-      // Secondary sort by title for consistency
+      // Primary: papers the user still needs to grade come first
+      const aFullyGraded = a.ungradedByUser === 0 ? 1 : 0;
+      const bFullyGraded = b.ungradedByUser === 0 ? 1 : 0;
+      if (aFullyGraded !== bFullyGraded) return aFullyGraded - bFullyGraded;
+      // Secondary: more total reviews first
+      if (b.totalReviews !== a.totalReviews) return b.totalReviews - a.totalReviews;
+      // Tertiary: title for consistency
       return a.manuscriptTitle.localeCompare(b.manuscriptTitle);
     });
 
