@@ -23,6 +23,7 @@ interface ManuscriptGroup {
   versions: VersionData[];
   totalReviews: number;
   ungradedByUser: number;
+  actionableByUser: number;
   hasAiSummary: boolean;
 }
 
@@ -97,6 +98,7 @@ export async function GET(request: NextRequest) {
       const versionMap = new Map<number, ReviewData[]>();
       let totalReviews = 0;
       let ungradedByUser = 0;
+      let actionableByUser = 0;
 
       for (const version of manuscript.versions) {
         for (const review of version.reviews) {
@@ -124,6 +126,9 @@ export async function GET(request: NextRequest) {
             totalReviews++;
             if (!hasUserGraded) {
               ungradedByUser++;
+              if (gradeCount < 2) {
+                actionableByUser++;
+              }
             }
           }
         }
@@ -150,17 +155,18 @@ export async function GET(request: NextRequest) {
           versions,
           totalReviews,
           ungradedByUser,
+          actionableByUser,
           hasAiSummary: !!manuscript.aiSummary,
         });
       }
     }
 
-    // Sort: manuscripts with ungraded reviews first, then by total reviews, then by title
+    // Sort: manuscripts with actionable reviews (need grading, < 2/2) first
     manuscriptGroups.sort((a, b) => {
-      // Primary: papers the user still needs to grade come first
-      const aFullyGraded = a.ungradedByUser === 0 ? 1 : 0;
-      const bFullyGraded = b.ungradedByUser === 0 ? 1 : 0;
-      if (aFullyGraded !== bFullyGraded) return aFullyGraded - bFullyGraded;
+      // Primary: papers with reviews needing grades (not yet 2/2, not yet graded by user)
+      const aNoAction = a.actionableByUser === 0 ? 1 : 0;
+      const bNoAction = b.actionableByUser === 0 ? 1 : 0;
+      if (aNoAction !== bNoAction) return aNoAction - bNoAction;
       // Secondary: more total reviews first
       if (b.totalReviews !== a.totalReviews) return b.totalReviews - a.totalReviews;
       // Tertiary: title for consistency

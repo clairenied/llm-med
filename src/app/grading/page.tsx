@@ -26,6 +26,7 @@ interface ManuscriptGroup {
   versions: VersionData[];
   totalReviews: number;
   ungradedByUser: number;
+  actionableByUser: number;
   hasAiSummary: boolean;
 }
 
@@ -271,7 +272,7 @@ function ManuscriptCard({
 }) {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border-l-4 ${
-      manuscript.ungradedByUser > 0 ? "border-l-emerald-500" : "border-l-gray-300 dark:border-l-gray-600"
+      manuscript.actionableByUser > 0 ? "border-l-emerald-500" : "border-l-gray-300 dark:border-l-gray-600"
     }`}>
       {/* Header - Clickable */}
       <button
@@ -290,9 +291,9 @@ function ManuscriptCard({
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {manuscript.versions.length} version{manuscript.versions.length !== 1 ? "s" : ""} &middot;{" "}
                 {manuscript.totalReviews} review{manuscript.totalReviews !== 1 ? "s" : ""} to grade
-                {manuscript.ungradedByUser > 0 && (
+                {manuscript.actionableByUser > 0 && (
                   <span className="ml-2 text-emerald-600 dark:text-emerald-400 font-medium">
-                    ({manuscript.ungradedByUser} new)
+                    ({manuscript.actionableByUser} new)
                   </span>
                 )}
               </p>
@@ -325,7 +326,7 @@ function ManuscriptCard({
               View internal ↗
             </Link>
           )}
-          {manuscript.ungradedByUser > 0 ? (
+          {manuscript.actionableByUser > 0 ? (
             <span className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
               isExpanded
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
@@ -360,9 +361,13 @@ function ManuscriptCard({
                 </h4>
               </div>
 
-              {/* Reviews for this version */}
+              {/* Reviews for this version - actionable reviews first */}
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
-                {version.reviews.map((review) => (
+                {[...version.reviews].sort((a, b) => {
+                  const aActionable = !a.hasUserGraded && a.gradeCount < 2 ? 0 : 1;
+                  const bActionable = !b.hasUserGraded && b.gradeCount < 2 ? 0 : 1;
+                  return aActionable - bActionable;
+                }).map((review) => (
                   <li key={review.id} className="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex items-center gap-3">
