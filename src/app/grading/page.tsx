@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import useSWR from "swr";
 
 interface ReviewData {
   id: string;
@@ -48,50 +49,34 @@ interface PaginationData {
 
 const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
+const fetcher = (url: string) => fetch(url).then(r => {
+  if (!r.ok) throw new Error("Failed to fetch reviews");
+  return r.json();
+});
+
 export default function GradingQueuePage() {
   const { status } = useSession();
   const router = useRouter();
-  const [manuscripts, setManuscripts] = useState<ManuscriptGroup[]>([]);
-  const [stats, setStats] = useState<GradingStats | null>(null);
-  const [pagination, setPagination] = useState<PaginationData | null>(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [expandedManuscripts, setExpandedManuscripts] = useState<Set<string>>(new Set());
+  const hasAutoExpanded = useRef(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-      return;
-    }
+  const { data, error, isLoading } = useSWR(
+    status === "authenticated" ? `/api/grading/queue?page=${page}&limit=${limit}` : null,
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true, revalidateOnReconnect: true }
+  );
 
-    if (status === "authenticated") {
-      fetchReviews();
-    }
-  }, [status, router, page, limit]);
+  const manuscripts: ManuscriptGroup[] = data?.manuscripts ?? [];
+  const stats: GradingStats | null = data?.stats ?? null;
+  const pagination: PaginationData | null = data?.pagination ?? null;
 
-  const fetchReviews = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/grading/queue?page=${page}&limit=${limit}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch reviews");
-      }
-      const data = await response.json();
-      setManuscripts(data.manuscripts);
-      setStats(data.stats);
-      setPagination(data.pagination);
-      // Auto-expand first manuscript
-      if (data.manuscripts.length > 0) {
-        setExpandedManuscripts(new Set([data.manuscripts[0].manuscriptId]));
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load reviews");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Auto-expand first manuscript only on the very first successful fetch
+  if (data && !hasAutoExpanded.current && manuscripts.length > 0) {
+    hasAutoExpanded.current = true;
+    setExpandedManuscripts(new Set([manuscripts[0].manuscriptId]));
+  }
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -117,7 +102,11 @@ export default function GradingQueuePage() {
     });
   };
 
-  if (status === "loading" || loading) {
+  if (status === "unauthenticated") {
+    router.push("/auth/signin");
+  }
+
+  if (status !== "authenticated" || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-600 dark:text-gray-400">Loading...</div>
@@ -160,7 +149,7 @@ export default function GradingQueuePage() {
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-6">
-            {error}
+            {error.message}
           </div>
         )}
 

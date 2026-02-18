@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import useSWR from "swr";
 
 interface OverallStats {
   totalReviews: number;
@@ -29,44 +29,30 @@ interface RecentActivity {
   createdAt: string;
 }
 
+const fetcher = (url: string) => fetch(url).then(r => {
+  if (!r.ok) throw new Error("Failed to fetch progress");
+  return r.json();
+});
+
 export default function ProgressReportPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [overall, setOverall] = useState<OverallStats | null>(null);
-  const [graderStats, setGraderStats] = useState<GraderStat[]>([]);
-  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-      return;
-    }
+  const { data, error, isLoading } = useSWR(
+    status === "authenticated" ? "/api/grading/progress" : null,
+    fetcher,
+    { refreshInterval: 30000, revalidateOnFocus: true, revalidateOnReconnect: true }
+  );
 
-    if (status === "authenticated") {
-      fetchProgress();
-    }
-  }, [status, router]);
+  const overall: OverallStats | null = data?.overall ?? null;
+  const graderStats: GraderStat[] = data?.graderStats ?? [];
+  const recentActivity: RecentActivity[] = data?.recentActivity ?? [];
 
-  const fetchProgress = async () => {
-    try {
-      const response = await fetch("/api/grading/progress");
-      if (!response.ok) {
-        throw new Error("Failed to fetch progress");
-      }
-      const data = await response.json();
-      setOverall(data.overall);
-      setGraderStats(data.graderStats);
-      setRecentActivity(data.recentActivity);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load progress");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (status === "unauthenticated") {
+    router.push("/auth/signin");
+  }
 
-  if (status === "loading" || loading) {
+  if (status !== "authenticated" || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-gray-600 dark:text-gray-400">Loading...</div>
@@ -94,7 +80,7 @@ export default function ProgressReportPage() {
 
         {error && (
           <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-6">
-            {error}
+            {error.message}
           </div>
         )}
 
