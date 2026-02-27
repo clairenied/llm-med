@@ -238,6 +238,144 @@ function stripTags(html: string): string {
     .trim();
 }
 
+// Review prompt based on llm-prompts/PromptForReviews2.docx
+const REVIEW_SYSTEM_PROMPT = `You are a senior academic peer reviewer with expertise in urology, clinical research methodology, and AI-assisted medical studies. You have reviewed for high-impact venues (e.g., clinical journals, medical AI conferences). Your reviews are precise, critical, evidence-grounded, and written in a professional academic tone.
+
+You must:
+- Base all judgments strictly on the paper text provided
+- Write reviews that could realistically appear in top-tier peer review venues
+- Do not soften criticism
+- Do not invent content
+
+Reviewer guidelines: Thoroughly read the paper. Look up any related work and citations that will help you evaluate it in depth.
+
+Evaluate the paper STRICTLY using the rubric below.
+
+**Paper Summary** [Provide a concise overview of the paper, summarizing its motivation, its objectives, research design and methodology, key findings, and main conclusions.] [100-150 words]
+
+**Strengths and weaknesses of the paper** [Critically evaluate the strengths and weaknesses of the paper. Present them in two sections (-Strengths, -weaknesses) in bullet points and support each point with specific evidence or examples from the article whenever possible.] Consider aspects such as if applicable:
+- The importance and relevance of the research questions
+- Clarity of the manuscript
+- Technical soundness and methodological correctness
+- Experimental rigor and robustness of evaluation
+- Novelty and contribution to the field
+
+**Paper decision** [Make a recommendation: Accept, Minor Revision, Major Revision, or Reject. Include the decision and reason.]
+
+**Decision Calibration Rules:**
+1. Recommend Reject if: Major methodological flaw; absence of required statistical justification; no ethical approval with human subjects; claims unsupported by results; insufficient novelty.
+2. Recommend Major Revision if: Core idea valid but rigor insufficient; missing critical analyses; moderate novelty not clearly articulated; methodology has weaknesses needing correction.
+3. Recommend Minor Revision if: Conclusions supported but clarity/reporting improvements needed; weaknesses limited to presentation issues.
+4. Recommend Accept only if: Important well-motivated question; sound methodology; justified statistics; claims supported; ethical standards documented; clearly novel contribution.
+
+**Suggestions for improvement** [Constructive feedback to strengthen the manuscript, not factors in overall evaluation.]
+
+IMPORTANT: You MUST respond with valid JSON only (no markdown fencing, no extra text). Use this exact structure:
+{
+  "paper_summary": "...",
+  "strengths": ["bullet point 1", "bullet point 2", ...],
+  "weaknesses": ["bullet point 1", "bullet point 2", ...],
+  "decision": "Accept" | "Minor Revision" | "Major Revision" | "Reject",
+  "decision_reason": "...",
+  "suggestions": ["suggestion 1", "suggestion 2", ...]
+}`;
+
+export interface ReviewResult {
+  success: boolean;
+  review?: Record<string, unknown>;
+  error?: string;
+}
+
+/**
+ * Generate an AI peer review for a manuscript using DeepSeek
+ */
+export async function generateManuscriptReview(
+  manuscriptId: string
+): Promise<ReviewResult> {
+  try {
+    const manuscript = await prisma.manuscript.findUnique({
+      where: { id: manuscriptId },
+      include: { sources: true },
+    });
+
+    if (!manuscript) {
+      return { success: false, error: "Manuscript not found" };
+    }
+
+    // Build the paper content
+    let paperContent = "";
+    paperContent += `Title: ${manuscript.title}\n\n`;
+    if (manuscript.abstract) {
+      paperContent += `Abstract: ${manuscript.abstract}\n\n`;
+    }
+
+    // Get full content from f1000Document if available
+    if (manuscript.sources.length > 0 && manuscript.sources[0].doi) {
+      const doi = manuscript.sources[0].doi;
+      const f1000Doc = await prisma.f1000Document.findUnique({
+        where: { doi },
+      });
+
+      if (f1000Doc) {
+        const textContent = extractTextFromXml(f1000Doc.xmlData);
+        if (textContent) {
+          paperContent += `Full Text:\n${textContent}\n`;
+        }
+      }
+    }
+
+    if (!paperContent.trim()) {
+      return { success: false, error: "No content available to review" };
+    }
+
+    console.log(`🤖 Generating AI review for: ${manuscript.title.substring(0, 50)}...`);
+
+    const deepseek = getDeepSeekClient();
+    const completion = await deepseek.chat.completions.create({
+      model: "deepseek-chat",
+      messages: [
+        { role: "system", content: REVIEW_SYSTEM_PROMPT },
+        { role: "user", content: `Review the following paper:\n\n${paperContent}` },
+      ],
+      max_tokens: 4000,
+      temperature: 0.3,
+    });
+
+    const responseText = completion.choices[0]?.message?.content;
+
+    if (!responseText) {
+      return { success: false, error: "No review generated" };
+    }
+
+    // Parse JSON response (strip markdown fencing if present)
+    let review: Record<string, unknown>;
+    try {
+      const cleaned = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      review = JSON.parse(cleaned);
+    } catch {
+      return { success: false, error: `Failed to parse review JSON: ${responseText.substring(0, 200)}` };
+    }
+
+    // Save to database
+    await prisma.manuscript.update({
+      where: { id: manuscriptId },
+      data: {
+        aiReview: review,
+        aiReviewGeneratedAt: new Date(),
+      },
+    });
+
+    console.log(`✅ Review generated and saved for manuscript: ${manuscriptId}`);
+    return { success: true, review };
+  } catch (error) {
+    console.error("Error generating review:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 /**
  * Get or generate summary for a manuscript
  * Returns existing summary if available, otherwise generates a new one

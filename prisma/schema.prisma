@@ -35,6 +35,8 @@ model Manuscript {
   status      ManuscriptStatus   @default(DRAFT)
   aiSummary   String?            // LLM-generated summary for grading context
   aiSummaryGeneratedAt DateTime? // When the summary was generated
+  aiReview    Json?              // LLM-generated peer review (structured JSON)
+  aiReviewGeneratedAt DateTime?  // When the review was generated
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   authors     Author[]
