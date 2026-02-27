@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 // Lazy-loaded DeepSeek client to avoid initialization errors when API key is missing
@@ -282,7 +283,7 @@ IMPORTANT: You MUST respond with valid JSON only (no markdown fencing, no extra 
 
 export interface ReviewResult {
   success: boolean;
-  review?: Record<string, unknown>;
+  review?: Prisma.InputJsonValue;
   error?: string;
 }
 
@@ -348,7 +349,7 @@ export async function generateManuscriptReview(
     }
 
     // Parse JSON response (strip markdown fencing if present)
-    let review: Record<string, unknown>;
+    let review: Prisma.InputJsonValue;
     try {
       const cleaned = responseText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
       review = JSON.parse(cleaned);
