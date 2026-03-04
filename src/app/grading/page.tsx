@@ -381,10 +381,10 @@ function ManuscriptCard({
                         {!review.hasUserGraded ? (
                           <Link
                             href={`/grading/${review.id}`}
-                            className={`px-4 py-2 text-white text-sm font-medium rounded-md transition-colors ${
+                            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                               review.gradeCount >= 2
-                                ? "bg-emerald-800 hover:bg-emerald-900 dark:bg-emerald-900 dark:hover:bg-emerald-950"
-                                : "bg-emerald-600 hover:bg-emerald-700"
+                                ? "bg-emerald-800 hover:bg-emerald-900 text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-950 dark:text-emerald-400"
+                                : "bg-emerald-600 hover:bg-emerald-700 text-white"
                             }`}
                           >
                             Grade
