@@ -190,6 +190,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    const actionableReviews = allReviews.filter(
+      (r) => r.grades.length < 2 && !r.grades.some((g) => g.graderId === userId)
+    ).length;
+
     const stats = {
       totalReviews: allReviews.length,
       reviewsWithNoGrades: allReviews.filter((r) => r.grades.length === 0).length,
@@ -198,7 +202,7 @@ export async function GET(request: NextRequest) {
       userGradedCount: allReviews.filter((r) =>
         r.grades.some((g) => g.graderId === userId)
       ).length,
-      manuscriptsToGrade: totalManuscripts,
+      actionableReviews,
     };
 
     return NextResponse.json({

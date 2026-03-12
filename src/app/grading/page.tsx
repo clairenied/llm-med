@@ -37,7 +37,7 @@ interface GradingStats {
   reviewsWithOneGrade: number;
   reviewsComplete: number;
   userGradedCount: number;
-  manuscriptsToGrade: number;
+  actionableReviews: number;
 }
 
 interface PaginationData {
@@ -137,14 +137,24 @@ export default function GradingQueuePage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
-            <StatCard label="Total Reviews" value={stats.totalReviews} />
-            <StatCard label="Need 2 Graders" value={stats.reviewsWithNoGrades} color="red" />
-            <StatCard label="Need 1 Grader" value={stats.reviewsWithOneGrade} color="yellow" />
-            <StatCard label="Complete" value={stats.reviewsComplete} color="green" />
-            <StatCard label="Your Grades" value={stats.userGradedCount} color="blue" />
-            <StatCard label="Papers to Review" value={stats.manuscriptsToGrade} color="purple" />
-          </div>
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-8">
+              <StatCard label="Total Reviews" value={stats.totalReviews} />
+              <StatCard label="Need 2 Graders" value={stats.reviewsWithNoGrades} color="red" />
+              <StatCard label="Need 1 Grader" value={stats.reviewsWithOneGrade} color="yellow" />
+              <StatCard label="Complete" value={stats.reviewsComplete} color="green" />
+              <StatCard label="Your Grades" value={stats.userGradedCount} color="blue" />
+            </div>
+            {stats.actionableReviews > 0 ? (
+              <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 rounded-lg px-4 py-3 mb-6 text-emerald-800 dark:text-emerald-200 font-medium">
+                {stats.actionableReviews} review{stats.actionableReviews !== 1 ? "s" : ""} still need your grading
+              </div>
+            ) : (
+              <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-4 py-3 mb-6 text-green-800 dark:text-green-200 font-medium">
+                You&apos;re all caught up! Every review has at least 2 grades. You can still add optional grades below.
+              </div>
+            )}
+          </>
         )}
 
         {error && (
