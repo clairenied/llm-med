@@ -1,4 +1,10 @@
+Read and follow the instructions in /Users/craign/code/locker/CLAUDE.md before proceeding.
+
 # Manuscript Review Tracker - Project Context
+
+## IMPORTANT: Database Queries Default to Production
+
+**When the user asks to query the database (counts, lookups, data questions), ALWAYS use the production Vercel/Neon database — NOT the local Docker container.** The local database is only for development and does not have real data. See "Production Database Access" section below for connection instructions.
 
 ## Project Overview
 Academic manuscript review tracking system built with Next.js 15, providing transparent peer review process management, version control, and comprehensive admin tools for manuscript publication workflows.
@@ -227,6 +233,20 @@ source .env && curl -s "https://api.airtable.com/v0/$AIRTABLE_BASE_ID/$AIRTABLE_
 
 For personal emails (vs Resend for system emails), Gmail SMTP credentials are in `.env`.
 
+## LLM-Generated Reviews
+
+The `llm-prompts/` directory contains prompts for generating AI peer reviews of urology research papers.
+
+- **`llm-prompts/promptForReviews.docx`** - Original rubric-based prompt (1-5 scored categories) — superseded
+- **`llm-prompts/PromptForReviews2.docx`** - Current prompt for traditional peer review format
+  - Output: JSON with `{ paper_summary, strengths[], weaknesses[], decision, decision_reason, suggestions[] }`
+  - Decision values: Accept / Minor Revision / Major Revision / Reject
+
+### DeepSeek Integration
+- **`src/lib/deepseek.ts`** - `generateManuscriptReview()` sends manuscript content to DeepSeek API using PromptForReviews2 prompt
+- **Schema fields**: `Manuscript.aiReview` (Json?) and `Manuscript.aiReviewGeneratedAt` (DateTime?)
+- **Test script**: `dev-tools/test-ai-review.ts` — standalone script (own PrismaClient, no `@/` imports)
+
 ## Project Structure
 
 ```
@@ -249,6 +269,7 @@ llm-med/
 │   │   └── services/          # Service integrations
 │   ├── lib/                   # Shared utilities
 │   │   ├── auth.ts           # NextAuth configuration
+│   │   ├── deepseek.ts       # DeepSeek AI review generation
 │   │   ├── email.ts          # Email service
 │   │   └── prisma.ts         # Database client
 │   └── types/                # TypeScript definitions
@@ -258,6 +279,7 @@ llm-med/
 │   └── seed.ts              # Seed data script
 ├── database-ops/            # Database utilities
 ├── dev-tools/              # Development helpers
+├── llm-prompts/            # AI review generation prompts
 └── docs/                   # Documentation
 
 ```
