@@ -71,6 +71,7 @@ export default function GradingQueuePage() {
   const manuscripts: ManuscriptGroup[] = data?.manuscripts ?? [];
   const stats: GradingStats | null = data?.stats ?? null;
   const pagination: PaginationData | null = data?.pagination ?? null;
+  const gradingMode: string = data?.gradingMode ?? "HUMAN";
 
   // Auto-expand first manuscript only on the very first successful fetch
   if (data && !hasAutoExpanded.current && manuscripts.length > 0) {
@@ -124,7 +125,9 @@ export default function GradingQueuePage() {
               Review Grading
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Grade peer reviews to help train the AI reviewer. Each review needs 2 graders.
+              {gradingMode === "AI"
+                ? "Grade AI-generated reviews. Each review needs 2 graders."
+                : "Grade peer reviews to help train the AI reviewer. Each review needs 2 graders."}
             </p>
           </div>
           <Link
@@ -163,15 +166,32 @@ export default function GradingQueuePage() {
           </div>
         )}
 
+        {/* Mode Banner */}
+        {gradingMode === "AI" && (
+          <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg px-4 py-3 mb-6 flex items-center gap-3">
+            <span className="text-lg">🤖</span>
+            <span className="text-purple-800 dark:text-purple-200 font-medium">
+              AI Review Mode — You are grading AI-generated reviews
+            </span>
+          </div>
+        )}
+
         {/* Instructions */}
         <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to Grade</h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-            <li>Papers are grouped with their reviews organized by version (v1, v2, etc.)</li>
-            <li>Grade reviews in version order to understand how the manuscript evolved</li>
-            <li>Click a paper to expand and see all reviews for all versions</li>
-            <li>Use &quot;View Manuscript&quot; to read the full paper content</li>
-          </ul>
+          {gradingMode === "AI" ? (
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>Each paper has one AI-generated review to grade</li>
+              <li>Use &quot;View Manuscript&quot; to read the full paper, then grade the AI review</li>
+            </ul>
+          ) : (
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>Papers are grouped with their reviews organized by version (v1, v2, etc.)</li>
+              <li>Grade reviews in version order to understand how the manuscript evolved</li>
+              <li>Click a paper to expand and see all reviews for all versions</li>
+              <li>Use &quot;View Manuscript&quot; to read the full paper content</li>
+            </ul>
+          )}
         </div>
 
         {/* Pagination Controls - Top */}
@@ -203,6 +223,10 @@ export default function GradingQueuePage() {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow px-6 py-12 text-center text-gray-500 dark:text-gray-400">
               No reviews available for grading at this time.
             </div>
+          ) : gradingMode === "AI" ? (
+            manuscripts.map((manuscript) => (
+              <AiReviewCard key={manuscript.manuscriptId} manuscript={manuscript} />
+            ))
           ) : (
             manuscripts.map((manuscript) => (
               <ManuscriptCard
@@ -255,6 +279,68 @@ export default function GradingQueuePage() {
             </button>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function AiReviewCard({ manuscript }: { manuscript: ManuscriptGroup }) {
+  // In AI mode there's one review per paper — grab it
+  const review = manuscript.versions[0]?.reviews[0];
+  if (!review) return null;
+
+  return (
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden border-l-4 ${
+      manuscript.actionableByUser > 0 ? "border-l-purple-500" : "border-l-gray-300 dark:border-l-gray-600"
+    }`}>
+      <div className="px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+            {manuscript.manuscriptTitle}
+          </h3>
+          <div className="flex items-center gap-3 mt-1">
+            <GradeStatus count={review.gradeCount} />
+            {manuscript.externalUrl ? (
+              <a
+                href={manuscript.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              >
+                View manuscript ↗
+              </a>
+            ) : (
+              <Link
+                href={`/manuscripts/${manuscript.manuscriptId}`}
+                target="_blank"
+                className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+              >
+                View internal ↗
+              </Link>
+            )}
+          </div>
+        </div>
+        <div className="flex-shrink-0">
+          {!review.hasUserGraded ? (
+            <Link
+              href={`/grading/${review.id}`}
+              className={`inline-flex px-5 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                review.gradeCount >= 2
+                  ? "bg-purple-800 hover:bg-purple-900 text-purple-300 dark:bg-purple-900 dark:hover:bg-purple-950 dark:text-purple-400"
+                  : "bg-purple-600 hover:bg-purple-700 text-white"
+              }`}
+            >
+              Grade AI Review
+            </Link>
+          ) : (
+            <Link
+              href={`/grading/${review.id}`}
+              className="inline-flex px-5 py-2.5 bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+            >
+              Edit Grade
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

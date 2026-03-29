@@ -109,6 +109,13 @@ enum DocumentType {
 enum ReviewType {
   INTERNAL
   EXTERNAL
+  AI_GENERATED
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }
 
 model Source {

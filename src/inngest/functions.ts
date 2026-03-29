@@ -9,6 +9,7 @@ import { f1000FetchArticle } from "./functions/f1000-fetch-article";
 import { f1000TransformArticle } from "./functions/f1000-transform-article";
 import { f1000BatchTransform } from "./functions/f1000-batch-transform";
 import { generateSummary, batchGenerateSummaries } from "./functions/generate-summaries";
+import { generateAiReview, batchGenerateAiReviews } from "./functions/generate-ai-reviews";
 import { reprocessReviews } from "./functions/reprocess-reviews";
 
 // Export individual functions
@@ -19,6 +20,8 @@ export {
   f1000BatchTransform,
   generateSummary,
   batchGenerateSummaries,
+  generateAiReview,
+  batchGenerateAiReviews,
   reprocessReviews,
 };
 
@@ -30,5 +33,7 @@ export const allFunctions = [
   f1000BatchTransform,
   generateSummary,
   batchGenerateSummaries,
+  generateAiReview,
+  batchGenerateAiReviews,
   reprocessReviews,
 ] as const;

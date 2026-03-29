@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getGradingMode } from "@/lib/settings";
 
 export async function GET() {
   try {
@@ -24,6 +25,17 @@ export async function GET() {
       );
     }
 
+    // Filter by grading mode
+    const gradingMode = await getGradingMode();
+    const reviewTypeFilter =
+      gradingMode === "AI"
+        ? { reviewType: "AI_GENERATED" as const }
+        : { reviewType: { not: "AI_GENERATED" as const } };
+    const sqlReviewTypeCondition =
+      gradingMode === "AI"
+        ? `WHERE r."reviewType" = 'AI_GENERATED'`
+        : `WHERE r."reviewType" != 'AI_GENERATED'`;
+
     // Use parallel queries with aggregations instead of loading all data
     const [
       totalReviews,
@@ -32,38 +44,43 @@ export async function GET() {
       graderGradeCounts,
       recentGrades,
     ] = await Promise.all([
-      // Total reviews count
-      prisma.review.count(),
+      // Total reviews count (filtered by mode)
+      prisma.review.count({ where: reviewTypeFilter }),
 
-      // Total grades submitted
-      prisma.reviewGrade.count(),
+      // Total grades submitted (filtered by mode via review join)
+      prisma.reviewGrade.count({
+        where: { review: reviewTypeFilter },
+      }),
 
       // Get grade counts per review using raw query for efficiency
-      prisma.$queryRaw<{ grade_count: bigint; review_count: bigint }[]>`
-        SELECT 
-          CASE 
-            WHEN grade_count >= 2 THEN 2 
-            ELSE grade_count 
+      prisma.$queryRawUnsafe<{ grade_count: bigint; review_count: bigint }[]>(`
+        SELECT
+          CASE
+            WHEN grade_count >= 2 THEN 2
+            ELSE grade_count
           END as grade_count,
           COUNT(*) as review_count
         FROM (
           SELECT r.id, COUNT(rg.id) as grade_count
           FROM "Review" r
           LEFT JOIN "ReviewGrade" rg ON r.id = rg."reviewId"
+          ${sqlReviewTypeCondition}
           GROUP BY r.id
         ) subq
         GROUP BY CASE WHEN grade_count >= 2 THEN 2 ELSE grade_count END
-      `,
+      `),
 
-      // Get per-grader stats using groupBy
+      // Get per-grader stats using groupBy (filtered by mode)
       prisma.reviewGrade.groupBy({
         by: ["graderId"],
+        where: { review: reviewTypeFilter },
         _count: { id: true },
         orderBy: { _count: { id: "desc" } },
       }),
 
-      // Recent activity (limited to 20, so nesting is acceptable)
+      // Recent activity (filtered by mode)
       prisma.reviewGrade.findMany({
+        where: { review: reviewTypeFilter },
         take: 20,
         orderBy: { createdAt: "desc" },
         select: {

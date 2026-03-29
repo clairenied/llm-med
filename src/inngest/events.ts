@@ -160,6 +160,23 @@ export type ReviewsReprocessRequestedData = z.infer<
   typeof ReviewsReprocessRequestedDataSchema
 >;
 
+// manuscript.review.ai.requested
+export const ManuscriptReviewAiRequestedDataSchema = z.object({
+  manuscriptId: z.string(),
+  title: z.string().optional(),
+});
+
+export type ManuscriptReviewAiRequestedData = z.infer<
+  typeof ManuscriptReviewAiRequestedDataSchema
+>;
+
+// manuscript.reviews.ai.batch.requested
+export const ManuscriptReviewsAiBatchRequestedDataSchema = z.object({});
+
+export type ManuscriptReviewsAiBatchRequestedData = z.infer<
+  typeof ManuscriptReviewsAiBatchRequestedDataSchema
+>;
+
 // ============================================================================
 // Event Type Definitions (for Inngest)
 // ============================================================================
@@ -200,5 +217,11 @@ export type Events = {
   };
   "reviews.reprocess.requested": {
     data: ReviewsReprocessRequestedData;
+  };
+  "manuscript.review.ai.requested": {
+    data: ManuscriptReviewAiRequestedData;
+  };
+  "manuscript.reviews.ai.batch.requested": {
+    data: ManuscriptReviewsAiBatchRequestedData;
   };
 };

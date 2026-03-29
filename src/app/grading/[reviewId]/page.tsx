@@ -319,11 +319,17 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
                   Version {review.versionNumber}
                 </span>
                 <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                  review.reviewType === "INTERNAL"
+                  review.reviewType === "AI_GENERATED"
                     ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+                    : review.reviewType === "INTERNAL"
+                      ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                 }`}>
-                  {review.reviewType === "INTERNAL" ? "Internal" : "External"} Review
+                  {review.reviewType === "AI_GENERATED"
+                    ? "AI-Generated Review"
+                    : review.reviewType === "INTERNAL"
+                      ? "Internal Review"
+                      : "External Review"}
                 </span>
               </div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -426,13 +432,19 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
               <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Peer Review Content
+                  {review.reviewType === "AI_GENERATED" ? "AI-Generated Review" : "Peer Review Content"}
                 </h3>
               </div>
               <div className="p-4 max-h-96 overflow-y-auto">
-                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-gray-800 dark:text-gray-200">
-                  {review.content}
-                </div>
+                {review.reviewType === "AI_GENERATED" ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 [&>h1]:text-base [&>h1]:font-bold [&>h1]:text-purple-700 [&>h1]:dark:text-purple-400 [&>h1]:mt-6 [&>h1]:mb-2 [&>h1:first-child]:mt-0 [&>h1]:border-b [&>h1]:border-gray-200 [&>h1]:dark:border-gray-700 [&>h1]:pb-1">
+                    <ReactMarkdown>{review.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+                    {review.content}
+                  </div>
+                )}
               </div>
             </div>
           </div>

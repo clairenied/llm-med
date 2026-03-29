@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getGradingMode } from "@/lib/settings";
 
 interface ReviewData {
   id: string;
@@ -54,6 +55,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Determine grading mode: AI shows only AI_GENERATED reviews, HUMAN shows INTERNAL/EXTERNAL
+    const gradingMode = await getGradingMode();
+    const reviewTypeFilter =
+      gradingMode === "AI"
+        ? { reviewType: "AI_GENERATED" as const }
+        : { reviewType: { not: "AI_GENERATED" as const } };
+
     // Get all manuscripts with their versions and reviews, grouped properly
     const manuscripts = await prisma.manuscript.findMany({
       include: {
@@ -66,6 +74,7 @@ export async function GET(request: NextRequest) {
         versions: {
           include: {
             reviews: {
+              where: reviewTypeFilter,
               include: {
                 reviewer: {
                   select: {
@@ -179,8 +188,9 @@ export async function GET(request: NextRequest) {
     const startIndex = (page - 1) * limit;
     const paginatedManuscripts = manuscriptGroups.slice(startIndex, startIndex + limit);
 
-    // Calculate overall stats
+    // Calculate overall stats (filtered by current grading mode)
     const allReviews = await prisma.review.findMany({
+      where: reviewTypeFilter,
       include: {
         grades: {
           select: {
@@ -208,6 +218,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       manuscripts: paginatedManuscripts,
       stats,
+      gradingMode,
       pagination: {
         page,
         limit,
