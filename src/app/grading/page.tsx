@@ -170,10 +170,10 @@ export default function GradingQueuePage() {
         {gradingMode === "AI" && (
           <div className="hidden md:block bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg px-4 py-3 mb-6">
             <p className="text-purple-800 dark:text-purple-200 font-medium">
-              Stage 2: Evaluating an AI Reviewer
+              Welcome to Stage 2: Evaluating an AI Reviewer!
             </p>
             <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
-              We&apos;ve moved on from grading human peer reviews. You are now evaluating reviews written by an AI system using the same grading rubric. Your evaluations will help us measure how AI-generated reviews compare to human ones.
+              Thanks to your work grading human reviews, we&apos;re now ready for the next step! This time, you&apos;ll be evaluating reviews written by an AI system using the same rubric. Your feedback will help us understand how AI-generated reviews stack up against human ones.
             </p>
           </div>
         )}
