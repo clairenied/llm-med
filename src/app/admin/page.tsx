@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function AdminDashboard() {
@@ -98,6 +98,14 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
+          {/* Grading Mode */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+              Grading Mode
+            </h2>
+            <GradingModeToggle />
+          </div>
+
           {/* Data Management */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -136,6 +144,83 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function GradingModeToggle() {
+  const [mode, setMode] = useState<"HUMAN" | "AI" | null>(null);
+  const [switching, setSwitching] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/settings?key=GRADING_MODE")
+      .then((r) => r.json())
+      .then((data) => setMode(data.setting?.value || "HUMAN"))
+      .catch(() => setMode("HUMAN"));
+  }, []);
+
+  const toggle = async () => {
+    const newMode = mode === "HUMAN" ? "AI" : "HUMAN";
+    const confirmMsg =
+      newMode === "AI"
+        ? "Switch to AI mode? Graders will only see AI-generated reviews."
+        : "Switch back to Human mode? Graders will see the original peer reviews.";
+    if (!confirm(confirmMsg)) return;
+
+    setSwitching(true);
+    try {
+      await fetch("/api/admin/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "GRADING_MODE", value: newMode }),
+      });
+      setMode(newMode);
+    } catch {
+      alert("Failed to update grading mode");
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  if (mode === null) {
+    return (
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+            Controls what graders see in their queue
+          </p>
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">
+            {mode === "HUMAN" ? (
+              <>Human Reviews <span className="text-sm font-normal text-gray-500">(original peer reviews)</span></>
+            ) : (
+              <>AI Reviews <span className="text-sm font-normal text-gray-500">(DeepSeek-generated reviews)</span></>
+            )}
+          </p>
+        </div>
+        <button
+          onClick={toggle}
+          disabled={switching}
+          className={`px-5 py-2.5 rounded-md text-sm font-bold transition-colors cursor-pointer disabled:opacity-50 ${
+            mode === "HUMAN"
+              ? "bg-purple-600 hover:bg-purple-700 text-white"
+              : "bg-emerald-600 hover:bg-emerald-700 text-white"
+          }`}
+        >
+          {switching
+            ? "Switching..."
+            : mode === "HUMAN"
+              ? "Switch to AI Mode"
+              : "Switch to Human Mode"}
+        </button>
       </div>
     </div>
   );
