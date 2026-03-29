@@ -166,13 +166,15 @@ export default function GradingQueuePage() {
           </div>
         )}
 
-        {/* Mode Banner */}
+        {/* Stage 2 Banner — desktop only */}
         {gradingMode === "AI" && (
-          <div className="bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg px-4 py-3 mb-6 flex items-center gap-3">
-            <span className="text-lg">🤖</span>
-            <span className="text-purple-800 dark:text-purple-200 font-medium">
-              AI Review Mode — You are grading AI-generated reviews
-            </span>
+          <div className="hidden md:block bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700 rounded-lg px-4 py-3 mb-6">
+            <p className="text-purple-800 dark:text-purple-200 font-medium">
+              Stage 2: Evaluating an AI Reviewer
+            </p>
+            <p className="text-sm text-purple-700 dark:text-purple-300 mt-1">
+              We&apos;ve moved on from grading human peer reviews. You are now evaluating reviews written by an AI system using the same grading rubric. Your evaluations will help us measure how AI-generated reviews compare to human ones.
+            </p>
           </div>
         )}
 
