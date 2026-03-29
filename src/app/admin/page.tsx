@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 
 export default function AdminDashboard() {
@@ -98,17 +98,6 @@ export default function AdminDashboard() {
             </Link>
           </div>
 
-          {/* Grading Mode Toggle */}
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              AI Review Grading
-            </h2>
-            <div className="space-y-4">
-              <GradingModeToggle />
-              <AiReviewGeneration />
-            </div>
-          </div>
-
           {/* Data Management */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
@@ -152,158 +141,3 @@ export default function AdminDashboard() {
   );
 }
 
-function AiReviewGeneration() {
-  const [status, setStatus] = useState<{
-    totalManuscripts: number;
-    manuscriptsWithAiReview: number;
-    remaining: number;
-  } | null>(null);
-  const [generating, setGenerating] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/admin/generate-ai-reviews")
-      .then((r) => r.json())
-      .then(setStatus)
-      .catch(() => {});
-  }, []);
-
-  const triggerGeneration = async () => {
-    if (!confirm("Generate AI reviews for all manuscripts without one? This will call DeepSeek for each paper.")) return;
-    setGenerating(true);
-    try {
-      const res = await fetch("/api/admin/generate-ai-reviews", { method: "POST" });
-      const data = await res.json();
-      alert(data.message || "Generation queued");
-    } catch {
-      alert("Failed to trigger generation");
-    } finally {
-      setGenerating(false);
-    }
-  };
-
-  const refreshStatus = () => {
-    fetch("/api/admin/generate-ai-reviews")
-      .then((r) => r.json())
-      .then(setStatus)
-      .catch(() => {});
-  };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-            AI Review Generation Status
-          </p>
-          {status ? (
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-semibold text-green-600 dark:text-green-400">{status.manuscriptsWithAiReview}</span>
-              {" / "}
-              <span className="font-semibold">{status.totalManuscripts}</span>
-              {" papers have AI reviews"}
-              {status.remaining > 0 && (
-                <span className="text-yellow-600 dark:text-yellow-400 ml-2">
-                  ({status.remaining} remaining)
-                </span>
-              )}
-            </p>
-          ) : (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={refreshStatus}
-            className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors cursor-pointer"
-          >
-            Refresh
-          </button>
-          <button
-            onClick={triggerGeneration}
-            disabled={generating || (status?.remaining === 0)}
-            className="px-5 py-2.5 rounded-md text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer disabled:opacity-50"
-          >
-            {generating ? "Queuing..." : "Generate AI Reviews"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GradingModeToggle() {
-  const [mode, setMode] = useState<"HUMAN" | "AI" | null>(null);
-  const [switching, setSwitching] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/admin/settings?key=GRADING_MODE")
-      .then((r) => r.json())
-      .then((data) => setMode(data.setting?.value || "HUMAN"))
-      .catch(() => setMode("HUMAN"));
-  }, []);
-
-  const toggle = async () => {
-    const newMode = mode === "HUMAN" ? "AI" : "HUMAN";
-    const confirmMsg =
-      newMode === "AI"
-        ? "Switch to AI mode? Graders will only see AI-generated reviews."
-        : "Switch back to Human mode? Graders will see the original peer reviews.";
-    if (!confirm(confirmMsg)) return;
-
-    setSwitching(true);
-    try {
-      await fetch("/api/admin/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "GRADING_MODE", value: newMode }),
-      });
-      setMode(newMode);
-    } catch {
-      alert("Failed to update grading mode");
-    } finally {
-      setSwitching(false);
-    }
-  };
-
-  if (mode === null) {
-    return (
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-            Controls what graders see in their queue
-          </p>
-          <p className="text-lg font-semibold text-gray-900 dark:text-white">
-            {mode === "HUMAN" ? (
-              <>Human Reviews <span className="text-sm font-normal text-gray-500">(original peer reviews)</span></>
-            ) : (
-              <>AI Reviews <span className="text-sm font-normal text-gray-500">(DeepSeek-generated reviews)</span></>
-            )}
-          </p>
-        </div>
-        <button
-          onClick={toggle}
-          disabled={switching}
-          className={`px-5 py-2.5 rounded-md text-sm font-bold transition-colors cursor-pointer disabled:opacity-50 ${
-            mode === "HUMAN"
-              ? "bg-purple-600 hover:bg-purple-700 text-white"
-              : "bg-emerald-600 hover:bg-emerald-700 text-white"
-          }`}
-        >
-          {switching
-            ? "Switching..."
-            : mode === "HUMAN"
-              ? "Switch to AI Mode"
-              : "Switch to Human Mode"}
-        </button>
-      </div>
-    </div>
-  );
-}
