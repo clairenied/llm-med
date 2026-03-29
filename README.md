@@ -28,8 +28,9 @@ Visit [http://localhost:3010](http://localhost:3010)
 ## ✨ Features
 
 - **Manuscript Management** - Track manuscripts with versions and reviews
-- **Admin Dashboard** - User management, data import, article cleanup
+- **Admin Dashboard** - User management, data import, grading mode toggle
 - **Review System** - Internal/external reviews with anonymous reviewers
+- **AI Review Grading (Stage 2)** - Evaluate AI-generated peer reviews using the same rubric as human reviews. Admin toggle switches graders between human and AI review queues.
 - **Version Control** - Multiple manuscript versions (PDF, Word, Text)
 - **Data Import** - Bulk import from external sources (F1000Research)
 - **Invitation System** - Admin-controlled user registration
@@ -44,7 +45,7 @@ Visit [http://localhost:3010](http://localhost:3010)
 
 ## 📋 Prerequisites
 
-- Node.js 18+
+- Node.js 20 (pinned in `.nvmrc`; Node 22+ causes SSR errors)
 - Docker (for PostgreSQL)
 - npm/yarn
 
@@ -103,14 +104,16 @@ npm run lint          # Run ESLint
 
 ## 📊 Database Schema
 
-Core models: Manuscript → ManuscriptVersion → Review
+Core models: Manuscript → ManuscriptVersion → Review → ReviewGrade
 
-- **Manuscript**: Title, abstract, keywords, status
+- **Manuscript**: Title, abstract, keywords, status, AI review fields
 - **Author**: Author information and affiliations
 - **ManuscriptVersion**: Version tracking with documents
-- **Review**: Reviews linked to versions and reviewers
+- **Review**: Reviews linked to versions and reviewers (types: INTERNAL, EXTERNAL, AI_GENERATED)
+- **ReviewGrade**: Rubric-based grades on reviews (2 grades per review from different graders)
 - **Reviewer**: Anonymous reviewer system (A, B, C codes)
 - **User/Session**: Authentication system
+- **SystemSetting**: Key-value store for admin configuration (e.g., GRADING_MODE)
 - **Invitation**: Invitation-only registration
 
 ## 🌐 API Endpoints
@@ -121,10 +124,23 @@ GET    /api/manuscripts/[id]   # Get manuscript
 POST   /api/manuscripts        # Create manuscript
 PUT    /api/manuscripts/[id]   # Update manuscript
 
+GET    /api/grading/queue      # Grading queue (filtered by HUMAN/AI mode)
+GET    /api/grading/progress   # Grading progress stats
+
 GET    /api/admin/users        # List users (admin)
 POST   /api/admin/invitations  # Send invitation (admin)
 POST   /api/admin/scrape       # Scrape articles (admin)
+GET/PUT /api/admin/settings    # System settings (admin)
 ```
+
+## 📊 Grading System
+
+The system supports two grading stages, toggled by an admin setting:
+
+- **Stage 1 (Human Mode)**: Graders evaluate original peer reviews from F1000Research. Multiple reviews per paper, expandable card UI.
+- **Stage 2 (AI Mode)**: Graders evaluate AI-generated reviews (produced by DeepSeek). One review per paper, flat card UI with purple theme.
+
+Both modes use the same rubric and require 2 independent grades per review. The admin dashboard toggle (`GRADING_MODE` setting) switches what graders see in their queue.
 
 ## 🚀 Deployment
 

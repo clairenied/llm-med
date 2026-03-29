@@ -238,14 +238,32 @@ For personal emails (vs Resend for system emails), Gmail SMTP credentials are in
 The `llm-prompts/` directory contains prompts for generating AI peer reviews of urology research papers.
 
 - **`llm-prompts/promptForReviews.docx`** - Original rubric-based prompt (1-5 scored categories) — superseded
-- **`llm-prompts/PromptForReviews2.docx`** - Current prompt for traditional peer review format
-  - Output: JSON with `{ paper_summary, strengths[], weaknesses[], decision, decision_reason, suggestions[] }`
+- **`llm-prompts/PromptForReviews2.docx`** - Current prompt for traditional peer review format (verbatim in `src/lib/deepseek.ts`)
+  - Output: Markdown with sections: Paper Summary, Strengths, Weaknesses, Paper decision, Suggestions
   - Decision values: Accept / Minor Revision / Major Revision / Reject
 
 ### DeepSeek Integration
-- **`src/lib/deepseek.ts`** - `generateManuscriptReview()` sends manuscript content to DeepSeek API using PromptForReviews2 prompt
+- **`src/lib/deepseek.ts`** - `generateManuscriptReview()` sends manuscript content to DeepSeek API using PromptForReviews2 prompt (verbatim)
 - **Schema fields**: `Manuscript.aiReview` (Json?) and `Manuscript.aiReviewGeneratedAt` (DateTime?)
-- **Test script**: `dev-tools/test-ai-review.ts` — standalone script (own PrismaClient, no `@/` imports)
+- **Batch script**: `dev-tools/batch-ai-reviews.ts` — generates AI reviews for all manuscripts, creates `Review` records with `AI_GENERATED` type
+- **Single test script**: `dev-tools/test-ai-review-single.ts` — generates one AI review for a given manuscript ID
+
+### AI Review Grading System (Stage 2)
+
+The system supports two grading modes controlled by an admin toggle:
+
+- **HUMAN mode** (Stage 1): Graders evaluate original human peer reviews. Expandable card UI with papers → versions → reviews.
+- **AI mode** (Stage 2): Graders evaluate AI-generated reviews. Simplified flat list UI (one review per paper, no expand/collapse).
+
+**Key components:**
+- **`SystemSetting` model** — Key-value store for admin settings. `GRADING_MODE` = `HUMAN` or `AI`.
+- **`src/lib/settings.ts`** — `getGradingMode()` / `setGradingMode()` helpers
+- **`src/app/api/admin/settings/route.ts`** — GET/PUT for system settings (admin only)
+- **Admin toggle** — On admin dashboard (`src/app/admin/page.tsx`), "Grading Mode" section
+- **Queue filtering** — `src/app/api/grading/queue/route.ts` and `src/app/api/grading/progress/route.ts` filter reviews by `reviewType` based on current mode
+- **AI reviews** — Stored as `Review` records with `reviewType: AI_GENERATED`, linked to a "DeepSeek AI" `Reviewer` record (ID: `d78dac432c684fca87846d4c5`). Reuses the entire grading infrastructure (ReviewGrade, 2-grader requirement, progress tracking).
+- **Grading UI** — `src/app/grading/page.tsx` renders `AiReviewCard` (flat) in AI mode vs `ManuscriptCard` (expandable) in HUMAN mode. Detail page (`src/app/grading/[reviewId]/page.tsx`) renders AI review content as markdown.
+- **Stage 2 banner** — Desktop-only (`hidden md:block`) explainer banner on grading queue page in AI mode
 
 ## Project Structure
 
@@ -269,9 +287,10 @@ llm-med/
 │   │   └── services/          # Service integrations
 │   ├── lib/                   # Shared utilities
 │   │   ├── auth.ts           # NextAuth configuration
-│   │   ├── deepseek.ts       # DeepSeek AI review generation
+│   │   ├── deepseek.ts       # DeepSeek AI review/summary generation
 │   │   ├── email.ts          # Email service
-│   │   └── prisma.ts         # Database client
+│   │   ├── prisma.ts         # Database client
+│   │   └── settings.ts       # System settings (grading mode)
 │   └── types/                # TypeScript definitions
 ├── prisma/
 │   ├── schema.prisma         # Database schema
