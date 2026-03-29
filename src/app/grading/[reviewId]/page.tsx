@@ -315,9 +315,11 @@ export default function GradingFormPage({ params }: { params: Promise<{ reviewId
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-medium rounded">
-                  Version {review.versionNumber}
-                </span>
+                {review.reviewType !== "AI_GENERATED" && (
+                  <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 text-xs font-medium rounded">
+                    Version {review.versionNumber}
+                  </span>
+                )}
                 <span className={`px-2 py-0.5 text-xs font-medium rounded ${
                   review.reviewType === "AI_GENERATED"
                     ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
