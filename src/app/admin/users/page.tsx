@@ -71,6 +71,7 @@ export default function ManageGradersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const [editRole, setEditRole] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -290,6 +291,7 @@ export default function ManageGradersPage() {
       setEditFirstName(grader.firstName || "");
       setEditLastName(grader.lastName || "");
     }
+    setEditEmail(grader.email);
     setEditRole(grader.role);
   };
 
@@ -297,6 +299,7 @@ export default function ManageGradersPage() {
     setEditingId(null);
     setEditFirstName("");
     setEditLastName("");
+    setEditEmail("");
     setEditRole("");
   };
 
@@ -311,6 +314,7 @@ export default function ManageGradersPage() {
         body: JSON.stringify({
           firstName: editFirstName,
           lastName: editLastName,
+          email: editEmail,
           role: editRole,
         }),
       });
@@ -963,7 +967,16 @@ export default function ManageGradersPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                        {grader.email}
+                        {editingId === grader.id ? (
+                          <input
+                            type="email"
+                            value={editEmail}
+                            onChange={(e) => setEditEmail(e.target.value)}
+                            className="w-48 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:bg-gray-600 dark:text-white"
+                          />
+                        ) : (
+                          grader.email
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         {editingId === grader.id ? (

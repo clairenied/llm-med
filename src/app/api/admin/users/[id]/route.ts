@@ -15,7 +15,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { role, firstName, lastName } = body;
+    const { role, firstName, lastName, email } = body;
 
     const { id } = await params;
 
@@ -25,6 +25,7 @@ export async function PATCH(
       firstName?: string | null;
       lastName?: string | null;
       name?: string | null;
+      email?: string;
     } = {};
 
     // Handle role update
@@ -41,6 +42,20 @@ export async function PATCH(
         );
       }
       updateData.role = role;
+    }
+
+    // Handle email update
+    if (email !== undefined) {
+      const trimmed = email.trim().toLowerCase();
+      if (!trimmed || !trimmed.includes("@")) {
+        return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+      }
+      // Check for duplicate email
+      const existing = await prisma.user.findUnique({ where: { email: trimmed } });
+      if (existing && existing.id !== id) {
+        return NextResponse.json({ error: "Email already in use by another user" }, { status: 409 });
+      }
+      updateData.email = trimmed;
     }
 
     // Handle name updates
