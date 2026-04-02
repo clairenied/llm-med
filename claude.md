@@ -247,6 +247,13 @@ The `llm-prompts/` directory contains prompts for generating AI peer reviews of 
 - **Schema fields**: `Manuscript.aiReview` (Json?) and `Manuscript.aiReviewGeneratedAt` (DateTime?)
 - **Batch script**: `dev-tools/batch-ai-reviews.ts` — generates AI reviews for all manuscripts, creates `Review` records with `AI_GENERATED` type
 - **Single test script**: `dev-tools/test-ai-review-single.ts` — generates one AI review for a given manuscript ID
+- **Known data assembly issue**: `batch-ai-reviews.ts` sends the abstract twice (once from `Manuscript.abstract`, once extracted from F1000 XML `<abstract>` tag). ~34 reviews had DeepSeek criticize this as a paper flaw; those comments have been cleaned from the database. The underlying double-send affects all 180 papers but DeepSeek only remarked on it in a subset.
+- **Post-processing applied to production DB**: (1) Stripped "Decision Calibration Rule" references from 56 reviews. (2) Fixed orphaned markdown asterisks/quotes. (3) Removed abstract-duplication criticism from 34 reviews.
+
+### Admin User Management
+
+- **`src/app/admin/users/page.tsx`** — Manage graders: invite, edit (name, email, role), delete, send emails, resend invitations
+- **`src/app/api/admin/users/[id]/route.ts`** — PATCH (edit name/email/role) and DELETE. Email updates validate format, normalize to lowercase, reject duplicates.
 
 ### AI Review Grading System (Stage 2)
 
