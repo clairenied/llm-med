@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Human Review Grading Charts</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #333; width: 900px; margin: 0 auto; padding: 30px 0; }
+  h1 { text-align: center; margin-bottom: 4px; font-size: 1.6rem; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 0.9rem; }
+  .stats { display: flex; gap: 20px; justify-content: center; margin-bottom: 24px; }
+  .stat { border: 2px solid #e5e7eb; border-radius: 10px; padding: 10px 30px; text-align: center; }
+  .stat .num { font-size: 1.8rem; font-weight: 700; color: #2563eb; }
+  .stat .label { font-size: 0.85rem; color: #666; }
+  .chart-img { display: block; margin: 0 auto 20px; }
+  .row { display: flex; gap: 0; justify-content: center; margin-bottom: 20px; }
+  .row img { flex-shrink: 0; }
+  .page-break { page-break-before: always; padding-top: 10px; }
+</style></head><body>
+<h1>Human Review Grading Analysis</h1>
+<p class="subtitle">Stage 1 grading data (excludes AI-generated reviews) — Feb 1 to Mar 27, 2026</p>
+<div class="stats">
+  <div class="stat"><div class="num">578</div><div class="label">Total Grades</div></div>
+  <div class="stat"><div class="num">13</div><div class="label">Graders</div></div>
+  <div class="stat"><div class="num">37</div><div class="label">Active Days</div></div>
+</div>
+<img class="chart-img" src="chart-images/1-grades-time.png" width="880">
+<img class="chart-img" src="chart-images/2-cumulative.png" width="880">
+<div class="row">
+  <img src="chart-images/3-grader-pie.png" width="440">
+  <img src="chart-images/4-grade-pie.png" width="440">
+</div>
+<div class="page-break"></div>
+<img class="chart-img" src="chart-images/5-category-bar.png" width="880">
+<div class="row">
+  <img src="chart-images/6-grade-no-na.png" width="440">
+  <img src="chart-images/7-grader-bar.png" width="440">
+</div>
+</body></html>

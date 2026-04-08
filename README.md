@@ -142,6 +142,23 @@ The system supports two grading stages, toggled by an admin setting:
 
 Both modes use the same rubric and require 2 independent grades per review. The admin dashboard toggle (`GRADING_MODE` setting) switches what graders see in their queue.
 
+## 📈 Grading Analytics
+
+Generate charts summarizing Stage 1 (human review) grading activity:
+
+```bash
+node generate-charts.js    # Renders chart PNGs + assembles HTML
+
+# Convert to PDF via Chrome headless
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless=new --disable-gpu --window-size=940,1200 \
+  --print-to-pdf=grading-charts.pdf --no-pdf-header-footer \
+  --print-to-pdf-no-header --run-all-compositor-stages-before-draw \
+  --virtual-time-budget=5000 grading-charts.html
+```
+
+Charts: grades over time, cumulative grades, grader distribution (pie), grade value distribution (pie/doughnut/stacked bar), grades per grader (bar).
+
 ## 🚀 Deployment
 
 See `docs/DEPLOYMENT.md` for complete deployment guide.
