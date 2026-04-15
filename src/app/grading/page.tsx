@@ -183,8 +183,9 @@ export default function GradingQueuePage() {
           <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to Grade</h3>
           {gradingMode === "AI" ? (
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-              <li>Each paper has one AI-generated review to grade</li>
-              <li>Use &quot;View Manuscript&quot; to read the full paper, then grade the AI review</li>
+              <li>You are evaluating the quality of an AI-generated peer review, not the paper itself</li>
+              <li>Read the AI review summary, then click &quot;Grade AI Review&quot; to score it using the rubric</li>
+              <li>Use &quot;View Manuscript&quot; only if you need to reference the original paper</li>
             </ul>
           ) : (
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
