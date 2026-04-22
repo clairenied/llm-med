@@ -154,7 +154,7 @@ export default function GradingQueuePage() {
               </div>
             ) : (
               <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg px-4 py-3 mb-6 text-green-800 dark:text-green-200 font-medium">
-                You&apos;re all caught up! Every review has at least 2 grades. You can still add optional grades below.
+                You&apos;re all caught up! You&apos;ve graded every review. You can still add optional grades below.
               </div>
             )}
           </>
