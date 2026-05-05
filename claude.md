@@ -272,6 +272,24 @@ The system supports two grading modes controlled by an admin toggle:
 - **Grading UI** — `src/app/grading/page.tsx` renders `AiReviewCard` (flat) in AI mode vs `ManuscriptCard` (expandable) in HUMAN mode. Detail page (`src/app/grading/[reviewId]/page.tsx`) renders AI review content as markdown.
 - **Stage 2 banner** — Desktop-only (`hidden md:block`) explainer banner on grading queue page in AI mode
 
+### Grading Analytics Charts
+
+- **`generate-charts.js`** — Node script that queries production DB for Stage 1 (human review) grading data and renders charts as PNGs using `chartjs-node-canvas`. Outputs to `chart-images/` directory and assembles `grading-charts.html`.
+- **`grading-charts.html`** — Static HTML page with pre-rendered chart images (no client-side JS needed). Chrome headless converts to `grading-charts.pdf`.
+- **Charts included**: Grades over time (bar), cumulative grades (line), grades by grader (pie), overall grade distribution (pie), grade distribution by category (stacked bar), grade distribution excluding N/A (doughnut), grades per grader (horizontal bar).
+- **Data scope**: 578 grades from 13 graders across 37 active days (Feb 1 – Mar 27, 2026). Excludes `AI_GENERATED` review grades.
+
+### Fine-Tuning Dataset Export
+
+Pipeline for producing anonymized JSONL datasets for collaborators fine-tuning a peer-review model. Output dir `dev-tools/export/` is **gitignored** (contains private anonymization maps + 23 MB of data); regenerate as needed.
+
+- **`dev-tools/export-for-finetuning.ts`** — Main export script. Flags: `--mode=full` (469 rows, every review of every revision) or `--mode=ai-version` (375 rows, only reviews of the version AI also reviewed — cleanest set for human-vs-AI comparison). Writes to `dev-tools/export/<mode>/`.
+- **`dev-tools/backfill-f1000-versions.ts`** — Fetches older F1000Research article versions and stores them as `f1000Document` rows keyed by versioned DOI. Needed because the DB originally cached only the latest version per manuscript, but reviews exist for every revision round (v1, v2, v3). Already run in production: 46 older versions backfilled across 38 manuscripts.
+- **DOI version derivation**: Two F1000 patterns are handled — old `10.12688/f1000research.X-Y.vN` and new `10.12688/f1000research.X.N`. The export script derives the versioned DOI per review (from the manuscript's stored DOI + `reviewedVersionNumber`) to look up the correct paper text in `f1000Document`. This avoids relying on `ManuscriptVersion.versionNumber`, which is mislabeled for 2 manuscripts where a single version row holds reviews of both v1 and v2.
+- **Per-row data**: paper text (abstract + body, tags stripped), review content, all human grades, anonymized `reviewer_NNN`/`grader_NNN` IDs. AI reviews tagged `type: AI_GENERATED`.
+- **Sharing**: zip up `<mode>/finetuning-data.jsonl` + `<mode>/README.md`. **Never share `anonymization-map.json`** — it re-identifies reviewers and graders.
+- **Counts at last export (2026-05-05)**: 180 manuscripts, 226 unique reviewers, 13 graders. Full dataset has reviews of v1 (213 human, 143 AI), v2 (60 human, 26 AI), v3 (16 human, 11 AI).
+
 ## Project Structure
 
 ```

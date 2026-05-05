@@ -176,3 +176,6 @@ scripts/vercel-*.log
 
 # Manuscript exports (data already in database)
 manuscript-exports/
+
+# Fine-tuning export output (anonymized data + private anonymization map)
+dev-tools/export/
