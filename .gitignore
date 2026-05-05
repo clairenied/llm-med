@@ -159,6 +159,7 @@ postgres_data/*
 !*test*.spec.*
 !*test*.test.*
 !vitest.config.ts
+!dev-tools/test-ai-review-single.ts
 production_backup.sql
 dev.log
 
@@ -179,3 +180,10 @@ manuscript-exports/
 
 # Fine-tuning export output (anonymized data + private anonymization map)
 dev-tools/export/
+
+# Production database dumps (sensitive)
+database-dumps/
+
+# macOS metadata
+.DS_Store
+**/.DS_Store
