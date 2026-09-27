@@ -286,6 +286,7 @@ async function main() {
           manuscript_id: m.id,
           title: m.title,
           abstract: m.abstract,
+          paper_summary: m.aiSummary,
           paper_text: paperText,
           paper_text_doi: paperTextDoi, // exact DOI the paper text came from
           paper_version_stored: paperVersionStored,
@@ -420,6 +421,7 @@ One JSONL file with ${opts.rowCount} rows. Each row is a single review (human or
   "manuscript_id": "string",
   "title": "string",
   "abstract": "string | null",
+  "paper_summary": "string | null",
   "paper_text": "string | null",
   "paper_text_doi": "string | null",
   "paper_version_stored": 1,
@@ -457,6 +459,7 @@ One JSONL file with ${opts.rowCount} rows. Each row is a single review (human or
 ### Field notes
 
 - **\`paper_text\`** — extracted from the F1000Research JATS XML for the **exact version** the review was written about (abstract + body, tags stripped).
+- **\`paper_summary\`** — the AI-generated manuscript summary shown to experts while grading the review. This is stored once per manuscript, so it is repeated on every review row for that manuscript.
 - **\`paper_text_doi\`** — the DOI of the paper version \`paper_text\` was extracted from. Useful for verification.
 - **\`review.reviewed_version\`** — which manuscript revision (1, 2, 3, ...) this review was written about.
 - **\`ai_reviewed_version\`** — the version of the manuscript that the AI reviewer saw and reviewed. In AI-version mode, every row's \`reviewed_version\` equals this.

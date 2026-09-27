@@ -286,9 +286,9 @@ Pipeline for producing anonymized JSONL datasets for collaborators fine-tuning a
 - **`dev-tools/export-for-finetuning.ts`** — Main export script. Flags: `--mode=full` (469 rows, every review of every revision) or `--mode=ai-version` (375 rows, only reviews of the version AI also reviewed — cleanest set for human-vs-AI comparison). Writes to `dev-tools/export/<mode>/`.
 - **`dev-tools/backfill-f1000-versions.ts`** — Fetches older F1000Research article versions and stores them as `f1000Document` rows keyed by versioned DOI. Needed because the DB originally cached only the latest version per manuscript, but reviews exist for every revision round (v1, v2, v3). Already run in production: 46 older versions backfilled across 38 manuscripts.
 - **DOI version derivation**: Two F1000 patterns are handled — old `10.12688/f1000research.X-Y.vN` and new `10.12688/f1000research.X.N`. The export script derives the versioned DOI per review (from the manuscript's stored DOI + `reviewedVersionNumber`) to look up the correct paper text in `f1000Document`. This avoids relying on `ManuscriptVersion.versionNumber`, which is mislabeled for 2 manuscripts where a single version row holds reviews of both v1 and v2.
-- **Per-row data**: paper text (abstract + body, tags stripped), review content, all human grades, anonymized `reviewer_NNN`/`grader_NNN` IDs. AI reviews tagged `type: AI_GENERATED`.
+- **Per-row data**: `paper_summary` (the manuscript-level AI summary shown to graders), paper text (abstract + body, tags stripped), review content, all human grades, and anonymized `reviewer_NNN`/`grader_NNN` IDs. The same summary is repeated for each review of a manuscript. AI reviews are tagged `type: AI_GENERATED`.
 - **Sharing**: zip up `<mode>/finetuning-data.jsonl` + `<mode>/README.md`. **Never share `anonymization-map.json`** — it re-identifies reviewers and graders.
-- **Counts at last export (2026-05-05)**: 180 manuscripts, 226 unique reviewers, 13 graders. Full dataset has reviews of v1 (213 human, 143 AI), v2 (60 human, 26 AI), v3 (16 human, 11 AI).
+- **Counts at last full export (2026-09-27)**: 469 reviews across 180 manuscripts (289 human, 180 AI), 226 unique reviewers, and 13 graders. All 469 rows have resolved paper text, grades, and a non-empty `paper_summary`.
 
 ## Project Structure
 
