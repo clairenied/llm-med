@@ -158,6 +158,7 @@ postgres_data/*
 *test*.ts
 !*test*.spec.*
 !*test*.test.*
+!tests/**/*.test.ts
 !vitest.config.ts
 !dev-tools/test-ai-review-single.ts
 production_backup.sql
@@ -177,6 +178,9 @@ scripts/vercel-*.log
 
 # Manuscript exports (data already in database)
 manuscript-exports/
+
+# Private production cleanup backups
+dev-tools/backups/
 
 # Fine-tuning export output (anonymized data + private anonymization map)
 dev-tools/export/

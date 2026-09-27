@@ -21,6 +21,7 @@
     "cleanup:fake-data": "tsx database-ops/cleanup-fake-data.ts",
     "cleanup:production": "tsx database-ops/cleanup-production-fake-data.ts",
     "cleanup:duplicates": "tsx database-ops/cleanup-duplicates.ts",
+    "cleanup:review-content": "tsx dev-tools/cleanup-review-content-duplicates.ts",
     "scrape:inngest": "curl -X POST http://localhost:3010/api/admin/scrape-inngest",
     "scrape:inngest:quick": "curl -X POST http://localhost:3010/api/admin/scrape-inngest -H 'Content-Type: application/json' -d '{\"maxPages\": 3}'",
     "deploy:production": "./database-ops/deploy-production.sh",

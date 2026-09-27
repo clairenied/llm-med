@@ -199,6 +199,7 @@ Password reset emails are handled by [Resend](https://resend.com). To enable ema
 ```bash
 npm run cleanup:fake-data      # Remove test data
 npm run cleanup:duplicates     # Remove duplicate records
+npm run cleanup:review-content # Dry-run duplicate review-content detection
 npm run scrape:bulk           # Import from F1000Research
 ```
 

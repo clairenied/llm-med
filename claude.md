@@ -153,6 +153,7 @@ curl -X POST "http://localhost:8288/e/llm-med" \
 ### Data Management Scripts
 - `cleanup-fake-data.ts` - Remove test data
 - `cleanup-duplicates.ts` - Deduplicate records
+- `dev-tools/cleanup-review-content-duplicates.ts` - Conservatively detect duplicated review-content suffixes. Defaults to a read-only production dry run; `--apply` writes a private JSONL backup and updates all selected rows in one transaction.
 - `fix-missing-authors.ts` - Repair author associations
 - `migrate-to-sources.ts` - Source model migration
 
